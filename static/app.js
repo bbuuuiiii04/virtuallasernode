@@ -127,17 +127,17 @@ es.onmessage = (e) => {
     console.error("Malformed SSE payload", err);
     return;
   }
-  d.universes = d.universes || {};
-  d.fixtures = d.fixtures || [];
-  d.decoded = d.decoded || [];
-  d.composed = d.composed || [];
+  const universes = d.universes && typeof d.universes === "object" ? d.universes : {};
+  const fixtures = Array.isArray(d.fixtures) ? d.fixtures : [];
+  const decoded = Array.isArray(d.decoded) ? d.decoded : [];
+  const composed = Array.isArray(d.composed) ? d.composed : [];
 
-  document.getElementById('nuni').textContent = Object.keys(d.universes).length;
+  document.getElementById('nuni').textContent = Object.keys(universes).length;
   document.getElementById('polls').textContent = d.polls || 0;
-  const renderState = d.composed.length ? d.composed : d.decoded;
-  laser.update(Array.isArray(renderState) ? renderState : []);
+  const renderState = composed.length ? composed : decoded;
+  laser.update(renderState);
   
-  if (d.decoded && Array.isArray(d.decoded)) { renderDecoded(d.decoded); }
+  if (decoded.length) { renderDecoded(decoded); }
   
   const diagEl = document.getElementById('diagnostics');
   if (d.fixture_models && d.fixture_models.length > 0) {
@@ -177,14 +177,14 @@ es.onmessage = (e) => {
     if (el) { el.textContent = 'model: unavailable'; el.style.background = '#444'; el.style.color = '#fff'; }
     if (diagEl) { diagEl.style.display = 'none'; }
   }
-  for (const u in d.universes) {
-    const us = d.universes[u];
+  for (const u in universes) {
+    const us = universes[u];
     drawUni(u, us.values || []);
     ensureUni(u).meta.textContent = 'fps ' + (us.fps || 0) + ' · src ' + (us.src || 'none') + ' · pkts ' + (us.pkts || 0);
   }
-  d.fixtures.forEach((f, i) => {
-    if (!f || !f.universe) return;
-    const vals = (d.universes[f.universe] || {}).values || [];
+  fixtures.forEach((f, i) => {
+    if (!f || f.universe == null) return;
+    const vals = (universes[f.universe] || {}).values || [];
     drawFx(f, i, vals);
   });
 };

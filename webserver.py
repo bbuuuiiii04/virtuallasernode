@@ -86,7 +86,16 @@ def _snapshot(node, fixture_model_cache=None):
             # Fallback cleanly so the SSE stream never dies
             log(f"[web] model adapter error: {e}")
             dec = decode_fixture(vals, f)
-            composed_models.append({"decoded": dec, "composed": dec})
+            composed_models.append({
+                "decoded": dec,
+                "composed": dec,
+                "fixture_model": {
+                    "model_status": "adapter_error",
+                    "confidence": "decoded_fallback",
+                    "unsupported": ["model_adapter_error"],
+                    "error": str(e)
+                }
+            })
 
     return {
         "universes": unis,

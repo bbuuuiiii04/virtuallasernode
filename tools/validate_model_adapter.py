@@ -24,9 +24,6 @@ def validate():
     for name, channels in cases:
         try:
             print(f"Testing {name}...")
-            result = compose_fixture_model(channels)
-            
-            
             # Check input list not mutated
             input_copy = list(channels)
             result = compose_fixture_model(channels)
@@ -38,8 +35,7 @@ def validate():
                 model = sanitize_model(load_fixture_model())
                 result_cached = compose_fixture_model(channels, model=model)
             except Exception as e:
-                print(f"  Warning: couldn't load/sanitize cache for test: {e}")
-                result_cached = result
+                raise AssertionError(f"Failed to load/sanitize cache: {e}")
             
             for test_result in (result, result_cached):
                 assert "decoded" in test_result, "Missing decoded"
