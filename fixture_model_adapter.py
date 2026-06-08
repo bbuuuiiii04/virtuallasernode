@@ -24,7 +24,7 @@ def load_fixture_model(path: Path = MODEL_PATH) -> dict[str, Any]:
         return json.load(fh)
 
 
-def _sanitize_model(model: dict[str, Any]) -> dict[str, Any]:
+def sanitize_model(model: dict[str, Any]) -> dict[str, Any]:
     """Sanitize dirty CV artifacts from the model in-memory."""
     s_model = copy.deepcopy(model)
     spatial_channels = ["CH6", "CH7", "CH15", "CH16", "CH17"]
@@ -34,13 +34,15 @@ def _sanitize_model(model: dict[str, Any]) -> dict[str, Any]:
                 if bank.get("behavior") == "color_animated":
                     # Re-classify as spatial based on its intent
                     bank["behavior"] = "position" if ch_name in ["CH6", "CH7", "CH15", "CH16"] else "zoom"
+    s_model["_sanitized"] = True
     return s_model
 
 
 def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str, Any] | None = None) -> dict[str, Any]:
     """Return decoded fixture state plus measured-model metadata."""
     model = model or load_fixture_model()
-    model = _sanitize_model(model)
+    if not model.get("_sanitized"):
+        model = sanitize_model(model)
     
     # TASK 1: Normalize channels
     norm_channels = []
@@ -110,6 +112,7 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
     
     composition_applied = []
     composition_missing = []
+    composition_supported = []
     
     for comp in model.get("interactions", {}).get("compositional", []):
         rule = comp.get("rule", "")
@@ -120,19 +123,28 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
             if composed["movement"]["h"]["mode"] == "position":
                 move_h = composed["movement"]["h"]["val"] / 127.0
                 composed["position"]["x"] = round(composed["position"]["x"] * move_h, 3)
-            composition_applied.append(f"CH6xCH15->{rule}")
+                composition_applied.append(f"CH6xCH15->{rule}")
+            else:
+                composition_supported.append(f"CH6xCH15->{rule}")
                 
         # Move -> Wave
         elif "CH15" in channels_involved and "CH19" in channels_involved and rule == "add":
             if composed["movement"]["h"]["mode"] == "position" and composed["waves"]["axis"] == "x":
                 composed["movement"]["h"]["val"] = min(127, composed["movement"]["h"]["val"] + composed["waves"]["speed"])
-            composition_applied.append(f"CH15xCH19->{rule}")
+                composition_applied.append(f"CH15xCH19->{rule}")
+            else:
+                composition_supported.append(f"CH15xCH19->{rule}")
                 
         # Color -> Gradient
         elif "CH8" in channels_involved and "CH18" in channels_involved and rule == "override_by_CH18":
             if composed["gradient"] > 0:
                 composed["color"]["mode"] = "gradient_override"
-            composition_applied.append(f"CH8xCH18->{rule}")
+                composition_applied.append(f"CH8xCH18->{rule}")
+            else:
+                composition_supported.append(f"CH8xCH18->{rule}")
+                
+        elif "CH8" in channels_involved and "CH9" in channels_involved:
+            composition_supported.append("CH8xCH9->handled_by_decoder")
             
         elif "CH7" in channels_involved and "CH16" in channels_involved:
             composition_missing.append({"channels": channels_involved, "reason": "insufficient_data"})
@@ -157,6 +169,7 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
             "composition": model.get("composition", {}),
             "composition_applied": composition_applied,
             "composition_missing": composition_missing,
+            "composition_supported": composition_supported,
             "gating_missing": gating_missing,
             "gating_partial": gating_partial,
             "unsupported": ["higher_order_validation_pending", "118_dense_missing", "ch7x16_missing"],

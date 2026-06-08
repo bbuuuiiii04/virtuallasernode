@@ -120,17 +120,28 @@ es.onerror = () => {
   document.getElementById('conn').textContent = 'reconnecting…';
 };
 es.onmessage = (e) => {
-  const d = JSON.parse(e.data);
+  let d = {};
+  try {
+    d = JSON.parse(e.data);
+  } catch (err) {
+    console.error("Malformed SSE payload", err);
+    return;
+  }
+  d.universes = d.universes || {};
+  d.fixtures = d.fixtures || [];
+  d.decoded = d.decoded || [];
+  d.composed = d.composed || [];
+
   document.getElementById('nuni').textContent = Object.keys(d.universes).length;
-  document.getElementById('polls').textContent = d.polls;
-  const renderState = d.composed || d.decoded || [];
-  laser.update(renderState);
+  document.getElementById('polls').textContent = d.polls || 0;
+  const renderState = d.composed.length ? d.composed : d.decoded;
+  laser.update(Array.isArray(renderState) ? renderState : []);
   
-  if (d.decoded) { renderDecoded(d.decoded); }
+  if (d.decoded && Array.isArray(d.decoded)) { renderDecoded(d.decoded); }
   
   const diagEl = document.getElementById('diagnostics');
   if (d.fixture_models && d.fixture_models.length > 0) {
-    const fm = d.fixture_models[0];
+    const fm = d.fixture_models[0] || {};
     const conf = fm.confidence;
     const el = document.getElementById('confidence');
     if (el) {
@@ -142,13 +153,24 @@ es.onmessage = (e) => {
     }
     if (diagEl) {
         diagEl.style.display = 'block';
-        diagEl.innerHTML = `
-            <div style="margin-bottom:4px"><b>Unsupported:</b> ${(fm.unsupported || []).join(', ') || 'None'}</div>
-            <div style="margin-bottom:4px"><b>Coverage:</b> ${JSON.stringify(fm.coverage || {})}</div>
-            <div style="margin-bottom:4px"><b>Composition Applied:</b> ${(fm.composition_applied || []).join(', ') || 'None'}</div>
-            <div style="margin-bottom:4px"><b>Composition Missing:</b> ${JSON.stringify(fm.composition_missing || [])}</div>
-            <div><b>Gating Missing/Partial:</b> ${(fm.gating_missing || []).join(', ')} / ${(fm.gating_partial || []).join(', ')}</div>
-        `;
+        diagEl.textContent = '';
+        const appendLine = (label, value) => {
+            const div = document.createElement('div');
+            div.style.marginBottom = '4px';
+            const b = document.createElement('b');
+            b.textContent = label + ': ';
+            div.appendChild(b);
+            const span = document.createElement('span');
+            span.textContent = value;
+            div.appendChild(span);
+            diagEl.appendChild(div);
+        };
+        appendLine('Unsupported', (fm.unsupported || []).join(', ') || 'None');
+        appendLine('Coverage', JSON.stringify(fm.coverage || {}));
+        appendLine('Composition Applied', (fm.composition_applied || []).join(', ') || 'None');
+        appendLine('Composition Supported', (fm.composition_supported || []).join(', ') || 'None');
+        appendLine('Composition Missing', JSON.stringify(fm.composition_missing || []));
+        appendLine('Gating Missing/Partial', (fm.gating_missing || []).join(', ') + ' / ' + (fm.gating_partial || []).join(', '));
     }
   } else {
     const el = document.getElementById('confidence');
@@ -157,11 +179,12 @@ es.onmessage = (e) => {
   }
   for (const u in d.universes) {
     const us = d.universes[u];
-    drawUni(u, us.values);
-    ensureUni(u).meta.textContent = 'fps ' + us.fps + ' · src ' + us.src + ' · pkts ' + us.pkts;
+    drawUni(u, us.values || []);
+    ensureUni(u).meta.textContent = 'fps ' + (us.fps || 0) + ' · src ' + (us.src || 'none') + ' · pkts ' + (us.pkts || 0);
   }
   d.fixtures.forEach((f, i) => {
-    const vals = (d.universes[f.universe] || {}).values;
-    if (vals) drawFx(f, i, vals);
+    if (!f || !f.universe) return;
+    const vals = (d.universes[f.universe] || {}).values || [];
+    drawFx(f, i, vals);
   });
 };

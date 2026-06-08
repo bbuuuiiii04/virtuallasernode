@@ -34,7 +34,7 @@ STATIC_ROUTES = {
 }
 
 
-from .fixture_model_adapter import compose_fixture_model, load_fixture_model
+from .fixture_model_adapter import compose_fixture_model, load_fixture_model, sanitize_model
 
 def _snapshot(node, fixture_model_cache=None):
     """JSON-serializable snapshot of all universes + the fixture patch.
@@ -61,6 +61,20 @@ def _snapshot(node, fixture_model_cache=None):
         vals = uni_vals.get(f["universe"], [0] * 512)
         start = f["start"] - 1
         ch_list = vals[start:start+f["count"]]
+        
+        if fixture_model_cache is None:
+            dec = decode_fixture(vals, f)
+            composed_models.append({
+                "decoded": dec,
+                "composed": dec,
+                "fixture_model": {
+                    "model_status": "unavailable",
+                    "confidence": "decoded_fallback",
+                    "unsupported": ["model_load_failed"]
+                }
+            })
+            continue
+
         try:
             model = compose_fixture_model(ch_list, model=fixture_model_cache)
             model["composed"]["name"] = f["name"]
@@ -98,7 +112,7 @@ class SnapshotProducer:
         self._frame = None   # latest "data: {...}\n\n" bytes
         self._seq = 0
         try:
-            self._fixture_model_cache = load_fixture_model()
+            self._fixture_model_cache = sanitize_model(load_fixture_model())
         except Exception as e:
             log(f"[web] failed to load fixture_model.json: {e}")
             self._fixture_model_cache = None

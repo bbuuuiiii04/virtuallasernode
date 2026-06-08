@@ -17,6 +17,8 @@ def validate():
         ("Empty list", []),
         ("All zeros", [0] * 36),
         ("All 255s", [255] * 36),
+        ("Bad values", [300, -10, "bad", None]),
+        ("Extra long", [0] * 100),
     ]
 
     for name, channels in cases:
@@ -24,14 +26,33 @@ def validate():
             print(f"Testing {name}...")
             result = compose_fixture_model(channels)
             
-            assert "decoded" in result, "Missing decoded"
-            assert "composed" in result, "Missing composed"
-            assert "fixture_model" in result, "Missing fixture_model"
             
-            fm = result["fixture_model"]
-            assert "confidence" in fm, "Missing confidence"
-            assert "unsupported" in fm, "Missing unsupported"
-            assert "coverage" in fm, "Missing coverage"
+            # Check input list not mutated
+            input_copy = list(channels)
+            result = compose_fixture_model(channels)
+            assert channels == input_copy, "Input list was mutated"
+            
+            # Test cached model passed in
+            try:
+                from fixture_model_adapter import load_fixture_model, sanitize_model
+                model = sanitize_model(load_fixture_model())
+                result_cached = compose_fixture_model(channels, model=model)
+            except Exception as e:
+                print(f"  Warning: couldn't load/sanitize cache for test: {e}")
+                result_cached = result
+            
+            for test_result in (result, result_cached):
+                assert "decoded" in test_result, "Missing decoded"
+                assert "composed" in test_result, "Missing composed"
+                assert "fixture_model" in test_result, "Missing fixture_model"
+                
+                fm = test_result["fixture_model"]
+                assert "confidence" in fm, "Missing confidence"
+                assert "unsupported" in fm, "Missing unsupported"
+                assert "coverage" in fm, "Missing coverage"
+                assert "composition_applied" in fm, "Missing composition_applied"
+                assert "composition_missing" in fm, "Missing composition_missing"
+                assert "gating_partial" in fm, "Missing gating_partial"
             
             # Check JSON serialization (like the webserver snapshot does)
             json.dumps(result)
