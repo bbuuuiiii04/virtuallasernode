@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>VirtualLaserNode — Channel Inspector</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>◢ VirtualLaserNode</h1>
+  <span class="stat"><span id="dot" class="dot"></span><span id="conn">connecting…</span></span>
+  <span class="stat">universes <b id="nuni">0</b></span>
+  <span class="stat">polls <b id="polls">0</b></span>
+</header>
+<section>
+  <h2>Laser render</h2>
+  <canvas id="stage"></canvas>
+  <h2 style="margin-top:18px">Decoded fixture state (36CH)</h2>
+  <div id="decoded" class="fixtures"></div>
+  <h2 style="margin-top:18px">Universes — raw 512 channels (brighter = higher value)</h2>
+  <div id="unis"></div>
+  <h2 style="margin-top:18px">Fixture patch — raw channels</h2>
+  <div id="fixtures" class="fixtures"></div>
+</section>
+<script src="renderer.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

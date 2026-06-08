@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "channels": {
+      "type": "object"
+    },
+    "composition": {
+      "required": [
+        "evaluation_order",
+        "gate_evaluation",
+        "default_combination",
+        "operand_space"
+      ],
+      "type": "object"
+    },
+    "interactions": {
+      "required": [
+        "gating",
+        "compositional",
+        "independent",
+        "higher_order"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": 1
+    }
+  },
+  "required": [
+    "fixture",
+    "schema_version",
+    "model_version",
+    "model_status",
+    "method",
+    "channels",
+    "interactions",
+    "composition",
+    "validation"
+  ],
+  "type": "object"
+}

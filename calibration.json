@@ -1,0 +1,86 @@
+{
+  "_doc": "VirtualLaserNode calibration parameters. Single source of truth for the renderer's tunable constants (movement rates, beam-fan geometry, beam look) and the decoder's calibrated colour order + position blank window. Edit values here and hard-refresh the browser (Cmd+Shift+R) to retune the preview WITHOUT touching code. Every value below equals the constant it replaced, so a fresh checkout renders identically. The renderer overlays this file on its built-in DEFAULTS; any key you omit keeps its default. USER PRIORITY = movement fidelity: rates.* and geometry.{panGain,vShiftGain,inwardLean,spreadAngGain} are the movement/aim knobs.",
+
+  "rates": {
+    "spinRps": 0.28,
+    "spinAngleMax": 3.141592653589793,
+    "sweepMinHz": 0.08,
+    "sweepMaxHz": 0.9,
+    "strobeHz": 16,
+    "colorHue": 30,
+    "rotPitchYawRps": 0.16
+  },
+
+  "timing": {
+    "renderBehindMs": 50,
+    "trailFade": 0.38
+  },
+
+  "geometry": {
+    "sourceYFrac": 0.82,
+    "scaleFrac": 0.56,
+    "fixGapFrac": 0.17,
+    "apGapFrac": 0.085,
+    "inwardLean": 0.10,
+    "spreadAngGain": 1.35,
+    "spreadAngMax": 2.0,
+        "panGain": -0.32,
+    "vShiftGain": 0.70,
+    "squashMax": 0.6,
+    "aimXBlank": 0.95,
+    "aimYBlank": 0.50
+  },
+
+  "beam": {
+    "halo": 3.4,
+    "mid": 1.5,
+    "core": 0.75,
+    "srcGlow": 10,
+    "coreWhiteBoost": 28,
+    "srcGlowBoost": 60
+  },
+
+  "zoom": {
+        "min": 0.28,
+        "range": 0.32
+  },
+
+  "dynamic": {
+    "spinRate": 0.7,
+    "aimXRate": 0.4,
+    "aimXAmp": 0.18,
+    "spread": 1.2,
+    "count": 7,
+    "colorBase": 235,
+    "colorSpread": 4,
+    "colorRate": 2
+  },
+
+  "patternShape": {
+    "folder1": { "n": 6, "spread": 1.0 },
+    "folder2": { "n": 4, "spread": 0.7 },
+    "folder3": { "n": 8, "spread": 1.05 },
+    "folder4": { "n": 12, "spread": 1.25 },
+    "animation": { "n": 8, "spread": 1.1 }
+  },
+
+  "color": {
+    "gradientSpreadBase": 6,
+    "gradientSpreadRange": 26,
+    "sevenColors": [
+      [255, 255, 255],
+      [255, 0, 0],
+      [255, 255, 0],
+      [0, 255, 0],
+      [0, 255, 255],
+      [0, 0, 255],
+      [255, 0, 255]
+    ],
+    "sevenColorNames": ["white", "red", "yellow", "green", "cyan", "blue", "magenta"]
+  },
+
+  "position": {
+    "blankLow": 50,
+    "blankHigh": 254
+  }
+}
