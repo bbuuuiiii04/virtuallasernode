@@ -9164,7 +9164,7 @@
   },
   "method": {
     "analysis_fps": 30,
-    "analysis_timestamp": "2026-06-08T15:05:23",
+    "analysis_timestamp": "2026-06-08T15:53:16",
     "base_dependence_gate": {
       "base_dependence_rule": "base-dependent if >=2 of 7 probe channels deviate >25% across bases",
       "base_dependent_probe_count": 7,
