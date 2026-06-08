@@ -126,6 +126,7 @@ class Case:
     baseline: str = "base_CH3_032_CH4_010"
     changed_channels: dict[int, int] = field(default_factory=dict)
     expected: str = ""
+    intent: str = ""
 
     @property
     def rel_dir(self) -> Path:
@@ -1510,7 +1511,7 @@ def capture_one(case: Case) -> dict[str, Any]:
     metadata["fps_recovery_events"] = fps_recovery_events
     write_json(metadata_path, metadata)
     write_json(analysis_path, last_analysis)
-    row = {**metadata, "analysis": {k: last_analysis.get(k) for k in ("motion_type", "motion_direction", "motion_direction_confidence", "motion_direction_source", "motion_signed_slope_per_second", "loop_duration_estimate", "loop_confidence", "blank", "usable_evidence", "actual_fps", "fps30", "fps_history", "fps_recovery_events", "expected_blank", "blank_zone_observed", "blank_observation_reason", "geometry_clipped_low", "clipped_roi_bottom_any", "quality_flags", "recapture_pending", "recapture_pending_reason", "lowfps_30_ok")}, "folder": str(case.rel_dir)}
+    row = {**metadata, "intent": case.intent, "analysis": {k: last_analysis.get(k) for k in ("motion_type", "motion_direction", "motion_direction_confidence", "motion_direction_source", "motion_signed_slope_per_second", "loop_duration_estimate", "loop_confidence", "blank", "usable_evidence", "actual_fps", "fps30", "fps_history", "fps_recovery_events", "expected_blank", "blank_zone_observed", "blank_observation_reason", "geometry_clipped_low", "clipped_roi_bottom_any", "quality_flags", "recapture_pending", "recapture_pending_reason", "lowfps_30_ok")}, "folder": str(case.rel_dir)}
     append_jsonl(MANIFEST, row)
     checkpoint(case.phase, "capture_completed", {"last_capture": case.test_id, "capture_count": existing_capture_count(), "running_total": existing_capture_count(), "run_stats": RUN_STATS})
     return row

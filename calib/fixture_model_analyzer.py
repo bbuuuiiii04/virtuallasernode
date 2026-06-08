@@ -357,9 +357,9 @@ def _classify_bank_behavior(ch: int, lo: int, hi: int, dominant_motion: str, poi
     return "measured_mixed"
 
 
-def _build_property_maps(points: list[tuple[int, dict[str, Any]]], ch: int, behavior: str) -> dict[str, list[list[float]]]:
+def _build_property_maps(points: list[tuple[int, dict[str, Any]]], ch: int, behavior: str) -> dict[str, list[list[Any]]]:
     """Build sampled property curves from data points."""
-    maps: dict[str, list[list[float]]] = {}
+    maps: dict[str, list[list[Any]]] = {}
 
     if behavior in ("angle_pose", "position", "size"):
         # Spatial metric as a function of DMX value
@@ -440,7 +440,7 @@ def _extract_direction(points: list[tuple[int, dict[str, Any]]], behavior: str) 
     if behavior not in ("spin", "sweep", "position", "angle_pose", "wave", "zoom_pulse"):
         return None
 
-    directions = Counter()
+    directions: Counter[str] = Counter()
     for _, m in points:
         d = m.get("motion_direction")
         conf = float(m.get("motion_direction_confidence", 0))
@@ -479,12 +479,45 @@ def _bank_confidence(points: list[tuple[int, dict[str, Any]]], blank_count: int,
 
 
 def _auto_detect_banks(points: list[tuple[int, dict[str, Any]]], ch: int) -> list[dict[str, Any]]:
-    """Auto-detect banks when no known boundaries exist."""
+    """Auto-detect banks recursively by looking for behavioral discontinuities."""
     if not points:
         return []
-    # Treat entire range as one bank and characterize it
+    
     lo = min(v for v, _ in points)
     hi = max(v for v, _ in points)
+    
+    if len(points) < 3:
+        return [_characterize_bank(points, lo, hi, ch)]
+
+    points_sorted = sorted(points, key=lambda p: p[0])
+    
+    behavior_type = CHANNEL_BEHAVIOR_TYPES.get(ch, "unknown")
+    metric_key = _spatial_metric_for(ch, behavior_type)
+    if behavior_type in ("spin", "sweep", "zoom_pulse", "wave"):
+        metric_key = "loop_duration_estimate"
+        
+    for i in range(1, len(points_sorted) - 1):
+        v_prev, m_prev = points_sorted[i-1]
+        v_curr, m_curr = points_sorted[i]
+        
+        # Split on categorical motion_type change
+        mot_prev = m_prev.get("motion_type", "static")
+        mot_curr = m_curr.get("motion_type", "static")
+        if not m_prev.get("blank") and not m_curr.get("blank") and mot_prev != mot_curr and mot_curr != "unknown" and mot_prev != "unknown":
+            left_points = points_sorted[:i]
+            right_points = points_sorted[i:]
+            return _auto_detect_banks(left_points, ch) + _auto_detect_banks(right_points, ch)
+            
+        # Split on large continuous jump (> 100% relative jump)
+        val_prev = _extract_metric(m_prev, metric_key)
+        val_curr = _extract_metric(m_curr, metric_key)
+        
+        if val_prev is not None and val_curr is not None and not m_prev.get("blank") and not m_curr.get("blank"):
+            if val_prev > 0.05 and abs(val_curr - val_prev) / val_prev > 1.0:
+                left_points = points_sorted[:i]
+                right_points = points_sorted[i:]
+                return _auto_detect_banks(left_points, ch) + _auto_detect_banks(right_points, ch)
+
     return [_characterize_bank(points, lo, hi, ch)]
 
 
@@ -852,7 +885,7 @@ def stage4(index: CaptureIndex) -> list[dict[str, Any]]:
     phase2_rows = index.by_phase.get("phase2_gating", [])
 
     # CH1 → all gate
-    ch1_enables = [r for r in phase2_rows if "gate_CH01_enables_all" in r.get("folder", "")]
+    ch1_enables = [r for r in phase2_rows if r.get("intent") == "gate_CH1_all"]
     ch1_off = [r for r in ch1_enables if (r.get("ch1_19") or {}).get("CH1") == 0]
     ch1_on = [r for r in ch1_enables if (r.get("ch1_19") or {}).get("CH1") and int((r.get("ch1_19") or {}).get("CH1", 0)) > 0]
     off_blank = all(index.get_analysis(r).get("blank") for r in ch1_off) if ch1_off else False
@@ -870,7 +903,7 @@ def stage4(index: CaptureIndex) -> list[dict[str, Any]]:
         print(f"  CH1 → all: UNRESOLVED (off_blank={off_blank}, on_visible={on_visible})")
 
     # CH3 static/dynamic split
-    ch3_split = [r for r in phase2_rows if "gate_CH03_static_dynamic_split" in r.get("folder", "")]
+    ch3_split = [r for r in phase2_rows if r.get("intent") == "gate_CH3_split"]
     if len(ch3_split) >= 2:
         gates.append({
             "gate": {"channel": "CH3", "op": "kind_eq", "value": "static"},
@@ -882,7 +915,7 @@ def stage4(index: CaptureIndex) -> list[dict[str, Any]]:
         print("  CH3 static/dynamic: CONFIRMED")
 
     # CH8 → CH9 gate
-    ch8_ch9 = [r for r in phase2_rows if "gate_CH08_enables_CH09" in r.get("folder", "")]
+    ch8_ch9 = [r for r in phase2_rows if r.get("intent") == "gate_CH8_CH9"]
     ch9_active_ranges = []
     ch9_inactive_ranges = []
     for row in ch8_ch9:
@@ -914,7 +947,7 @@ def stage4(index: CaptureIndex) -> list[dict[str, Any]]:
         print(f"  CH8 → CH9: UNRESOLVED")
 
     # CH8 ↔ CH18 NOT a gate
-    ch8_ch18 = [r for r in phase2_rows if "not_gate_CH08_CH18" in r.get("folder", "")]
+    ch8_ch18 = [r for r in phase2_rows if r.get("intent") == "not_gate_CH8_CH18"]
     ch18_at_ch8_0 = [r for r in ch8_ch18 if int((r.get("ch1_19") or {}).get("CH8", 0)) == 0]
     ch18_active_at_0 = any(not index.get_analysis(r).get("blank") for r in ch18_at_ch8_0)
     if ch18_active_at_0:
@@ -923,7 +956,7 @@ def stage4(index: CaptureIndex) -> list[dict[str, Any]]:
         print("  CH8 ↔ CH18: needs investigation (CH18 blank at CH8=0)")
 
     # CH3+CH4 → shape
-    ch3_ch4_shape = [r for r in phase2_rows if "gate_CH03_CH04_shape" in r.get("folder", "")]
+    ch3_ch4_shape = [r for r in phase2_rows if r.get("intent") == "gate_CH3_CH4_shape"]
     if ch3_ch4_shape:
         gates.append({
             "gate": {"channel": "CH3+CH4", "op": "selects", "value": "base_look"},
@@ -941,13 +974,13 @@ def stage4(index: CaptureIndex) -> list[dict[str, Any]]:
 # Stage 5: Derive Composition Rules
 # ---------------------------------------------------------------------------
 
-def analyze_composition_group(index: CaptureIndex, group_name: str,
+def analyze_composition_group(index: CaptureIndex, intent_name: str,
                               ch_a: int, ch_b: int,
                               metric_key: str) -> dict[str, Any]:
     """Analyze a 2-channel compositional grid to determine the combination rule."""
     group_rows = [
         r for r in index.by_phase.get("phase3_composition", [])
-        if group_name in r.get("folder", "")
+        if r.get("intent") == intent_name
     ]
 
     # Group by base
@@ -1070,20 +1103,20 @@ def stage5(index: CaptureIndex) -> list[dict[str, Any]]:
     compositional: list[dict[str, Any]] = []
 
     groups = [
-        ("group_colour_CH8xCH9", 8, 9, "brightness_cv"),
-        ("group_colour_CH8xCH18", 8, 18, "brightness_cv"),
-        ("group_translate_CH6xCH15", 6, 15, "x_range"),
-        ("group_translate_CH7xCH16", 7, 16, "y_range"),
-        ("group_scale_CH5xCH17", 5, 17, "area_range_frac"),
-        ("group_rotation_move_CH12xCH15", 12, 15, "angle_range_deg"),
-        ("group_move_wave_CH15xCH19", 15, 19, "x_range"),
+        ("composition_colour_CH8xCH9", 8, 9, "brightness_cv"),
+        ("composition_colour_CH8xCH18", 8, 18, "brightness_cv"),
+        ("composition_translate_CH6xCH15", 6, 15, "x_range"),
+        ("composition_translate_CH7xCH16", 7, 16, "y_range"),
+        ("composition_scale_CH5xCH17", 5, 17, "area_range_frac"),
+        ("composition_rotation_move_CH12xCH15", 12, 15, "angle_range_deg"),
+        ("composition_move_wave_CH15xCH19", 15, 19, "x_range"),
     ]
 
-    for group_name, ch_a, ch_b, metric in groups:
-        print(f"  Analyzing {group_name}...")
-        result = analyze_composition_group(index, group_name, ch_a, ch_b, metric)
+    for intent_name, ch_a, ch_b, metric in groups:
+        print(f"  Analyzing {intent_name}...")
+        result = analyze_composition_group(index, intent_name, ch_a, ch_b, metric)
         compositional.append({
-            "group": group_name.replace("group_", ""),
+            "group": intent_name.replace("composition_", ""),
             "channels": [f"CH{ch_a}", f"CH{ch_b}"],
             "rule": result["rule"],
             "operand_space": "transfer_output",
@@ -1097,7 +1130,7 @@ def stage5(index: CaptureIndex) -> list[dict[str, Any]]:
 
     # Orientation triple: CH12 x CH13 x CH14
     orient_rows = [r for r in index.by_phase.get("phase3_composition", [])
-                   if "orientation_CH12xCH13xCH14" in r.get("folder", "")]
+                   if r.get("intent") == "composition_orientation_CH12xCH13xCH14"]
     if orient_rows:
         compositional.append({
             "group": "orientation_CH12xCH13xCH14",
@@ -1135,10 +1168,10 @@ def stage6(index: CaptureIndex) -> list[dict[str, Any]]:
         ("independent_CH19xCH08", 19, 8),
     ]
 
-    for pair_name, ch_a, ch_b in pairs:
-        pair_rows = [r for r in phase4_rows if pair_name in r.get("folder", "")]
+    for intent_name, ch_a, ch_b in pairs:
+        pair_rows = [r for r in phase4_rows if r.get("intent") == intent_name]
         if not pair_rows:
-            print(f"  {pair_name}: NO DATA")
+            print(f"  {intent_name}: NO DATA")
             continue
 
         # Check each diagonal capture for independence
@@ -1157,7 +1190,7 @@ def stage6(index: CaptureIndex) -> list[dict[str, Any]]:
             "evidence": [r.get("folder", "") for r in pair_rows[:3]],
         })
         status = "CONFIRMED" if confirmed else "UNRESOLVED"
-        print(f"  {pair_name}: {status} ({len(pair_rows)} captures, {blank_count} blanks)")
+        print(f"  {intent_name}: {status} ({len(pair_rows)} captures, {blank_count} blanks)")
 
     print(f"  Total independence pairs: {len(independent)}")
     return independent
@@ -1581,7 +1614,7 @@ def main() -> None:
         independent = stage6(index)
 
     # Stage 7: Assemble model
-    model: dict[str, Any] = {}
+    assembled_model: dict[str, Any] = {}
     if run_all or args.stage == 7:
         if not channels:
             channels, base_looks, geometry_precision = stage2(index)
@@ -1593,16 +1626,16 @@ def main() -> None:
             compositional = stage5(index)
         if not independent:
             independent = stage6(index)
-        model = stage7(channels, base_looks, geometry_precision, base_dep_result,
+        assembled_model = stage7(channels, base_looks, geometry_precision, base_dep_result,
                        gates, compositional, independent)
 
     # Stage 8: Schema, docs, cross-check
     if run_all or args.stage == 8:
-        if not model:
-            model = load_json(MODEL_PATH, {})
+        if not assembled_model:
+            assembled_model = load_json(MODEL_PATH, {})
         write_schema()
-        cross_check = cross_check_fixtures(model)
-        write_assembly_doc(model, base_dep_result, cross_check, geometry_precision)
+        cross_check = cross_check_fixtures(assembled_model)
+        write_assembly_doc(assembled_model, base_dep_result, cross_check, geometry_precision)
 
     if run_all:
         print("\n" + "=" * 60)

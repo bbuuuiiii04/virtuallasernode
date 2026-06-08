@@ -5,6 +5,7 @@ decode_36ch() contract consumed by the renderer.
 """
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 from typing import Any
@@ -27,7 +28,7 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
     depending on any new field names inside decode_36ch().
     """
     model = model or load_fixture_model()
-    decoded = decode_36ch(list(channels))
+    decoded = decode_36ch(lambda n: channels[n - 1])
     ch = {f"CH{i + 1}": int(v) for i, v in enumerate(channels[:19])}
     gate_flags = []
     for gate in model.get("interactions", {}).get("gating", []):
@@ -44,8 +45,47 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
             or (op == "lte" and val <= int(predicate.get("value", 255)))
         )
         gate_flags.append({"gate": gate, "active": active})
+
+    composed = copy.deepcopy(decoded)
+    
+    # 1. Apply gating masks
+    for g in gate_flags:
+        if not g["active"]:
+            enables = g["gate"].get("enables", "")
+            if enables == "all":
+                composed["power"] = False
+                composed["dimmer"] = 0.0
+            elif enables == "CH9":
+                composed["color"]["speed"] = "off"
+                composed["color"]["animated"] = False
+            elif enables == "CH5-CH19 static pattern modifiers":
+                composed["zoom"]["mode"] = "off"
+                composed["rotation"]["z"]["mode"] = "off"
+
+    # 2. Apply composition rules
+    for comp in model.get("interactions", {}).get("compositional", []):
+        rule = comp.get("rule", "")
+        channels_involved = comp.get("channels", [])
+        
+        # CH6 x CH15 (translation) -> multiply
+        if "CH6" in channels_involved and "CH15" in channels_involved and rule == "multiply":
+            if composed["movement"]["h"]["mode"] == "position":
+                move_h = composed["movement"]["h"]["val"] / 127.0
+                composed["position"]["x"] = round(composed["position"]["x"] * move_h, 3)
+                
+        # CH15 x CH19 (movement + wave) -> add
+        if "CH15" in channels_involved and "CH19" in channels_involved and rule == "add":
+            if composed["movement"]["h"]["mode"] == "position" and composed["waves"]["axis"] == "x":
+                composed["movement"]["h"]["val"] = min(127, composed["movement"]["h"]["val"] + composed["waves"]["speed"])
+                
+        # CH8 x CH18 (color + gradient) -> override by CH18
+        if "CH8" in channels_involved and "CH18" in channels_involved and rule == "override_by_CH18":
+            if composed["gradient"] > 0:
+                composed["color"]["mode"] = "gradient_override"
+
     return {
         "decoded": decoded,
+        "composed": composed,
         "fixture_model": {
             "model_version": model.get("model_version"),
             "model_status": model.get("model_status"),

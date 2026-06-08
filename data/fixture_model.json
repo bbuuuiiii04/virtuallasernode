@@ -5650,26 +5650,50 @@
     "CH18": {
       "banks": [
         {
-          "behavior": "color_animated",
-          "confidence": "high",
+          "behavior": "off",
+          "confidence": "low",
           "evidence": [
-            "phase1_single_channel/CH18_gradient/CH18_000",
-            "phase1_single_channel/CH18_gradient/CH18_004",
-            "phase1_single_channel/CH18_gradient/CH18_008",
-            "phase1_single_channel/CH18_gradient/CH18_012",
-            "phase1_single_channel/CH18_gradient/CH18_016"
+            "phase1_single_channel/CH18_gradient/CH18_000"
+          ],
+          "interpolation": "step",
+          "range": [
+            0,
+            0
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH18_gradient/CH18_004"
           ],
           "interpolation": "step",
           "maps": {
             "color": [
               [
-                0,
-                "cyan,white"
-              ],
-              [
                 4,
                 "cyan,white"
-              ],
+              ]
+            ]
+          },
+          "range": [
+            4,
+            4
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH18_gradient/CH18_008",
+            "phase1_single_channel/CH18_gradient/CH18_012",
+            "phase1_single_channel/CH18_gradient/CH18_016",
+            "phase1_single_channel/CH18_gradient/CH18_020",
+            "phase1_single_channel/CH18_gradient/CH18_024"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 8,
                 "cyan,white"
@@ -5925,15 +5949,20 @@
             ]
           },
           "range": [
-            0,
+            8,
             255
           ]
         }
       ],
       "base_dependence": "base_dependent",
       "blank_zones": [],
-      "breakpoints": [],
-      "confidence": "high",
+      "breakpoints": [
+        1,
+        4,
+        5,
+        8
+      ],
+      "confidence": "medium",
       "evidence": [
         "phase1_single_channel/CH18_gradient/CH18_000",
         "phase1_single_channel/CH18_gradient/CH18_004",
@@ -6288,7 +6317,6 @@
       "banks": [
         {
           "behavior": "size",
-          "blank_count": 2,
           "confidence": "high",
           "evidence": [
             "phase1_single_channel/CH05_pattern_size/CH05_000",
@@ -6387,67 +6415,137 @@
               [
                 84,
                 0.423
-              ],
+              ]
+            ]
+          },
+          "range": [
+            0,
+            84
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH05_pattern_size/CH05_088",
+            "phase1_single_channel/CH05_pattern_size/CH05_092"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 88,
-                0.201
+                "cyan,white"
               ],
               [
                 92,
-                0.362
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            88,
+            92
+          ]
+        },
+        {
+          "behavior": "size",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH05_pattern_size/CH05_096"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "area_range_frac": [
               [
                 96,
                 0.371
-              ],
+              ]
+            ]
+          },
+          "range": [
+            96,
+            96
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH05_pattern_size/CH05_100",
+            "phase1_single_channel/CH05_pattern_size/CH05_104",
+            "phase1_single_channel/CH05_pattern_size/CH05_108",
+            "phase1_single_channel/CH05_pattern_size/CH05_112",
+            "phase1_single_channel/CH05_pattern_size/CH05_116"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 100,
-                0.197
+                "cyan,white"
               ],
               [
                 104,
-                0.277
+                "cyan,white"
               ],
               [
                 108,
-                0.242
+                "cyan,white"
               ],
               [
                 112,
-                0.214
+                "cyan,white"
               ],
               [
                 116,
-                0.351
+                "cyan,white"
               ],
               [
                 120,
-                0.228
+                "cyan,white"
               ],
               [
                 124,
-                0.23
+                "cyan,white"
               ],
               [
                 128,
-                0.213
+                "cyan,white"
               ],
               [
                 132,
-                0.174
+                "cyan,white"
               ],
               [
                 136,
-                0.292
+                "cyan,white"
               ],
               [
                 140,
-                0.207
+                "cyan,white"
               ],
               [
                 144,
-                0.191
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            100,
+            144
+          ]
+        },
+        {
+          "behavior": "size",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH05_pattern_size/CH05_148",
+            "phase1_single_channel/CH05_pattern_size/CH05_152"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "area_range_frac": [
               [
                 148,
                 0.169
@@ -6455,15 +6553,53 @@
               [
                 152,
                 0.131
-              ],
+              ]
+            ]
+          },
+          "range": [
+            148,
+            152
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH05_pattern_size/CH05_156",
+            "phase1_single_channel/CH05_pattern_size/CH05_160"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 156,
-                0.193
+                "cyan,white"
               ],
               [
                 160,
-                0.183
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            156,
+            160
+          ]
+        },
+        {
+          "behavior": "size",
+          "blank_count": 2,
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH05_pattern_size/CH05_164",
+            "phase1_single_channel/CH05_pattern_size/CH05_168",
+            "phase1_single_channel/CH05_pattern_size/CH05_172",
+            "phase1_single_channel/CH05_pattern_size/CH05_176",
+            "phase1_single_channel/CH05_pattern_size/CH05_180"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "area_range_frac": [
               [
                 164,
                 0.142
@@ -6559,15 +6695,28 @@
             ]
           },
           "range": [
-            0,
+            164,
             255
           ]
         }
       ],
       "base_dependence": "unknown",
       "blank_zones": [],
-      "breakpoints": [],
-      "confidence": "high",
+      "breakpoints": [
+        85,
+        88,
+        93,
+        96,
+        97,
+        100,
+        145,
+        148,
+        153,
+        156,
+        161,
+        164
+      ],
+      "confidence": "medium",
       "evidence": [
         "phase1_single_channel/CH05_pattern_size/CH05_000",
         "phase1_single_channel/CH05_pattern_size/CH05_004",
@@ -6587,7 +6736,7 @@
       "banks": [
         {
           "behavior": "position",
-          "blank_count": 14,
+          "blank_count": 7,
           "confidence": "high",
           "direction": "requires_visual_review",
           "evidence": [
@@ -6639,7 +6788,28 @@
               [
                 64,
                 3.666
-              ],
+              ]
+            ]
+          },
+          "range": [
+            0,
+            64
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "high",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_068",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_072",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_076",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_080",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_084"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "x_range": [
               [
                 68,
                 7.727
@@ -6663,67 +6833,142 @@
               [
                 88,
                 5.703
-              ],
+              ]
+            ]
+          },
+          "range": [
+            68,
+            88
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_092",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_096",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_100",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_104",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_108"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 92,
-                2.732
+                "cyan,white"
               ],
               [
                 96,
-                4.988
+                "cyan,white"
               ],
               [
                 100,
-                7.716
+                "cyan,white"
               ],
               [
                 104,
-                7.054
+                "cyan,white"
               ],
               [
                 108,
-                11.042
+                "cyan,white"
               ],
               [
                 112,
-                8.178
+                "cyan,white"
               ],
               [
                 116,
-                10.034
+                "cyan,white"
               ],
               [
                 120,
-                17.521
+                "cyan,white"
               ],
               [
                 124,
-                5.921
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            92,
+            124
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_128",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_132"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 128,
-                13.004
+                "cyan,white"
               ],
               [
                 132,
-                11.096
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            128,
+            132
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_136",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_140",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_144",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_148"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 136,
-                26.241
+                "cyan,white"
               ],
               [
                 140,
-                16.716
+                "cyan,white"
               ],
               [
                 144,
-                19.438
+                "cyan,white"
               ],
               [
                 148,
-                30.168
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            136,
+            148
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "medium",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_152",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_156",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_160"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "x_range": [
               [
                 152,
                 25.899
@@ -6735,11 +6980,45 @@
               [
                 160,
                 34.596
-              ],
+              ]
+            ]
+          },
+          "range": [
+            152,
+            160
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_164"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 164,
-                33.722
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            164,
+            164
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "low",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_168",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_172"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "x_range": [
               [
                 168,
                 35.381
@@ -6747,15 +7026,52 @@
               [
                 172,
                 23.627
-              ],
+              ]
+            ]
+          },
+          "range": [
+            168,
+            172
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_176",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_180"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 176,
-                26.367
+                "cyan,white"
               ],
               [
                 180,
-                30.407
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            176,
+            180
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "high",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_184",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_188",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_192",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_196"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "x_range": [
               [
                 184,
                 26.742
@@ -6771,31 +7087,121 @@
               [
                 196,
                 12.281
-              ],
+              ]
+            ]
+          },
+          "range": [
+            184,
+            196
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "low",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_200"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "x_range": [
               [
                 200,
                 28.272
-              ],
+              ]
+            ]
+          },
+          "range": [
+            200,
+            200
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_204"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 204,
-                45.315
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            204,
+            204
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "low",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_208"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "x_range": [
               [
                 208,
                 30.556
-              ],
+              ]
+            ]
+          },
+          "range": [
+            208,
+            208
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_212",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_216",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_220"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 212,
-                24.428
+                "cyan,white"
               ],
               [
                 216,
-                26.862
+                "cyan,white"
               ],
               [
                 220,
-                30.826
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            212,
+            220
+          ]
+        },
+        {
+          "behavior": "position",
+          "blank_count": 7,
+          "confidence": "low",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_224",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_228",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_232",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_236",
+            "phase1_single_channel/CH06_horizontal_adjustment/CH06_240"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "x_range": [
               [
                 224,
                 20.098
@@ -6807,15 +7213,44 @@
             ]
           },
           "range": [
-            0,
+            224,
             255
           ]
         }
       ],
       "base_dependence": "unknown",
       "blank_zones": [],
-      "breakpoints": [],
-      "confidence": "high",
+      "breakpoints": [
+        65,
+        68,
+        89,
+        92,
+        125,
+        128,
+        133,
+        136,
+        149,
+        152,
+        161,
+        164,
+        165,
+        168,
+        173,
+        176,
+        181,
+        184,
+        197,
+        200,
+        201,
+        204,
+        205,
+        208,
+        209,
+        212,
+        221,
+        224
+      ],
+      "confidence": "medium",
       "evidence": [
         "phase1_single_channel/CH06_horizontal_adjustment/CH06_000",
         "phase1_single_channel/CH06_horizontal_adjustment/CH06_004",
@@ -6834,10 +7269,9 @@
     "CH7": {
       "banks": [
         {
-          "behavior": "position",
-          "blank_count": 37,
-          "confidence": "high",
-          "direction": "requires_visual_review",
+          "behavior": "color_animated",
+          "blank_count": 16,
+          "confidence": "low",
           "evidence": [
             "phase1_single_channel/CH07_vertical_adjustment/CH07_000",
             "phase1_single_channel/CH07_vertical_adjustment/CH07_004",
@@ -6845,33 +7279,89 @@
             "phase1_single_channel/CH07_vertical_adjustment/CH07_012",
             "phase1_single_channel/CH07_vertical_adjustment/CH07_016"
           ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
+              [
+                64,
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            0,
+            64
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "low",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_068"
+          ],
           "interpolation": "piecewise_linear",
           "maps": {
             "y_range": [
               [
-                64,
-                0.307
-              ],
-              [
                 68,
                 0.438
-              ],
+              ]
+            ]
+          },
+          "range": [
+            68,
+            68
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_072",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_076",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_080",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_084"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 72,
-                0.833
+                "cyan,white"
               ],
               [
                 76,
-                0.737
+                "cyan,white"
               ],
               [
                 80,
-                0.469
+                "cyan,white"
               ],
               [
                 84,
-                0.677
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            72,
+            84
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "high",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_088",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_092",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_096",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_100"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "y_range": [
               [
                 88,
                 0.702
@@ -6887,11 +7377,47 @@
               [
                 100,
                 0.484
-              ],
+              ]
+            ]
+          },
+          "range": [
+            88,
+            100
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_104"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 104,
-                0.587
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            104,
+            104
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "high",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_108",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_112",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_116",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_120"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "y_range": [
               [
                 108,
                 0.485
@@ -6907,19 +7433,55 @@
               [
                 120,
                 0.449
-              ],
+              ]
+            ]
+          },
+          "range": [
+            108,
+            120
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "medium",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_124",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_128",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_132"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 124,
-                0.689
+                "cyan,white"
               ],
               [
                 128,
-                0.589
+                "cyan,white"
               ],
               [
                 132,
-                0.637
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            124,
+            132
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "low",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_136",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_140"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "y_range": [
               [
                 136,
                 0.885
@@ -6927,15 +7489,67 @@
               [
                 140,
                 0.581
-              ],
+              ]
+            ]
+          },
+          "range": [
+            136,
+            140
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_144"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 144,
-                0.648
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            144,
+            144
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "low",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_148"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "y_range": [
               [
                 148,
                 0.406
-              ],
+              ]
+            ]
+          },
+          "range": [
+            148,
+            148
+          ]
+        },
+        {
+          "behavior": "position",
+          "confidence": "high",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_152",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_156",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_160"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "y_range": [
               [
                 152,
                 0.962
@@ -6947,11 +7561,49 @@
               [
                 160,
                 0.931
-              ],
+              ]
+            ]
+          },
+          "range": [
+            152,
+            160
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_164"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 164,
-                0.635
-              ],
+                "cyan,white"
+              ]
+            ]
+          },
+          "range": [
+            164,
+            164
+          ]
+        },
+        {
+          "behavior": "position",
+          "blank_count": 21,
+          "confidence": "low",
+          "direction": "requires_visual_review",
+          "evidence": [
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_168",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_172",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_176",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_180",
+            "phase1_single_channel/CH07_vertical_adjustment/CH07_184"
+          ],
+          "interpolation": "piecewise_linear",
+          "maps": {
+            "y_range": [
               [
                 168,
                 0.361
@@ -6963,15 +7615,40 @@
             ]
           },
           "range": [
-            0,
+            168,
             255
           ]
         }
       ],
       "base_dependence": "unknown",
       "blank_zones": [],
-      "breakpoints": [],
-      "confidence": "high",
+      "breakpoints": [
+        65,
+        68,
+        69,
+        72,
+        85,
+        88,
+        101,
+        104,
+        105,
+        108,
+        121,
+        124,
+        133,
+        136,
+        141,
+        144,
+        145,
+        148,
+        149,
+        152,
+        161,
+        164,
+        165,
+        168
+      ],
+      "confidence": "medium",
       "evidence": [
         "phase1_single_channel/CH07_vertical_adjustment/CH07_000",
         "phase1_single_channel/CH07_vertical_adjustment/CH07_004",
@@ -7482,7 +8159,26 @@
               [
                 64,
                 "cyan,white"
-              ],
+              ]
+            ]
+          },
+          "range": [
+            0,
+            64
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH09_color_speed/CH09_068",
+            "phase1_single_channel/CH09_color_speed/CH09_072",
+            "phase1_single_channel/CH09_color_speed/CH09_076",
+            "phase1_single_channel/CH09_color_speed/CH09_080"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 68,
                 "cyan,white"
@@ -7498,11 +8194,39 @@
               [
                 80,
                 "cyan,white"
-              ],
-              [
-                84,
-                "white"
-              ],
+              ]
+            ]
+          },
+          "range": [
+            68,
+            80
+          ]
+        },
+        {
+          "behavior": "static",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH09_color_speed/CH09_084"
+          ],
+          "interpolation": "piecewise_linear",
+          "range": [
+            84,
+            84
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH09_color_speed/CH09_088",
+            "phase1_single_channel/CH09_color_speed/CH09_092",
+            "phase1_single_channel/CH09_color_speed/CH09_096",
+            "phase1_single_channel/CH09_color_speed/CH09_100",
+            "phase1_single_channel/CH09_color_speed/CH09_104"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 88,
                 "cyan,white"
@@ -7598,7 +8322,27 @@
               [
                 180,
                 "cyan,white"
-              ],
+              ]
+            ]
+          },
+          "range": [
+            88,
+            180
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "high",
+          "evidence": [
+            "phase1_single_channel/CH09_color_speed/CH09_184",
+            "phase1_single_channel/CH09_color_speed/CH09_188",
+            "phase1_single_channel/CH09_color_speed/CH09_192",
+            "phase1_single_channel/CH09_color_speed/CH09_196",
+            "phase1_single_channel/CH09_color_speed/CH09_200"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 184,
                 "cyan,white"
@@ -7666,7 +8410,24 @@
               [
                 248,
                 "cyan,white"
-              ],
+              ]
+            ]
+          },
+          "range": [
+            184,
+            248
+          ]
+        },
+        {
+          "behavior": "color_animated",
+          "confidence": "low",
+          "evidence": [
+            "phase1_single_channel/CH09_color_speed/CH09_252",
+            "phase1_single_channel/CH09_color_speed/CH09_255"
+          ],
+          "interpolation": "step",
+          "maps": {
+            "color": [
               [
                 252,
                 "cyan,white"
@@ -7678,15 +8439,26 @@
             ]
           },
           "range": [
-            0,
+            252,
             255
           ]
         }
       ],
       "base_dependence": "base_dependent",
       "blank_zones": [],
-      "breakpoints": [],
-      "confidence": "high",
+      "breakpoints": [
+        65,
+        68,
+        81,
+        84,
+        85,
+        88,
+        181,
+        184,
+        249,
+        252
+      ],
+      "confidence": "medium",
       "evidence": [
         "phase1_single_channel/CH09_color_speed/CH09_000",
         "phase1_single_channel/CH09_color_speed/CH09_004",
@@ -8392,7 +9164,7 @@
   },
   "method": {
     "analysis_fps": 30,
-    "analysis_timestamp": "2026-06-08T14:42:39",
+    "analysis_timestamp": "2026-06-08T15:05:23",
     "base_dependence_gate": {
       "base_dependence_rule": "base-dependent if >=2 of 7 probe channels deviate >25% across bases",
       "base_dependent_probe_count": 7,
