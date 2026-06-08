@@ -4,9 +4,9 @@ Two identical units. Galvo scanning 15kpps/±25°, RGB (R 660nm / G 532nm /
 B 450nm). Supports 16CH (Standard) and 36CH (Professional) DMX modes.
 
 **Patch (as used here):** both fixtures in **36CH mode**, both at **DMX address
-001**, on separate universes:
-- **Laser 1 → wire universe 0**, ch 1–36
-- **Laser 2 → wire universe 1**, ch 1–36
+001**, on the exact same universe:
+- **Laser 1 → SoundSwitch Universe 1 (Art-Net 0)**, ch 1–36
+- **Laser 2 → SoundSwitch Universe 1 (Art-Net 0)**, ch 1–36 (mirrors Laser 1)
 
 This is what `fixtures.py` encodes (`decode_36ch`). Values are 0–255.
 

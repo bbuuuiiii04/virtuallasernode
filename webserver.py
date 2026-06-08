@@ -34,6 +34,8 @@ STATIC_ROUTES = {
 }
 
 
+from .fixture_model_adapter import compose_fixture_model
+
 def _snapshot(node):
     """JSON-serializable snapshot of all universes + the fixture patch.
 
@@ -53,10 +55,33 @@ def _snapshot(node):
             "src": st.locked_src,
             "pkts": st.packet_count,
         }
-    decoded = [decode_fixture(uni_vals.get(f["universe"], [0] * 512), f)
-               for f in FIXTURES]
-    return {"universes": unis, "fixtures": FIXTURES, "decoded": decoded,
-            "polls": node.poll_count}
+    
+    composed_models = []
+    for f in FIXTURES:
+        vals = uni_vals.get(f["universe"], [0] * 512)
+        start = f["start"] - 1
+        ch_list = vals[start:start+f["count"]]
+        try:
+            model = compose_fixture_model(ch_list)
+            model["composed"]["name"] = f["name"]
+            model["composed"]["universe"] = f["universe"]
+            model["decoded"]["name"] = f["name"]
+            model["decoded"]["universe"] = f["universe"]
+            composed_models.append(model)
+        except Exception as e:
+            # Fallback cleanly so the SSE stream never dies
+            log(f"[web] model adapter error: {e}")
+            dec = decode_fixture(vals, f)
+            composed_models.append({"decoded": dec, "composed": dec})
+
+    return {
+        "universes": unis,
+        "fixtures": FIXTURES,
+        "decoded": [m["decoded"] for m in composed_models],
+        "composed": [m.get("composed", m["decoded"]) for m in composed_models],
+        "fixture_models": [m.get("fixture_model", {}) for m in composed_models],
+        "polls": node.poll_count
+    }
 
 
 class SnapshotProducer:

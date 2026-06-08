@@ -123,7 +123,25 @@ es.onmessage = (e) => {
   const d = JSON.parse(e.data);
   document.getElementById('nuni').textContent = Object.keys(d.universes).length;
   document.getElementById('polls').textContent = d.polls;
-  if (d.decoded) { renderDecoded(d.decoded); laser.update(d.decoded); }
+  if (d.composed) {
+    laser.update(d.composed);
+  } else if (d.decoded) {
+    laser.update(d.decoded);
+  }
+  
+  if (d.decoded) { renderDecoded(d.decoded); }
+  
+  if (d.fixture_models && d.fixture_models.length > 0) {
+    const conf = d.fixture_models[0].confidence;
+    const el = document.getElementById('confidence');
+    if (el) {
+        el.textContent = conf || "unknown";
+        if (conf === 'measured_exact') el.style.background = '#0a3';
+        else if (conf === 'measured_estimated') el.style.background = '#a80';
+        else el.style.background = '#800';
+        el.style.color = '#fff';
+    }
+  }
   for (const u in d.universes) {
     const us = d.universes[u];
     drawUni(u, us.values);

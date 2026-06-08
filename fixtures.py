@@ -3,7 +3,7 @@ Fixture patch + 36CH profile decoding (build steps 4-5).
 
 FIXTURES describes how the physical lasers are patched in SoundSwitch: two
 identical RGB galvo lasers, both 36CH (Professional) mode at DMX address 001,
-on separate universes ("Universe One & Two").
+on the same universe ("Universe 1").
 
 decode_fixture() turns the raw DMX channel bytes into a readable per-fixture
 state object — the data contract the renderer (step 6) consumes, so it never
@@ -12,8 +12,7 @@ has to touch raw DMX. Channel meanings are encoded from the fixture manual
 """
 
 # Both physical lasers are patched on the SAME universe + DMX address (001),
-# so they receive identical DMX and mirror each other. We render two sources
-# (left/right) from the one channel set; the renderer mirrors the second.
+# as they connect to the same DMX Enttec Pro on Universe 1 (Art-Net 0).
 FIXTURES = [
     {"name": "Laser 1", "universe": 0, "start": 1, "count": 36, "mode": "36ch"},
     {"name": "Laser 2", "universe": 0, "start": 1, "count": 36, "mode": "36ch"},
