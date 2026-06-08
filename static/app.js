@@ -123,16 +123,15 @@ es.onmessage = (e) => {
   const d = JSON.parse(e.data);
   document.getElementById('nuni').textContent = Object.keys(d.universes).length;
   document.getElementById('polls').textContent = d.polls;
-  if (d.composed) {
-    laser.update(d.composed);
-  } else if (d.decoded) {
-    laser.update(d.decoded);
-  }
+  const renderState = d.composed || d.decoded || [];
+  laser.update(renderState);
   
   if (d.decoded) { renderDecoded(d.decoded); }
   
+  const diagEl = document.getElementById('diagnostics');
   if (d.fixture_models && d.fixture_models.length > 0) {
-    const conf = d.fixture_models[0].confidence;
+    const fm = d.fixture_models[0];
+    const conf = fm.confidence;
     const el = document.getElementById('confidence');
     if (el) {
         el.textContent = conf || "unknown";
@@ -141,6 +140,20 @@ es.onmessage = (e) => {
         else el.style.background = '#800';
         el.style.color = '#fff';
     }
+    if (diagEl) {
+        diagEl.style.display = 'block';
+        diagEl.innerHTML = `
+            <div style="margin-bottom:4px"><b>Unsupported:</b> ${(fm.unsupported || []).join(', ') || 'None'}</div>
+            <div style="margin-bottom:4px"><b>Coverage:</b> ${JSON.stringify(fm.coverage || {})}</div>
+            <div style="margin-bottom:4px"><b>Composition Applied:</b> ${(fm.composition_applied || []).join(', ') || 'None'}</div>
+            <div style="margin-bottom:4px"><b>Composition Missing:</b> ${JSON.stringify(fm.composition_missing || [])}</div>
+            <div><b>Gating Missing/Partial:</b> ${(fm.gating_missing || []).join(', ')} / ${(fm.gating_partial || []).join(', ')}</div>
+        `;
+    }
+  } else {
+    const el = document.getElementById('confidence');
+    if (el) { el.textContent = 'model: unavailable'; el.style.background = '#444'; el.style.color = '#fff'; }
+    if (diagEl) { diagEl.style.display = 'none'; }
   }
   for (const u in d.universes) {
     const us = d.universes[u];

@@ -34,9 +34,9 @@ STATIC_ROUTES = {
 }
 
 
-from .fixture_model_adapter import compose_fixture_model
+from .fixture_model_adapter import compose_fixture_model, load_fixture_model
 
-def _snapshot(node):
+def _snapshot(node, fixture_model_cache=None):
     """JSON-serializable snapshot of all universes + the fixture patch.
 
     Per-field reads are individually GIL-atomic (single writer thread), but the
@@ -62,7 +62,7 @@ def _snapshot(node):
         start = f["start"] - 1
         ch_list = vals[start:start+f["count"]]
         try:
-            model = compose_fixture_model(ch_list)
+            model = compose_fixture_model(ch_list, model=fixture_model_cache)
             model["composed"]["name"] = f["name"]
             model["composed"]["universe"] = f["universe"]
             model["decoded"]["name"] = f["name"]
@@ -97,12 +97,17 @@ class SnapshotProducer:
         self._cond = threading.Condition()
         self._frame = None   # latest "data: {...}\n\n" bytes
         self._seq = 0
+        try:
+            self._fixture_model_cache = load_fixture_model()
+        except Exception as e:
+            log(f"[web] failed to load fixture_model.json: {e}")
+            self._fixture_model_cache = None
         threading.Thread(target=self._run, daemon=True).start()
 
     def _run(self):
         while True:
             try:
-                payload = ("data: " + json.dumps(_snapshot(self.node))
+                payload = ("data: " + json.dumps(_snapshot(self.node, self._fixture_model_cache))
                            + "\n\n").encode("utf-8")
                 with self._cond:
                     self._frame = payload

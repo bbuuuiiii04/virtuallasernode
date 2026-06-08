@@ -26,15 +26,15 @@ def load_fixture_model(path: Path = MODEL_PATH) -> dict[str, Any]:
 
 def _sanitize_model(model: dict[str, Any]) -> dict[str, Any]:
     """Sanitize dirty CV artifacts from the model in-memory."""
-    # Reject color_animated behavior on spatial channels unless it's a color channel
+    s_model = copy.deepcopy(model)
     spatial_channels = ["CH6", "CH7", "CH15", "CH16", "CH17"]
     for ch_name in spatial_channels:
-        if ch_name in model.get("channels", {}):
-            for bank in model["channels"][ch_name].get("banks", []):
+        if ch_name in s_model.get("channels", {}):
+            for bank in s_model["channels"][ch_name].get("banks", []):
                 if bank.get("behavior") == "color_animated":
                     # Re-classify as spatial based on its intent
                     bank["behavior"] = "position" if ch_name in ["CH6", "CH7", "CH15", "CH16"] else "zoom"
-    return model
+    return s_model
 
 
 def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -42,8 +42,18 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
     model = model or load_fixture_model()
     model = _sanitize_model(model)
     
-    decoded = decode_36ch(lambda n: channels[n - 1])
-    ch = {f"CH{i + 1}": int(v) for i, v in enumerate(channels[:19])}
+    # TASK 1: Normalize channels
+    norm_channels = []
+    for c in list(channels)[:36]:
+        try:
+            val = int(c)
+        except (ValueError, TypeError):
+            val = 0
+        norm_channels.append(max(0, min(255, val)))
+    norm_channels.extend([0] * (36 - len(norm_channels)))
+    
+    decoded = decode_36ch(lambda n: norm_channels[n - 1])
+    ch = {f"CH{i + 1}": norm_channels[i] for i in range(19)}
     
     gate_flags = []
     for gate in model.get("interactions", {}).get("gating", []):
@@ -67,10 +77,18 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
     confidence = "missing_data"
     model_status = model.get("model_status", "unknown")
     if model_status == "measured":
-        # Missing 118 dense captures & CH7x16 matrix prevents us from declaring "exact"
         confidence = "measured_estimated"
+
+    coverage = {
+        "dense_validation": "missing",
+        "ch7x16": "insufficient_data",
+        "higher_order": "pending",
+        "renderer_contract": "decoded_shape_composed_values"
+    }
         
     # 1. Apply gating masks (Base)
+    gating_missing = []
+    gating_partial = []
     for g in gate_flags:
         if not g["active"]:
             enables = g["gate"].get("enables", "")
@@ -83,9 +101,15 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
             elif enables == "CH5-CH19 static pattern modifiers":
                 composed["zoom"]["mode"] = "off"
                 composed["rotation"]["z"]["mode"] = "off"
+                gating_partial.append("CH3_static_modifier_gate_partial")
+            else:
+                gating_missing.append(enables)
 
     # 2. Ordered Transformations Pipeline
     # Base -> Pos (CH6/7) -> Move (CH15/16) -> Rot (12/13/14) -> Zoom (17) -> Wave (19) -> Color
+    
+    composition_applied = []
+    composition_missing = []
     
     for comp in model.get("interactions", {}).get("compositional", []):
         rule = comp.get("rule", "")
@@ -96,16 +120,30 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
             if composed["movement"]["h"]["mode"] == "position":
                 move_h = composed["movement"]["h"]["val"] / 127.0
                 composed["position"]["x"] = round(composed["position"]["x"] * move_h, 3)
+            composition_applied.append(f"CH6xCH15->{rule}")
                 
         # Move -> Wave
-        if "CH15" in channels_involved and "CH19" in channels_involved and rule == "add":
+        elif "CH15" in channels_involved and "CH19" in channels_involved and rule == "add":
             if composed["movement"]["h"]["mode"] == "position" and composed["waves"]["axis"] == "x":
                 composed["movement"]["h"]["val"] = min(127, composed["movement"]["h"]["val"] + composed["waves"]["speed"])
+            composition_applied.append(f"CH15xCH19->{rule}")
                 
         # Color -> Gradient
-        if "CH8" in channels_involved and "CH18" in channels_involved and rule == "override_by_CH18":
+        elif "CH8" in channels_involved and "CH18" in channels_involved and rule == "override_by_CH18":
             if composed["gradient"] > 0:
                 composed["color"]["mode"] = "gradient_override"
+            composition_applied.append(f"CH8xCH18->{rule}")
+            
+        elif "CH7" in channels_involved and "CH16" in channels_involved:
+            composition_missing.append({"channels": channels_involved, "reason": "insufficient_data"})
+        elif "CH5" in channels_involved and "CH17" in channels_involved:
+            composition_missing.append({"channels": channels_involved, "reason": "interfere_not_implemented"})
+        elif "CH12" in channels_involved and "CH15" in channels_involved:
+            composition_missing.append({"channels": channels_involved, "reason": "interfere_not_implemented"})
+        elif "CH12" in channels_involved and "CH13" in channels_involved and "CH14" in channels_involved:
+            composition_missing.append({"channels": channels_involved, "reason": "needs_physical_validation"})
+        else:
+            composition_missing.append({"channels": channels_involved, "reason": "not_implemented"})
 
     return {
         "decoded": decoded,
@@ -117,6 +155,11 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
             "ch1_19": ch,
             "gate_flags": gate_flags,
             "composition": model.get("composition", {}),
+            "composition_applied": composition_applied,
+            "composition_missing": composition_missing,
+            "gating_missing": gating_missing,
+            "gating_partial": gating_partial,
             "unsupported": ["higher_order_validation_pending", "118_dense_missing", "ch7x16_missing"],
+            "coverage": coverage,
         },
     }

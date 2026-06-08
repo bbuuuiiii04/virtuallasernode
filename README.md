@@ -47,10 +47,19 @@ virtuallasernode/
 ## Status (build order — see docs/PLANNING.md)
 - ✅ 1 node detection · ✅ 2 ArtDMX receive · ✅ 3 channel inspector
 - ✅ 4 fixture patch slicing · ✅ 5 fixture decoding
-- ⬜ **6 2D renderer ← next** · ⬜ 7 bridge overlay · ⬜ 8 3D
+- ✅ 6 2D volumetric renderer
 
-Steps 1–5 are live-validated and have been through a 3-way review (Codex + two
-sub-agents).
+**Current Maturity: Model-Aware Prototype**
+The renderer currently runs in a model-aware state, consuming a `composed` physical fixture model rather than naive DMX numbers. 
+
+**However, it is NOT a high-accuracy digital twin yet.** 
+- Physical validation is still required for complex, higher-order cue stacks.
+- **Known gaps:** 
+  - 118 dense captures missing.
+  - `CH7x16` interaction matrix is insufficient.
+  - Higher-order interference validation is pending.
+  - Some composition rules (e.g. interference interactions) are not implemented yet to prevent made-up math.
+  - The renderer still consumes a decoded-shaped composed state rather than pure spatial coordinates.
 
 ## Key finding (why the sockets look unusual)
 SoundSwitch and this node share UDP 6454 on one machine via `SO_REUSEPORT`.
