@@ -1,7 +1,130 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
+    "base_looks": {
+      "type": "object"
+    },
     "channels": {
+      "additionalProperties": {
+        "properties": {
+          "banks": {
+            "items": {
+              "properties": {
+                "behavior": {
+                  "enum": [
+                    "off",
+                    "on",
+                    "angle_pose",
+                    "spin",
+                    "sweep",
+                    "position",
+                    "size",
+                    "zoom_pulse",
+                    "wave",
+                    "x_wave",
+                    "y_wave",
+                    "strobe",
+                    "gradient",
+                    "color_fixed",
+                    "color_animated",
+                    "scan_mode",
+                    "deadband_static",
+                    "blank_zone",
+                    "measured_mixed",
+                    "static",
+                    "step_program"
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                  ]
+                },
+                "direction": {
+                  "type": "string"
+                },
+                "evidence": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "interpolation": {
+                  "enum": [
+                    "linear",
+                    "step",
+                    "piecewise_linear",
+                    "parametric"
+                  ]
+                },
+                "maps": {
+                  "type": "object"
+                },
+                "range": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "range",
+                "behavior",
+                "confidence"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "base_dependence": {
+            "enum": [
+              "invariant",
+              "base_dependent",
+              "marginal",
+              "unknown"
+            ]
+          },
+          "blank_zones": {
+            "type": "array"
+          },
+          "breakpoints": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "confidence": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "role",
+          "banks",
+          "confidence"
+        ],
+        "type": "object"
+      },
       "type": "object"
     },
     "composition": {
@@ -13,7 +136,24 @@
       ],
       "type": "object"
     },
+    "fixture": {
+      "type": "string"
+    },
     "interactions": {
+      "properties": {
+        "compositional": {
+          "type": "array"
+        },
+        "gating": {
+          "type": "array"
+        },
+        "higher_order": {
+          "type": "array"
+        },
+        "independent": {
+          "type": "array"
+        }
+      },
       "required": [
         "gating",
         "compositional",
@@ -22,8 +162,27 @@
       ],
       "type": "object"
     },
+    "method": {
+      "type": "object"
+    },
+    "model_status": {
+      "enum": [
+        "measured",
+        "partial",
+        "draft"
+      ]
+    },
+    "model_version": {
+      "type": "string"
+    },
+    "provenance": {
+      "type": "object"
+    },
     "schema_version": {
       "const": 1
+    },
+    "validation": {
+      "type": "object"
     }
   },
   "required": [
@@ -37,5 +196,6 @@
     "composition",
     "validation"
   ],
+  "title": "VirtualLaserNode Fixture Model",
   "type": "object"
 }
