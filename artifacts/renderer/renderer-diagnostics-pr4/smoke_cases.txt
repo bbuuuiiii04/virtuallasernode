@@ -1,0 +1,8 @@
+PR4 diagnostics smoke cases (render_grid_pr4.html / render_grid_pr4.png)
+
+power_off|1=0
+center_static|1=255,6=128,7=128,10=64
+sound_gate|1=255,2=200,6=128,7=128
+dot_mode|1=255,6=128,7=128,10=220
+strobe_on|1=255,6=128,7=128,11=220
+second_pattern|1=255,4=10,20=30,21=25,22=80,23=128,24=128,25=200,26=0,27=64,28=100,32=200,33=40,35=120

@@ -204,6 +204,8 @@
     _primary(fx) {
       const sel = fx.pattern.selection || {};
       return {
+        name: fx.name,
+        universe: fx.universe,
         power: fx.power, dimmer: fx.dimmer, size: fx.pattern.size,
         position: fx.position, color: fx.color, strobe: fx.strobe,
         control: fx.control || { sound_gated: false },
@@ -214,12 +216,16 @@
         dynamic: fx.pattern.kind === "dynamic",
         captureLookup: fx.__capture_lookup || null,
         provenanceLabel: fx.__provenance_label || "MEASURED_FIXTURE_MODEL",
+        modelStatus: fx.__model_status || "unknown",
+        modelConfidence: fx.__model_confidence || "unknown",
         layerKind: "primary",
       };
     }
     _second(sp, fx) {
       const sel = sp.selection || {};
       return {
+        name: fx.name,
+        universe: fx.universe,
         power: fx.power, dimmer: fx.dimmer, size: sp.size, position: sp.position,
         color: sp.color, strobe: sp.strobe, gradient: sp.gradient,
         control: fx.control || { sound_gated: false },
@@ -229,6 +235,8 @@
         dynamic: false,            // second pattern (CH20-36) is static-only
         captureLookup: fx.__capture_lookup || null,
         provenanceLabel: fx.__provenance_label || "MEASURED_FIXTURE_MODEL",
+        modelStatus: fx.__model_status || "unknown",
+        modelConfidence: fx.__model_confidence || "unknown",
         layerKind: "second_pattern",
       };
     }
@@ -240,6 +248,8 @@
       return {
         // dynamic ignores CH6/7, so its position.blanked must not hide it
         visible: power && dimmer > 0.002 && (p.dynamic || !position.blanked),
+        name: n.name || p.name || "fixture",
+        universe: n.universe || p.universe || 0,
         power,
         dimmer,
         position,
@@ -258,6 +268,8 @@
         control: n.control || p.control || { sound_gated: false },
         captureLookup: n.captureLookup || p.captureLookup || null,
         provenanceLabel: n.provenanceLabel || p.provenanceLabel || "MEASURED_FIXTURE_MODEL",
+        modelStatus: n.modelStatus || p.modelStatus || "unknown",
+        modelConfidence: n.modelConfidence || p.modelConfidence || "unknown",
         layerKind: n.layerKind || p.layerKind || "primary",
       };
     }
@@ -369,10 +381,24 @@
       const vMove = this._moveOffset(st.movement && st.movement.v, "v", measured);
 
       const warnings = [];
+      const cl = st.captureLookup || null;
+      const quality = cl && cl.quality ? cl.quality : null;
       if (st.layerKind === "second_pattern") warnings.push("second_pattern_decoder_driven_with_warning");
       if (st.waves && st.waves.axis !== "off") warnings.push("CH19_wave_deformation_approximate_unverified");
       if ((hMove.mode === "speed" || vMove.mode === "speed") && !measured.active) {
         warnings.push("CH15_CH16_sine_waveform_approximate_unverified");
+      }
+      if (st.modelStatus !== "measured") warnings.push("model_not_measured_status");
+      if (st.modelConfidence && st.modelConfidence !== "measured_exact" && st.modelConfidence !== "measured_estimated") {
+        warnings.push("model_confidence_non_measured");
+      }
+      if (cl && !cl.hit && cl.fallback_reason) warnings.push("capture_lookup_" + cl.fallback_reason);
+      if (quality && quality.usable_evidence === false) warnings.push("capture_quality_usable_evidence_false");
+      if (quality && quality.geometry_clipped_low === true) warnings.push("capture_quality_geometry_clipped_low");
+      if (quality && quality.recapture_pending_manifest === true) warnings.push("capture_quality_recapture_pending");
+      if ((st.provenanceLabel || "") === "MANUAL_DECODER") warnings.push("manual_decoder_fallback_active");
+      if (measured.active && measured.directionConfidence !== null && measured.directionConfidence < 0.6) {
+        warnings.push("measured_motion_direction_low_confidence");
       }
       if (!measured.active) warnings.push("fallback_motionstate_active");
 
@@ -381,7 +407,11 @@
         fixture: {
           index: idx,
           total,
+          name: st.name || "fixture",
+          universe: st.universe || 0,
           mirror: idx % 2 === 1,
+          modelStatus: st.modelStatus || "unknown",
+          modelConfidence: st.modelConfidence || "unknown",
           captureProvenance: st.provenanceLabel || "MEASURED_FIXTURE_MODEL",
           motionProvenance: measured.active ? "MEASURED_MOTION_ANALYSIS" : "FALLBACK_MOTIONSTATE",
           layerKind: st.layerKind || "primary",

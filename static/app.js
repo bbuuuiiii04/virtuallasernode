@@ -143,6 +143,8 @@ es.onmessage = (e) => {
       ...fx,
       __capture_lookup: cl,
       __provenance_label: cl && cl.provenance_label ? cl.provenance_label : 'MEASURED_FIXTURE_MODEL',
+      __model_status: fm.model_status || 'unknown',
+      __model_confidence: fm.confidence || 'unknown',
     };
   });
   laser.update(renderState);
@@ -211,6 +213,52 @@ es.onmessage = (e) => {
         ].join(', '));
         appendLine('Motion Warnings', warns.length ? warns.join(', ') : 'None');
         appendLine('Toggle Sound Override', '?soundOverride=1 (URL)');
+        const byLayer = motion.reduce((acc, m) => {
+          if (!m || !m.fixture) return acc;
+          const key = m.fixture.layerKind || 'unknown';
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(m);
+          return acc;
+        }, {});
+        const trustRoot = document.createElement('div');
+        trustRoot.className = 'diag-trust';
+        const trustTitle = document.createElement('div');
+        trustTitle.className = 'diag-title';
+        trustTitle.textContent = 'Renderer trust diagnostics';
+        trustRoot.appendChild(trustTitle);
+        ['primary', 'second_pattern'].forEach(layerKey => {
+          const layerStates = byLayer[layerKey] || [];
+          if (!layerStates.length) return;
+          const section = document.createElement('div');
+          section.className = 'diag-layer';
+          const head = document.createElement('div');
+          head.className = 'diag-layer-head';
+          head.textContent = layerKey + ' (' + layerStates.length + ')';
+          section.appendChild(head);
+          layerStates.slice(0, 4).forEach((ms, idx) => {
+            const row = document.createElement('div');
+            row.className = 'diag-layer-row';
+            const visState = ms.visibility && ms.visibility.visibleAfterStrobe ? 'visible' : 'hidden';
+            const kill = ms.visibility && ms.visibility.killReason ? ms.visibility.killReason : 'none';
+            const warnsTxt = Array.isArray(ms.warnings) && ms.warnings.length ? ms.warnings.slice(0, 3).join(', ') : 'none';
+            const warnsCount = Array.isArray(ms.warnings) ? ms.warnings.length : 0;
+            row.textContent = [
+              '#' + idx,
+              ms.fixture.name || 'fixture',
+              'U' + String(ms.fixture.universe || 0),
+              'capture=' + (ms.fixture.captureProvenance || 'unknown'),
+              'motion=' + (ms.fixture.motionProvenance || 'unknown'),
+              'model=' + (ms.fixture.modelStatus || 'unknown'),
+              'vis=' + visState,
+              'kill=' + kill,
+              'warn=' + warnsTxt,
+              'warnCount=' + String(warnsCount)
+            ].join(' | ');
+            section.appendChild(row);
+          });
+          trustRoot.appendChild(section);
+        });
+        diagEl.appendChild(trustRoot);
     }
   } else {
     const el = document.getElementById('confidence');

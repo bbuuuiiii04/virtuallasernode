@@ -87,6 +87,8 @@ function buildRenderer() {
 
 function baseState() {
   return {
+    name: "fixture-a",
+    universe: 1,
     power: true,
     dimmer: 1,
     size: 128,
@@ -106,6 +108,8 @@ function baseState() {
     control: { sound_gated: false },
     captureLookup: null,
     provenanceLabel: "MEASURED_FIXTURE_MODEL",
+    modelStatus: "measured",
+    modelConfidence: "measured_estimated",
     layerKind: "primary",
   };
 }
@@ -202,6 +206,44 @@ function testMeasuredMotionApplied() {
   assert(approx(ms.strobe.duty, 0.25), "measured duty expected");
 }
 
+function testWarningsForCaptureQualityAndFallback() {
+  const lr = buildRenderer();
+  const st = baseState();
+  st.modelStatus = "unavailable";
+  st.modelConfidence = "decoded_fallback";
+  st.provenanceLabel = "MANUAL_DECODER";
+  st.captureLookup = {
+    hit: false,
+    fallback_reason: "capture_index_unavailable",
+    quality: {
+      usable_evidence: false,
+      geometry_clipped_low: true,
+      recapture_pending_manifest: true,
+    },
+  };
+  const ms = lr._buildMotionState(st, 0, 1);
+  assert(ms.warnings.includes("model_not_measured_status"), "missing model warning expected");
+  assert(ms.warnings.includes("model_confidence_non_measured"), "model confidence warning expected");
+  assert(ms.warnings.includes("manual_decoder_fallback_active"), "manual decoder warning expected");
+  assert(ms.warnings.includes("capture_lookup_capture_index_unavailable"), "capture fallback warning expected");
+  assert(ms.warnings.includes("capture_quality_usable_evidence_false"), "capture quality usable warning expected");
+  assert(ms.warnings.includes("capture_quality_geometry_clipped_low"), "capture geometry warning expected");
+  assert(ms.warnings.includes("capture_quality_recapture_pending"), "capture recapture warning expected");
+}
+
+function testFixtureMetadataAndSecondPatternDiagnostics() {
+  const lr = buildRenderer();
+  const st = baseState();
+  st.name = "fixture-b";
+  st.universe = 3;
+  st.layerKind = "second_pattern";
+  const ms = lr._buildMotionState(st, 1, 2);
+  assert(ms.fixture.name === "fixture-b", "fixture name should be carried");
+  assert(ms.fixture.universe === 3, "fixture universe should be carried");
+  assert(ms.fixture.layerKind === "second_pattern", "layer kind should be second pattern");
+  assert(ms.warnings.includes("second_pattern_decoder_driven_with_warning"), "second pattern warning expected");
+}
+
 function testInterpCarriesPowerAndPosition() {
   const lr = buildRenderer();
   const p = baseState();
@@ -226,6 +268,8 @@ function run() {
     testDrawModeDot,
     testSecondPatternLayerWarning,
     testMeasuredMotionApplied,
+    testWarningsForCaptureQualityAndFallback,
+    testFixtureMetadataAndSecondPatternDiagnostics,
     testInterpCarriesPowerAndPosition,
   ];
   for (const t of tests) t();
