@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "calib"))
 
 import fixture_model_orchestrator as orch
 
-SESSION_NAME = "recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08"
+SESSION_NAME = "recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08_v2"
 CAPTURE_ROOT = ROOT / "captures" / SESSION_NAME
 
 # EXACT DEFAULT 36CH NEUTRAL VECTOR
@@ -107,13 +107,20 @@ def capture_target(name: str, rel_path: str, overrides: dict, reason: str, durat
         
     return analysis
 
-def run_preflight():
+def run_preflight(backend_str: str, port_str: str):
     print("=== STARTING PREFLIGHT ===")
     preflight_overrides = [
         *[({"CH3": 0, "CH4": 195, "CH7": 128, "CH16": v}, f"preflight_CH16_{v}") for v in [32, 64, 96, 120, 128, 160, 192, 224]],
         *[({"CH3": 0, "CH4": 195, "CH7": v, "CH16": 0}, f"preflight_CH7_{v}") for v in [64, 128, 192]],
         ({"CH3": 0, "CH4": 195, "CH7": 128, "CH16": 128}, "preflight_CH7_128_CH16_128")
     ]
+    
+    total = len(preflight_overrides)
+    blank_count = 0
+    clipped_count = 0
+    geo_clipped_count = 0
+    required_blanks = []
+    fps_list = []
     
     for overrides_names, name in preflight_overrides:
         num_overrides = {int(k.replace("CH", "")): v for k, v in overrides_names.items()}
@@ -127,6 +134,17 @@ def run_preflight():
         
         clipped = analysis.get("clipped", False)
         geo_clipped = analysis.get("geometry_clipped_low", False)
+        blank = analysis.get("blank", False)
+        
+        if "fps" in analysis:
+            fps_list.append(analysis["fps"])
+        
+        if clipped: clipped_count += 1
+        if geo_clipped: geo_clipped_count += 1
+        if blank: blank_count += 1
+        
+        if blank and name in ["preflight_CH16_128", "preflight_CH7_128", "preflight_CH7_128_CH16_128"]:
+            required_blanks.append(name)
         
         if clipped or geo_clipped:
             print(f"HALT: Preflight capture {name} caused clipping! (clipped={clipped}, geo_clipped={geo_clipped})")
@@ -134,7 +152,30 @@ def run_preflight():
             orch.blackout()
             sys.exit(1)
             
-    print("Preflight passed! No clipping detected.")
+    print(f"\n--- Preflight Results ---")
+    print(f"Total captures: {total}")
+    print(f"Blank count: {blank_count}")
+    print(f"Clipped count: {clipped_count}")
+    print(f"Geometry clipped low count: {geo_clipped_count}")
+    if fps_list:
+        import statistics
+        print(f"FPS: min={min(fps_list):.1f}, median={statistics.median(fps_list):.1f}")
+    print(f"Selected DMX backend: {backend_str}")
+    print(f"Selected DMX port: {port_str}")
+    print("-------------------------\n")
+    
+    if blank_count == total:
+        print("HALT: All preflight captures were blank. Is the laser turned on? Is the correct DMX port/backend selected?")
+        orch.blackout()
+        sys.exit(1)
+        
+    if required_blanks:
+        print(f"HALT: Required reference captures were blank: {required_blanks}")
+        print("The laser must be visible at neutral positions.")
+        orch.blackout()
+        sys.exit(1)
+        
+    print("Preflight passed! No critical failures detected.")
 
 def run_ch16_sweep():
     print("=== STARTING CH16 RE-SWEEP ===")
@@ -232,18 +273,32 @@ def main():
     parser.add_argument("--rig-confirmed", action="store_true")
     parser.add_argument("--preflight-only", action="store_true", help="Run only the preflight captures and exit")
     parser.add_argument("--skip-preflight", action="store_true", help="Skip preflight and run full capture (use with caution)")
+    parser.add_argument("--dmx-backend", choices=["open", "pro"], default="open", help="Select DMX backend to use (default: open)")
+    parser.add_argument("--dmx-port", type=str, help="Specify DMX serial port")
     args = parser.parse_args()
     
     if not args.rig_confirmed:
         print("Dry run only. Use --rig-confirmed to output DMX and capture video.")
         return
         
+    if args.dmx_backend == "pro":
+        orch.DMX_BACKEND = "pro"
+        orch.DMX = orch.DMX_PRO
+    else:
+        orch.DMX_BACKEND = "open"
+        orch.DMX = orch.DMX_OPEN
+
+    if args.dmx_port:
+        orch.DMX_PORT = args.dmx_port
+
+    print(f"DMX Config: Backend={orch.DMX_BACKEND}, Port={orch.DMX_PORT}")
+        
     daemon = orch.start_daemon()
     watchdog_stop, watchdog_thread = orch.start_watchdog_heartbeat()
     
     try:
         if not args.skip_preflight:
-            run_preflight()
+            run_preflight(orch.DMX_BACKEND, str(orch.DMX_PORT))
         else:
             print("WARNING: Skipping preflight. Assuming framing has been manually verified.")
             

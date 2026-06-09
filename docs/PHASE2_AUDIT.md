@@ -318,10 +318,10 @@ The architect should direct the next physical capture session with these exact p
 ## Addendum: Targeted Recapture Prepared (2026-06-08)
 
 A targeted recapture workflow has been prepared per the architect's corrections, but must be verified before assembly.
-* **Session ID:** `recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08`
+* **Session ID:** `recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08_v2`
 * **Preflight Gate:** Built into `calib/targeted_recapture.py` to analyze 12 boundary frames immediately at 60 FPS and halt on `clipped` or `geometry_clipped_low` flags to ensure the slight framing shift (0.5cm) remains safe.
 * **Semantic CH16 Split:** The CH7xCH16 matrix correctly maps `CH16 <= 120` as static positional geometry (24 frames per base) and `CH16 >= 128` as temporal estimated speed geometry (9 frames per base).
 * **Total Captures:** 155 captures (12 preflight + 65 CH16 re-sweep + 78 CH7xCH16 matrix with references)
-* **Tooling:** Use `python3 calib/targeted_recapture.py --rig-confirmed` to run, and `python3 calib/reprocess_60fps.py captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08` to process.
-* **Verification Required:** The workflow is not bulletproof until you run `python3 calib/fixture_model_analyzer.py --include-session captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08 --verify-include-session-only`. It must report `[OK]` for routing.
-* **Assembly:** After verification, run `python3 calib/fixture_model_analyzer.py --include-session captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08` to assemble.
+* **Tooling:** Use `python3 calib/targeted_recapture.py --rig-confirmed` to run, and `python3 calib/reprocess_60fps.py captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08_v2` to process.
+* **Verification Required:** The workflow is not bulletproof until you run `python3 calib/fixture_model_analyzer.py --include-session captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08_v2 --verify-include-session-only`. It must report `[OK]` for routing.
+* **Assembly:** After verification, run `python3 calib/fixture_model_analyzer.py --include-session captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08_v2` to assemble.
