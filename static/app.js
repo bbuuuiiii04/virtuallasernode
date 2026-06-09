@@ -131,10 +131,20 @@ es.onmessage = (e) => {
   const fixtures = Array.isArray(d.fixtures) ? d.fixtures : [];
   const decoded = Array.isArray(d.decoded) ? d.decoded : [];
   const composed = Array.isArray(d.composed) ? d.composed : [];
+  const fixtureModels = Array.isArray(d.fixture_models) ? d.fixture_models : [];
 
   document.getElementById('nuni').textContent = Object.keys(universes).length;
   document.getElementById('polls').textContent = d.polls || 0;
-  const renderState = composed.length ? composed : decoded;
+  const sourceState = composed.length ? composed : decoded;
+  const renderState = sourceState.map((fx, i) => {
+    const fm = fixtureModels[i] || {};
+    const cl = fm.capture_lookup || null;
+    return {
+      ...fx,
+      __capture_lookup: cl,
+      __provenance_label: cl && cl.provenance_label ? cl.provenance_label : 'MEASURED_FIXTURE_MODEL',
+    };
+  });
   laser.update(renderState);
   
   if (decoded.length) { renderDecoded(decoded); }
@@ -177,6 +187,30 @@ es.onmessage = (e) => {
         appendLine('Composition Supported', (fm.composition_supported || []).join(', ') || 'None');
         appendLine('Composition Missing', JSON.stringify(fm.composition_missing || []));
         appendLine('Gating Missing/Partial', (fm.gating_missing || []).join(', ') + ' / ' + (fm.gating_partial || []).join(', '));
+        const dbg = laser.getDebugState ? laser.getDebugState() : {};
+        const motion = Array.isArray(dbg.motionStates) ? dbg.motionStates : [];
+        const primary = motion.find(m => m && m.fixture && m.fixture.layerKind === 'primary') || {};
+        const vis = primary.visibility || {};
+        const aim = primary.aim || {};
+        const strobe = primary.strobe || {};
+        const warns = Array.isArray(primary.warnings) ? primary.warnings : [];
+        appendLine('Sound Override', String(!!dbg.soundOverride));
+        appendLine('Motion Provenance', primary.fixture && primary.fixture.motionProvenance ? primary.fixture.motionProvenance : 'unknown');
+        appendLine('Visible Before/After Strobe', String(!!vis.visibleBeforeStrobe) + ' / ' + String(!!vis.visibleAfterStrobe));
+        appendLine('Visibility Kill Reason', vis.killReason || 'none');
+        appendLine('CH10 Draw Mode', (primary.scan && primary.scan.drawMode) || 'unknown');
+        appendLine('Aim hFinal/vFinal', [
+          Number.isFinite(aim.hFinal) ? aim.hFinal.toFixed(3) : '0.000',
+          Number.isFinite(aim.vFinal) ? aim.vFinal.toFixed(3) : '0.000'
+        ].join(' / '));
+        appendLine('Strobe Square Gate', [
+          'active=' + String(!!strobe.active),
+          'open=' + String(!!strobe.gateOpen),
+          'duty=' + (Number.isFinite(strobe.duty) ? strobe.duty.toFixed(3) : '0.000'),
+          'phase=' + (Number.isFinite(strobe.phase) ? strobe.phase.toFixed(3) : '0.000')
+        ].join(', '));
+        appendLine('Motion Warnings', warns.length ? warns.join(', ') : 'None');
+        appendLine('Toggle Sound Override', '?soundOverride=1 (URL)');
     }
   } else {
     const el = document.getElementById('confidence');

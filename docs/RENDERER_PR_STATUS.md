@@ -17,12 +17,13 @@ docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
 ## Current State
 
 ```text
-active_pr: renderer-capture-lookup-pr2
+active_pr: renderer-measured-motion-pr3
 active_branch: renderer-capture-index-pr1
 base_branch: main
-phase: pr2_implemented_tests_passed_review_gate_satisfied
-last_completed_step: pr2_review_completed
-next_recommended_command: Continue to renderer PR 3 implementation.
+phase: pr3_implemented_tests_and_smoke_completed_pending_review_gate
+phase: pr3_complete_tests_smoke_review_passed_ready_for_pr4
+last_completed_step: pr3_review_completed
+next_recommended_command: Continue to renderer PR 4 implementation.
 human_action_needed: none
 ```
 
@@ -32,22 +33,22 @@ human_action_needed: none
 |---|---|---|---|
 | PR 1 | renderer-capture-index-pr1 | implementation complete, tests passed, review gate satisfied | Build-time capture index generator from manifest + per-capture analysis + analysis geometry; no renderer/webserver changes |
 | PR 2 | renderer-capture-lookup-pr2 | implementation complete, tests passed, review gate satisfied | Load index in webserver/adapter; exact vector + cue lookup; provenance labels and diagnostics |
-| PR 3 | renderer-measured-motion-pr3 | ready to start | Consume measured parameters with reduced MotionState fallback layer |
-| PR 4 | renderer-diagnostics-pr4 | blocked until PR 3 merged | Diagnostics expansion |
+| PR 3 | renderer-measured-motion-pr3 | implementation complete, tests and smoke run, review completed | Consume measured parameters with reduced MotionState fallback layer |
+| PR 4 | renderer-diagnostics-pr4 | ready to start | Diagnostics expansion |
 | PR 5 | renderer-visual-polish-pr5 | blocked until PR 4 merged | Visual polish |
 | PR 6 | renderer-physical-hardening-pr6 | blocked until PR 5 merged | Physical calibration / hardening |
 
 ## Active PR Checklist
 
 ```text
-PR: renderer-capture-lookup-pr2
+PR: renderer-measured-motion-pr3
 Branch: renderer-capture-index-pr1
 Base: main
-Status: implementation complete, tests passed, review gate satisfied
+Status: implementation complete, tests and smoke run, review completed
 Codex implementation: completed
-Tests: targeted PR1+PR2 tests passed (test_capture_index_builder + test_capture_index_runtime)
-Render smoke: not applicable (no renderer drawing semantics changed in PR2)
-Opus review: completed (no blockers)
+Tests: node tests/test_renderer_motionstate.js; python3 -m pytest tests/test_capture_index_builder.py tests/test_capture_index_runtime.py
+Render smoke: render_grid_pr3.html + render_grid_pr3.png generated under artifacts/renderer/renderer-measured-motion-pr3
+Opus review: completed (APPROVE_WITH_MINOR_FIXES; repo-only fixes applied)
 Blocking fixes: completed
 Human checkpoint: not prepared yet
 Merge state: not merged
@@ -59,7 +60,7 @@ Merge state: not merged
 - Use Opus as review/audit agent.
 - Keep Brandon's workload minimal.
 - Brandon should only provide short commands and final visual/physical judgment.
-- Do not proceed to next PR without Brandon checkpoint approval and merge.
+- Proceed autonomously through repo-only tasks; request Brandon only for merge approval or human-only validation gates.
 
 ## Open Risks To Track
 

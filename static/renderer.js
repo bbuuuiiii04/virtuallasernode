@@ -90,6 +90,16 @@
       this.buffer = [];
       this.clock = 0;
       this._lastNow = performance.now();
+      let soundOverride = false;
+      try {
+        const params = new URLSearchParams(window.location.search || "");
+        soundOverride = params.get("soundOverride") === "1";
+      } catch (e) {}
+      this.debug = {
+        soundOverride: !!(window.__VLN_DEBUG_SOUND_OVERRIDE || soundOverride),
+      };
+      this._lastMotionStates = [];
+      this._frameMotionStates = [];
       this._resize();
       loadCalibration().then(() => this._resize());   // apply live calibration.json
       window.addEventListener("resize", () => this._resize());
@@ -106,6 +116,17 @@
         this.buffer.length = 0;            // reconnect/first-frame: drop stale
       this.buffer.push({ t, decoded });
       while (this.buffer.length > 10) this.buffer.shift();
+    }
+
+    setSoundOverride(enabled) {
+      this.debug.soundOverride = !!enabled;
+    }
+
+    getDebugState() {
+      return {
+        soundOverride: !!this.debug.soundOverride,
+        motionStates: this._lastMotionStates.slice(),
+      };
     }
 
     _resize() {
@@ -154,6 +175,7 @@
       if (!s) return;
       let drew = false;
       this._frameAmbient = null;
+      this._frameMotionStates = [];
       const total = s.next.length;
       for (let i = 0; i < total; i++) {
         try {
@@ -162,6 +184,7 @@
           for (const st of layers) drew = this._drawFan(ctx, st, i, total, dims) || drew;
         } catch (e) { /* never kill the rAF loop */ }
       }
+      this._lastMotionStates = this._frameMotionStates.slice();
       if (!drew) {
         ctx.globalCompositeOperation = "source-over";
         ctx.clearRect(0, 0, dims.W, dims.H);
@@ -183,11 +206,15 @@
       return {
         power: fx.power, dimmer: fx.dimmer, size: fx.pattern.size,
         position: fx.position, color: fx.color, strobe: fx.strobe,
+        control: fx.control || { sound_gated: false },
         gradient: fx.gradient, rotation: fx.rotation, movement: fx.movement,
         zoom: fx.zoom, scan: fx.scan, waves: fx.waves,
         patternGroup: fx.pattern.group, patternIndex: sel.index || 0,
         // CALIBRATED: CH3>=128 dynamic groups self-animate and IGNORE CH5-19.
         dynamic: fx.pattern.kind === "dynamic",
+        captureLookup: fx.__capture_lookup || null,
+        provenanceLabel: fx.__provenance_label || "MEASURED_FIXTURE_MODEL",
+        layerKind: "primary",
       };
     }
     _second(sp, fx) {
@@ -195,26 +222,206 @@
       return {
         power: fx.power, dimmer: fx.dimmer, size: sp.size, position: sp.position,
         color: sp.color, strobe: sp.strobe, gradient: sp.gradient,
+        control: fx.control || { sound_gated: false },
         rotation: sp.rotation, movement: sp.movement, zoom: sp.zoom, scan: sp.scan,
         waves: sp.waves,
         patternGroup: sp.group, patternIndex: sel.index || 0,
         dynamic: false,            // second pattern (CH20-36) is static-only
+        captureLookup: fx.__capture_lookup || null,
+        provenanceLabel: fx.__provenance_label || "MEASURED_FIXTURE_MODEL",
+        layerKind: "second_pattern",
       };
     }
     _interp(p, n, f) {
       const power = p.power || n.power;
       const dimmer = lerp(p.dimmer, n.dimmer, f);
+      const position = n.position || p.position || { x: 0, y: 0, blanked: false };
+      const strobe = p.strobe || n.strobe || { on: false, speed: 0 };
       return {
         // dynamic ignores CH6/7, so its position.blanked must not hide it
-        visible: power && dimmer > 0.002 && (p.dynamic || !p.position.blanked),
+        visible: power && dimmer > 0.002 && (p.dynamic || !position.blanked),
+        power,
         dimmer,
-        posX: lerp(p.position.x, n.position.x, f),
-        posY: lerp(p.position.y, n.position.y, f),
+        position,
+        posX: lerp((p.position || {}).x || 0, (n.position || {}).x || 0, f),
+        posY: lerp((p.position || {}).y || 0, (n.position || {}).y || 0, f),
         size: lerp(p.size, n.size, f),
-        color: p.color, strobeOn: p.strobe.on, strobeSpeed: p.strobe.speed,
-        gradient: p.gradient, rotation: p.rotation, movement: p.movement, zoom: p.zoom,
-        scan: p.scan, waves: p.waves,
+        color: p.color || n.color || { rgb: [255, 255, 255], mode: "solid", speed: "off" },
+        strobeOn: !!strobe.on, strobeSpeed: Number(strobe.speed) || 0,
+        gradient: p.gradient || n.gradient || 0,
+        rotation: p.rotation || n.rotation || { z: { mode: "off" }, x: { mode: "off" }, y: { mode: "off" } },
+        movement: p.movement || n.movement || { h: { mode: "off", val: 0 }, v: { mode: "off", val: 0 } },
+        zoom: p.zoom || n.zoom || { mode: "off", val: 0 },
+        scan: p.scan || n.scan || { mode: "line", speed: 0 },
+        waves: p.waves || n.waves || { axis: "off", speed: 0 },
         patternGroup: p.patternGroup, patternIndex: p.patternIndex, dynamic: p.dynamic,
+        control: n.control || p.control || { sound_gated: false },
+        captureLookup: n.captureLookup || p.captureLookup || null,
+        provenanceLabel: n.provenanceLabel || p.provenanceLabel || "MEASURED_FIXTURE_MODEL",
+        layerKind: n.layerKind || p.layerKind || "primary",
+      };
+    }
+
+    _clamp(v, lo, hi, dflt) {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return dflt;
+      return Math.max(lo, Math.min(hi, n));
+    }
+
+    _directionSigns(direction) {
+      const s = String(direction || "").toLowerCase();
+      let h = 1, v = 1;
+      if (s.includes("right_to_left")) h = -1;
+      else if (s.includes("left_to_right")) h = 1;
+      if (s.includes("up_to_down")) v = -1;
+      else if (s.includes("down_to_up")) v = 1;
+      return { h, v };
+    }
+
+    _extractMeasuredMotion(st) {
+      const cl = st.captureLookup;
+      if (!cl || !cl.hit || st.layerKind !== "primary") {
+        return { active: false, source: "FALLBACK_MOTIONSTATE" };
+      }
+      const m = cl.metrics || {};
+      const loopDuration = this._clamp(m.loop_duration_estimate, 0.001, 9999, null);
+      const loopHz = loopDuration ? 1 / loopDuration : null;
+      const strobeHz = this._clamp(m.strobe_frequency_hz, 0.0, 60.0, null);
+      const strobeDuty = this._clamp(m.duty_cycle, 0.05, 0.95, null);
+      const xExtent = this._clamp(m.x_range_norm_roi, 0.05, 1.2, null);
+      const yExtent = this._clamp(m.y_range_norm_roi, 0.05, 1.2, null);
+      const dir = this._directionSigns(m.motion_direction);
+      return {
+        active: true,
+        source: "MEASURED_MOTION_ANALYSIS",
+        motionType: String(m.motion_type || "unknown"),
+        loopHz,
+        strobeHz,
+        strobeDuty,
+        xExtent,
+        yExtent,
+        direction: String(m.motion_direction || ""),
+        directionConfidence: Number.isFinite(Number(m.motion_direction_confidence))
+          ? Number(m.motion_direction_confidence) : null,
+        hSign: dir.h,
+        vSign: dir.v,
+      };
+    }
+
+    _moveOffset(c, axis, measured) {
+      if (!c || c.mode === "off") return { mode: "off", offset: 0, source: "none" };
+      const val = Number(c.val);
+      if (!Number.isFinite(val)) return { mode: "off", offset: 0, source: "none" };
+      if (c.mode === "position") {
+        return {
+          mode: "position",
+          offset: (val / 127 - 0.5) * 2,
+          source: "channel_position",
+        };
+      }
+      // speed mode
+      if (measured.active && measured.motionType === "static") {
+        return { mode: "speed", offset: 0, source: measured.source };
+      }
+      const fallbackHz = this._sweepHz(val);
+      const hz = measured.active && measured.loopHz ? measured.loopHz : fallbackHz;
+      const sign = axis === "h" ? (measured.hSign || 1) : (measured.vSign || 1);
+      const extent = axis === "h" ? measured.xExtent : measured.yExtent;
+      const amp = measured.active && extent ? extent : 1.0;
+      return {
+        mode: "speed",
+        offset: Math.sin(this.clock * TAU * hz * sign) * amp,
+        source: measured.active ? measured.source : "FALLBACK_MOTIONSTATE",
+      };
+    }
+
+    _buildMotionState(st, idx, total) {
+      const measured = this._extractMeasuredMotion(st);
+      const power = !!st.power;
+      const dimmer = Number(st.dimmer) || 0;
+      const positionBlanked = !!(st.position && st.position.blanked);
+      const soundGated = !!(st.control && st.control.sound_gated);
+      const soundOverride = !!this.debug.soundOverride;
+      const dynamicBlankingBypassed = !!(st.dynamic && positionBlanked);
+      let killReason = null;
+      if (!power) killReason = "power_off";
+      else if (dimmer <= 0.002) killReason = "dimmer_zero";
+      else if (positionBlanked && !st.dynamic) killReason = "position_blanked";
+      else if (soundGated && !soundOverride) killReason = "sound_gated";
+      const visibleBeforeStrobe = killReason === null;
+
+      const activeStrobe = !!st.strobeOn;
+      const fallbackStrobeHz = CAL.rates.strobeHz * Math.max(0, (st.strobeSpeed || 0) / 255);
+      const strobeHz = activeStrobe
+        ? (measured.active && measured.strobeHz ? measured.strobeHz : fallbackStrobeHz)
+        : 0;
+      const strobeDuty = activeStrobe
+        ? (measured.active && measured.strobeDuty ? measured.strobeDuty : 0.5)
+        : 1.0;
+      const strobePhase = strobeHz > 0 ? (((this.clock * strobeHz) % 1) + 1) % 1 : 0;
+      const strobeGateOpen = !activeStrobe || strobePhase < strobeDuty;
+      const visibleAfterStrobe = visibleBeforeStrobe && strobeGateOpen;
+
+      const drawMode = (st.scan && st.scan.mode === "line-bright") ? "bright_line"
+        : (st.scan && st.scan.mode === "dot") ? "dot"
+          : "beam_line";
+      const hMove = this._moveOffset(st.movement && st.movement.h, "h", measured);
+      const vMove = this._moveOffset(st.movement && st.movement.v, "v", measured);
+
+      const warnings = [];
+      if (st.layerKind === "second_pattern") warnings.push("second_pattern_decoder_driven_with_warning");
+      if (st.waves && st.waves.axis !== "off") warnings.push("CH19_wave_deformation_approximate_unverified");
+      if ((hMove.mode === "speed" || vMove.mode === "speed") && !measured.active) {
+        warnings.push("CH15_CH16_sine_waveform_approximate_unverified");
+      }
+      if (!measured.active) warnings.push("fallback_motionstate_active");
+
+      return {
+        epochMs: performance.now(),
+        fixture: {
+          index: idx,
+          total,
+          mirror: idx % 2 === 1,
+          captureProvenance: st.provenanceLabel || "MEASURED_FIXTURE_MODEL",
+          motionProvenance: measured.active ? "MEASURED_MOTION_ANALYSIS" : "FALLBACK_MOTIONSTATE",
+          layerKind: st.layerKind || "primary",
+        },
+        visibility: {
+          power,
+          dimmer,
+          positionBlanked,
+          soundGated,
+          soundOverride,
+          dynamicBlankingBypassed,
+          visibleBeforeStrobe,
+          visibleAfterStrobe,
+          killReason,
+        },
+        aim: {
+          hStatic: Number(st.posX) || 0,
+          vStatic: Number(st.posY) || 0,
+          hMoveMode: hMove.mode,
+          vMoveMode: vMove.mode,
+          hMoveOffset: hMove.offset,
+          vMoveOffset: vMove.offset,
+          hFinal: (Number(st.posX) || 0) + hMove.offset,
+          vFinal: (Number(st.posY) || 0) + vMove.offset,
+        },
+        scan: {
+          mode: (st.scan && st.scan.mode) || "line",
+          drawMode,
+        },
+        strobe: {
+          active: activeStrobe,
+          gateOpen: strobeGateOpen,
+          phase: strobePhase,
+          duty: strobeDuty,
+          frequencyHz: strobeHz,
+          source: measured.active && measured.strobeHz ? measured.source : "FALLBACK_MOTIONSTATE",
+          waveform: "square",
+        },
+        measured: measured.active ? measured : null,
+        warnings,
       };
     }
 
@@ -266,10 +473,6 @@
       grad.addColorStop(1, "rgba(" + r + "," + g + "," + b + ",0)");
       ctx.fillStyle = grad; ctx.fill();
     }
-    _strobeVisible(st) {
-      if (!st.strobeOn) return true;
-      return Math.sin(this.clock * TAU * CAL.rates.strobeHz * (st.strobeSpeed / 255)) > 0;
-    }
     _beamColor(st, i) {
       const c = st.color;
       if (st.dynamic) {
@@ -311,9 +514,10 @@
 
     // ---- the beam fan ------------------------------------------------------
     _drawFan(ctx, st, idx, total, dims) {
-      if (!st.visible) return false;
-      if (st.strobeOn && !this._strobeVisible(st)) return false;
-      const mirror = idx % 2 === 1;
+      const motion = this._buildMotionState(st, idx, total);
+      this._frameMotionStates.push(motion);
+      if (!motion.visibility.visibleAfterStrobe) return false;
+      const mirror = motion.fixture.mirror;
 
       // ---- FIXED apertures: 2 fixtures on a T-bar near top-centre, each a
       // dual-aperture box. Origins are BOLTED DOWN — only beam DIRECTIONS change.
@@ -334,9 +538,9 @@
         // 4 apertures each draw the fan, so keep per-aperture count modest.
         count = Math.max(2, Math.round(pat.n * (0.32 + (1 - st.size / 255) * 0.45)));
       }
-      const sm = (!st.dynamic && st.scan) ? st.scan.mode : "line";   // CH10 scan
-      const scanN = sm === "line-bright" ? 1.2 : (sm === "dot" ? 0.55 : 0.9);
-      const dim = st.dimmer * (sm === "line-bright" ? 1.0 : (sm === "dot" ? 0.6 : 0.85));
+      const drawMode = motion.scan.drawMode;
+      const scanN = drawMode === "bright_line" ? 1.2 : (drawMode === "dot" ? 0.55 : 0.9);
+      const dim = st.dimmer * (drawMode === "bright_line" ? 1.0 : (drawMode === "dot" ? 0.6 : 0.85));
       count = Math.max(2, Math.round(count * scanN));
       const wscale = Math.max(0.5, Math.min(2.6, 12 / count));
       const wave = (!st.dynamic && st.waves && st.waves.axis !== "off") ? st.waves : null;
@@ -358,8 +562,8 @@
       const sqX = 1 - Math.min(sqMax, Math.abs(Math.sin(yaw)) * sqMax);
       // position/movement RE-AIM: pivot the fan from the fixed origin toward a
       // shifted landing — origin stays put. +H = screen-right, +V = screen-up.
-      let aimX = st.posX + this._sweep(st.movement.h);
-      let aimY = st.posY + this._sweep(st.movement.v);
+      let aimX = motion.aim.hFinal;
+      let aimY = motion.aim.vFinal;
       if (!st.dynamic && (Math.abs(aimX) > CAL.geometry.aimXBlank || Math.abs(aimY) > CAL.geometry.aimYBlank)) return false;
       if (st.dynamic) {                              // self-animation, ignores CH5-19
         const m = mirror ? -1 : 1;
