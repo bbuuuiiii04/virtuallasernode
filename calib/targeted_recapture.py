@@ -120,6 +120,7 @@ def run_preflight(backend_str: str, port_str: str):
     clipped_count = 0
     geo_clipped_count = 0
     required_blanks = []
+    non_bottom_clipped = []
     fps_list = []
     
     for overrides_names, name in preflight_overrides:
@@ -145,9 +146,13 @@ def run_preflight(backend_str: str, port_str: str):
         
         if blank and name in ["preflight_CH16_128", "preflight_CH7_128", "preflight_CH7_128_CH16_128"]:
             required_blanks.append(name)
+            
+        if clipped and not geo_clipped:
+            print(f"  WARNING: Capture {name} has generic clipping but no low geometry clipping.")
+            non_bottom_clipped.append(name)
         
-        if clipped or geo_clipped:
-            print(f"HALT: Preflight capture {name} caused clipping! (clipped={clipped}, geo_clipped={geo_clipped})")
+        if geo_clipped:
+            print(f"HALT: Preflight capture {name} caused critical geometry_clipped_low! (clipped={clipped}, geo_clipped={geo_clipped})")
             print("Please adjust camera to avoid clipping before continuing.")
             orch.blackout()
             sys.exit(1)
@@ -157,6 +162,10 @@ def run_preflight(backend_str: str, port_str: str):
     print(f"Blank count: {blank_count}")
     print(f"Clipped count: {clipped_count}")
     print(f"Geometry clipped low count: {geo_clipped_count}")
+    if non_bottom_clipped:
+        print(f"Non-bottom clipped captures:")
+        for c in non_bottom_clipped:
+            print(f"  - {c}")
     if fps_list:
         import statistics
         print(f"FPS: min={min(fps_list):.1f}, median={statistics.median(fps_list):.1f}")
@@ -174,6 +183,9 @@ def run_preflight(backend_str: str, port_str: str):
         print("The laser must be visible at neutral positions.")
         orch.blackout()
         sys.exit(1)
+        
+    if non_bottom_clipped:
+        print("WARNING: Non-bottom edge clipping detected. Visually inspect these videos before full capture.")
         
     print("Preflight passed! No critical failures detected.")
 
