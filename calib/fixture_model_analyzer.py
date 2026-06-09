@@ -214,11 +214,18 @@ class CaptureIndex:
     def phase1_channel_rows(self, ch: int) -> list[dict[str, Any]]:
         """Get Phase 1 rows for a specific channel on the primary base."""
         ch_key = f"CH{ch}"
-        return [
+        rows = [
             r for r in self.by_phase.get("phase1_single_channel", [])
             if ch_key in (r.get("changed_channels") or {})
             and r.get("baseline") == PRIMARY_BASE_NAME
         ]
+        
+        if ch == 16:
+            targeted = [r for r in rows if r.get("family") == "targeted_recapture_CH16_reclean"]
+            if targeted:
+                return targeted
+                
+        return rows
 
     def phase15_rows(self, ch: int, base: str) -> list[dict[str, Any]]:
         """Get Phase 1.5 rows for a channel on a specific base."""
@@ -991,10 +998,14 @@ def analyze_composition_group(index: CaptureIndex, intent_name: str,
                               ch_a: int, ch_b: int,
                               metric_key: str) -> dict[str, Any]:
     """Analyze a 2-channel compositional grid to determine the combination rule."""
-    group_rows = [
-        r for r in index.by_phase.get("phase3_composition", [])
-        if r.get("intent") == intent_name
-    ]
+    group_rows = []
+    has_temporal = False
+    for r in index.by_phase.get("phase3_composition", []):
+        if r.get("intent") == intent_name or (intent_name == "composition_translate_CH7xCH16" and r.get("group") == "group_translate_CH7xCH16"):
+            if r.get("temporal_classification") == "temporal_estimated":
+                has_temporal = True
+            else:
+                group_rows.append(r)
 
     # Group by base
     by_base: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -1107,6 +1118,7 @@ def analyze_composition_group(index: CaptureIndex, intent_name: str,
         "confidence": "high" if base_consistent and all(r["confidence"] != "low" for r in results_per_base) else "medium",
         "base_consistent": base_consistent,
         "per_base": results_per_base,
+        "temporal_estimated_observed": has_temporal,
     }
 
 
@@ -1581,6 +1593,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Offline Phase 5 fixture model analyzer")
     ap.add_argument("--stage", type=int, default=0, help="Run only this stage (1-8); 0 = all")
     ap.add_argument("--cross-check-only", action="store_true", help="Only run fixtures.py cross-check")
+    ap.add_argument("--verify-include-session-only", action="store_true", help="Verify the included session manifest and exit")
     ap.add_argument("--include-session", type=str, action="append", help="Include additional capture session directories")
     args = ap.parse_args()
 
@@ -1594,6 +1607,47 @@ def main() -> None:
     # Stage 1: Load & index
     index = CaptureIndex()
     include_sessions = [Path(s) for s in args.include_session] if args.include_session else None
+    
+    if args.verify_include_session_only:
+        if not include_sessions:
+            print("Error: --verify-include-session-only requires --include-session")
+            sys.exit(1)
+        
+        index.load(include_sessions)
+        
+        # Isolate new rows based on the first included session
+        target_root = include_sessions[0]
+        new_rows = [r for r in index.rows if r.get("__session_root__") == target_root]
+        
+        preflight_count = sum(1 for r in new_rows if r.get("family") == "targeted_recapture_preflight")
+        ch16_count = sum(1 for r in new_rows if r.get("family") == "targeted_recapture_CH16_reclean")
+        ch7x16_static = sum(1 for r in new_rows if r.get("family") == "targeted_recapture_CH7xCH16_static")
+        ch7x16_temp = sum(1 for r in new_rows if r.get("family") == "targeted_recapture_CH7xCH16_temporal")
+        
+        missing_analysis = sum(1 for r in new_rows if not r.get("analysis"))
+        
+        from collections import Counter
+        phases = Counter(r.get("phase", "unknown") for r in new_rows)
+        baselines = Counter(r.get("baseline", "unknown") for r in new_rows)
+        
+        print("\n=== Session Verification ===")
+        print(f"Included session rows count: {len(new_rows)}")
+        print(f"Missing analysis count: {missing_analysis}")
+        print(f"\nPhase counts: {dict(phases)}")
+        print(f"Baseline counts: {dict(baselines)}")
+        print(f"\nCategory counts:")
+        print(f"  Preflight: {preflight_count}")
+        print(f"  CH16 clean sweep: {ch16_count}")
+        print(f"  CH7xCH16 static: {ch7x16_static}")
+        print(f"  CH7xCH16 temporal: {ch7x16_temp}")
+        print(f"  Total captured categories: {preflight_count + ch16_count + ch7x16_static + ch7x16_temp}")
+        
+        print("\nAnalyzer routing:")
+        if ch16_count > 0 and ch7x16_static > 0:
+            print("  [OK] Analyzer will securely prefer the targeted CH16 rows and route CH7xCH16 to Stage 5 composition.")
+        else:
+            print("  [WARN] Missing critical targeted rows! Analyzer might not use them properly.")
+        sys.exit(0)
     
     if run_all or args.stage == 1:
         index.load(include_sessions)

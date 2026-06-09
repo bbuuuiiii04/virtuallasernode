@@ -46,7 +46,7 @@ def write_json(path: Path, data: dict):
         json.dump(data, fh, indent=2, sort_keys=True)
         fh.write("\n")
 
-def capture_target(name: str, rel_path: str, overrides: dict, reason: str, duration: float = 3.0) -> dict:
+def capture_target(name: str, rel_path: str, overrides: dict, reason: str, duration: float = 3.0, **manifest_fields) -> dict:
     dmx = dict(DEFAULT_36CH_VECTOR)
     dmx.update(overrides)
     
@@ -99,10 +99,11 @@ def capture_target(name: str, rel_path: str, overrides: dict, reason: str, durat
     }
     write_json(metadata_path, metadata)
     
+    
     # 5. Write to session manifest
     manifest_path = CAPTURE_ROOT / "manifest.jsonl"
     with manifest_path.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps({**metadata, "analysis": analysis}) + "\n")
+        fh.write(json.dumps({**metadata, **manifest_fields, "analysis": analysis}) + "\n")
         
     return analysis
 
@@ -117,7 +118,12 @@ def run_preflight():
     for overrides_names, name in preflight_overrides:
         num_overrides = {int(k.replace("CH", "")): v for k, v in overrides_names.items()}
         print(f"Running preflight: {name}")
-        analysis = capture_target(name, f"preflight/{name}", num_overrides, "preflight_sanity_check")
+        manifest_fields = {
+            "phase": "preflight_targeted",
+            "baseline": "base_CH3_000_CH4_195",
+            "family": "targeted_recapture_preflight"
+        }
+        analysis = capture_target(name, f"preflight/{name}", num_overrides, "preflight_sanity_check", **manifest_fields)
         
         clipped = analysis.get("clipped", False)
         geo_clipped = analysis.get("geometry_clipped_low", False)
@@ -138,7 +144,13 @@ def run_ch16_sweep():
         overrides = {3: 0, 4: 195, 7: 128, 16: v}
         name = f"CH16_{v:03d}"
         path = f"phase1_single_channel/CH16_vertical_movement/{name}"
-        capture_target(name, path, overrides, "Priority 1: CH16 clean re-sweep")
+        manifest_fields = {
+            "phase": "phase1_single_channel",
+            "baseline": "base_CH3_000_CH4_195",
+            "group": "CH16_vertical_movement",
+            "family": "targeted_recapture_CH16_reclean"
+        }
+        capture_target(name, path, overrides, "Priority 1: CH16 clean re-sweep", **manifest_fields)
 
 def run_ch7xch16_matrix():
     print("=== STARTING CH7xCH16 MATRIX ===")
@@ -157,7 +169,14 @@ def run_ch7xch16_matrix():
                 overrides = {**base_overrides, 7: ch7, 16: ch16}
                 name = f"CH07_{ch7:03d}_CH16_{ch16:03d}"
                 path = f"phase3_composition/{base_name}/group_translate_CH7xCH16/{name}"
-                capture_target(name, path, overrides, "Priority 1: CH7xCH16 static interaction matrix")
+                manifest_fields = {
+                    "phase": "phase3_composition",
+                    "baseline": base_name,
+                    "group": "group_translate_CH7xCH16",
+                    "family": "targeted_recapture_CH7xCH16_static",
+                    "temporal_classification": "static_geometry"
+                }
+                capture_target(name, path, overrides, "Priority 1: CH7xCH16 static interaction matrix", **manifest_fields)
         
         # Temporal matrix
         ch16_temporal = [128, 160, 192]
@@ -167,7 +186,14 @@ def run_ch7xch16_matrix():
                 overrides = {**base_overrides, 7: ch7, 16: ch16}
                 name = f"CH07_{ch7:03d}_CH16_{ch16:03d}_temporal"
                 path = f"phase3_composition/{base_name}/group_translate_CH7xCH16/{name}"
-                capture_target(name, path, overrides, "Priority 1: CH7xCH16 temporal interaction matrix (estimated)", duration=8.0)
+                manifest_fields = {
+                    "phase": "phase3_composition",
+                    "baseline": base_name,
+                    "group": "group_translate_CH7xCH16",
+                    "family": "targeted_recapture_CH7xCH16_temporal",
+                    "temporal_classification": "temporal_estimated"
+                }
+                capture_target(name, path, overrides, "Priority 1: CH7xCH16 temporal interaction matrix (estimated)", duration=8.0, **manifest_fields)
 
 def main():
     parser = argparse.ArgumentParser()

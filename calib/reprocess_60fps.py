@@ -32,6 +32,7 @@ def main():
     THRESHOLD = 50
     
     start_time = time.time()
+    failed_dirs = []
     
     for i, folder in enumerate(capture_dirs, 1):
         video_path = folder / "video.mp4" if (folder / "video.mp4").exists() else folder / "video_color.mp4"
@@ -63,6 +64,7 @@ def main():
                 json.dump(res["analysis"], f, indent=2)
         except Exception as e:
             print(f"[{i}/{total}] Error processing {folder.name}: {e}")
+            failed_dirs.append(folder)
             
         # Print progress every 10 items to avoid flooding the log
         if i % 10 == 0 or i == total:
@@ -77,6 +79,15 @@ def main():
             print(f"[{bar}] {i}/{total} ({i/total*100:.1f}%) | "
                   f"Rate: {rate:.2f} clips/s | ETA: {eta/60:.1f} mins | "
                   f"Processing: {folder.name}")
+
+    if failed_dirs:
+        print(f"\nERROR: {len(failed_dirs)} captures failed processing:")
+        for fd in failed_dirs:
+            print(f"  - {fd}")
+        sys.exit(1)
+        
+    print(f"\nDone. Processed {total - len(failed_dirs)} captures successfully.")
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
