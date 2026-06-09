@@ -10,10 +10,12 @@ import json
 import os
 import threading
 import time
+from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .fixtures import FIXTURES, decode_fixture
 from .util import log
+from .capture_index_runtime import CaptureIndexRuntime
 
 WEB_PUSH_HZ = 30        # SSE snapshot rate to the browser
 MAX_SSE_CLIENTS = 16    # cap concurrent /stream connections (each = 1 thread)
@@ -36,7 +38,11 @@ STATIC_ROUTES = {
 
 from .fixture_model_adapter import compose_fixture_model, load_fixture_model, sanitize_model
 
-def _snapshot(node, fixture_model_cache=None):
+ROOT = Path(__file__).resolve().parent
+CAPTURE_INDEX_PATH = ROOT / "artifacts" / "renderer" / "renderer-capture-index-pr1" / "capture_index_v1.json"
+SOUNDSWITCH_CUES_PATH = ROOT / "data" / "soundswitch_laser_cues.json"
+
+def _snapshot(node, fixture_model_cache=None, capture_index_runtime=None):
     """JSON-serializable snapshot of all universes + the fixture patch.
 
     Per-field reads are individually GIL-atomic (single writer thread), but the
@@ -70,7 +76,12 @@ def _snapshot(node, fixture_model_cache=None):
                 "fixture_model": {
                     "model_status": "unavailable",
                     "confidence": "decoded_fallback",
-                    "unsupported": ["model_load_failed"]
+                    "unsupported": ["model_load_failed"],
+                    "capture_lookup": {
+                        "hit": False,
+                        "provenance_label": "MANUAL_DECODER",
+                        "fallback_reason": "capture_index_unavailable",
+                    },
                 }
             })
             continue
@@ -81,6 +92,16 @@ def _snapshot(node, fixture_model_cache=None):
             model["composed"]["universe"] = f["universe"]
             model["decoded"]["name"] = f["name"]
             model["decoded"]["universe"] = f["universe"]
+            lookup = (
+                capture_index_runtime.lookup_exact_from_channels(ch_list)
+                if capture_index_runtime is not None else
+                {
+                    "hit": False,
+                    "provenance_label": "MEASURED_FIXTURE_MODEL",
+                    "fallback_reason": "capture_index_unavailable",
+                }
+            )
+            model["fixture_model"]["capture_lookup"] = lookup
             composed_models.append(model)
         except Exception as e:
             # Fallback cleanly so the SSE stream never dies
@@ -93,7 +114,12 @@ def _snapshot(node, fixture_model_cache=None):
                     "model_status": "adapter_error",
                     "confidence": "decoded_fallback",
                     "unsupported": ["model_adapter_error"],
-                    "error": str(e)
+                    "error": str(e),
+                    "capture_lookup": {
+                        "hit": False,
+                        "provenance_label": "MANUAL_DECODER",
+                        "fallback_reason": "model_adapter_error",
+                    },
                 }
             })
 
@@ -125,12 +151,24 @@ class SnapshotProducer:
         except Exception as e:
             log(f"[web] failed to load fixture_model.json: {e}")
             self._fixture_model_cache = None
+        try:
+            self._capture_index_runtime = CaptureIndexRuntime.from_paths(
+                index_path=CAPTURE_INDEX_PATH,
+                cues_path=SOUNDSWITCH_CUES_PATH,
+            )
+        except Exception as e:
+            log(f"[web] failed to load capture index: {e}")
+            self._capture_index_runtime = None
         threading.Thread(target=self._run, daemon=True).start()
 
     def _run(self):
         while True:
             try:
-                payload = ("data: " + json.dumps(_snapshot(self.node, self._fixture_model_cache))
+                payload = ("data: " + json.dumps(_snapshot(
+                    self.node,
+                    self._fixture_model_cache,
+                    self._capture_index_runtime,
+                ))
                            + "\n\n").encode("utf-8")
                 with self._cond:
                     self._frame = payload

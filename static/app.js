@@ -167,6 +167,12 @@ es.onmessage = (e) => {
         };
         appendLine('Unsupported', (fm.unsupported || []).join(', ') || 'None');
         appendLine('Coverage', JSON.stringify(fm.coverage || {}));
+        const cl = fm.capture_lookup || {};
+        appendLine('Capture Provenance', cl.provenance_label || 'unknown');
+        appendLine('Capture Hit', String(!!cl.hit));
+        appendLine('Capture Fallback', cl.fallback_reason || 'none');
+        const cueMatches = Array.isArray(cl.cue_matches) ? cl.cue_matches : [];
+        appendLine('Cue Matches', cueMatches.length ? cueMatches.map(c => c.cue_name || c.cue_id).join(', ') : 'None');
         appendLine('Composition Applied', (fm.composition_applied || []).join(', ') || 'None');
         appendLine('Composition Supported', (fm.composition_supported || []).join(', ') || 'None');
         appendLine('Composition Missing', JSON.stringify(fm.composition_missing || []));

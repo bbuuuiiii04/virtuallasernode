@@ -17,12 +17,12 @@ docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
 ## Current State
 
 ```text
-active_pr: renderer-capture-index-pr1
+active_pr: renderer-capture-lookup-pr2
 active_branch: renderer-capture-index-pr1
 base_branch: main
-phase: pr1_implemented_tests_passed_review_gate_satisfied
-last_completed_step: pr1_review_completed
-next_recommended_command: Start renderer capture-lookup PR 2.
+phase: pr2_implemented_tests_passed_review_gate_satisfied
+last_completed_step: pr2_review_completed
+next_recommended_command: Continue to renderer PR 3 implementation.
 human_action_needed: none
 ```
 
@@ -31,8 +31,8 @@ human_action_needed: none
 | PR | Branch | Status | Notes |
 |---|---|---|---|
 | PR 1 | renderer-capture-index-pr1 | implementation complete, tests passed, review gate satisfied | Build-time capture index generator from manifest + per-capture analysis + analysis geometry; no renderer/webserver changes |
-| PR 2 | renderer-capture-lookup-pr2 | ready to start | Load index in webserver/adapter; exact vector + cue lookup; provenance labels and diagnostics |
-| PR 3 | renderer-measured-motion-pr3 | blocked until PR 2 complete | Consume measured parameters with reduced MotionState fallback layer |
+| PR 2 | renderer-capture-lookup-pr2 | implementation complete, tests passed, review gate satisfied | Load index in webserver/adapter; exact vector + cue lookup; provenance labels and diagnostics |
+| PR 3 | renderer-measured-motion-pr3 | ready to start | Consume measured parameters with reduced MotionState fallback layer |
 | PR 4 | renderer-diagnostics-pr4 | blocked until PR 3 merged | Diagnostics expansion |
 | PR 5 | renderer-visual-polish-pr5 | blocked until PR 4 merged | Visual polish |
 | PR 6 | renderer-physical-hardening-pr6 | blocked until PR 5 merged | Physical calibration / hardening |
@@ -40,13 +40,13 @@ human_action_needed: none
 ## Active PR Checklist
 
 ```text
-PR: renderer-capture-index-pr1
+PR: renderer-capture-lookup-pr2
 Branch: renderer-capture-index-pr1
 Base: main
 Status: implementation complete, tests passed, review gate satisfied
 Codex implementation: completed
-Tests: targeted PR1 tests passed (test_capture_index_builder)
-Render smoke: not applicable (no renderer/webserver runtime change in PR1)
+Tests: targeted PR1+PR2 tests passed (test_capture_index_builder + test_capture_index_runtime)
+Render smoke: not applicable (no renderer drawing semantics changed in PR2)
 Opus review: completed (no blockers)
 Blocking fixes: completed
 Human checkpoint: not prepared yet
