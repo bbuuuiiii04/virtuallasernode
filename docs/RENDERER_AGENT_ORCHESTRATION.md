@@ -5,7 +5,7 @@ This guide lets Brandon use short commands instead of repeatedly pasting full im
 Primary plan:
 
 ```text
-docs/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md
+docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
 ```
 
 Active status file:
@@ -121,126 +121,76 @@ If artifacts cannot be committed, the implementation report must still state whe
 
 ## 5. Current Roadmap
 
-### PR 1 — `renderer-motionstate-pr1`
+### PR 1 — `renderer-capture-index-pr1`
 
-Goal: MotionState foundation and visibility gates.
+Goal: build the compact capture-backed runtime authority index.
 
 Scope:
 
-- add `docs/RENDERER_MOTION_MODEL_V1.md`
-- add browser-local MotionState builder
-- add compatibility bridge from MotionState into current `_drawFan()` path
-- preserve existing visuals as much as possible
-- carry CH2 `control.sound_gated` into renderer layer/MotionState logic
-- add debug sound gate override
-- add CH1 power/dimmer visibility handling
-- add CH6/CH7 `position.blanked` visibility handling
-- add CH15/CH16 off/position/speed MotionState handling
-- replace sine-threshold strobe gate with explicit square-wave MotionState gate
-- add CH10 drawMode mapping:
-  - `line-bright -> bright_line`
-  - `line -> beam_line`
-  - `dot -> dot`
-- add `second_pattern` per-layer MotionState
-- add MotionState debug output/panel or console inspection
-- add warnings for CH15/CH16 approximate waveform
-- add warning for CH19 approximate wave deformation
-- add pure-JS MotionState tests
-- add visual smoke check using `calib/render_test.py` or `calib/render_grid.py`
+- build-time index generator from `manifest.jsonl` + per-capture `analysis.json` + `analysis_geometry.json`
+- dedup duplicate `test_id` rows by latest timestamp
+- retain geometry/color exposure-track pairing for the same vector
+- enforce quality gates: `usable_evidence` / `geometry_clipped_low` / `recapture_pending`
+- no renderer/webserver runtime behavior changes in this PR
+- add tests for index generation and dedup rules
+- add generation report/smoke checks appropriate to scope
 
 Acceptance:
 
-- CH1=0 draws nothing and `killReason=power_off`
-- CH6/CH7 center draws centered
-- CH6 or CH7 outside blank window draws nothing and `killReason=position_blanked`
-- CH2 `sound_gated` draws nothing unless debug override is enabled
-- CH15 position mode is static, not oscillator
-- CH15 speed mode oscillates and warns approximate/unverified
-- CH16 position mode is static, not oscillator
-- CH16 speed mode oscillates and warns approximate/unverified
-- CH11 strobe uses square-wave gate
-- CH10 dot gives `drawMode=dot`
-- `second_pattern` active produces second layer MotionState
-- `second_pattern` rendering is not broken
-- CH19 active warns approximate/unverified
-- no NaN/undefined MotionState fields
-- existing source origins remain fixed
-- existing visuals are preserved as much as possible
+- index generation is deterministic for the same corpus input
+- latest-timestamp dedup is applied for duplicate `test_id`
+- geometry/color paired rows are retained for exact-vector authority
+- quality gates are encoded in the output index
+- no renderer/webserver code path changes in PR1
 
-### PR 2 — `renderer-motion-fidelity-pr2`
+### PR 2 — `renderer-capture-lookup-pr2`
 
-Goal: improve motion fidelity after MotionState exists.
+Goal: make runtime consume capture-backed authority.
 
 Scope:
 
-- CH12/13/14 rotation MotionState
-- CH17 zoom size/speed/pulse MotionState
-- CH19 wave phase/amplitude MotionState
-- oscillator trace/debug output
-- centralized waveform policy for CH15/CH16
-- true CH10 dot rendering if PR 1 only exposed drawMode
-- better strobe duty approximation if supported by model/calibration evidence
+- load index in webserver/adapter
+- exact vector + cue lookup
+- provenance labels in SSE payload
+- diagnostics for authority hit/miss and fallback reason
 
-### PR 3 — `renderer-diagnostics-pr3`
+### PR 3 — `renderer-measured-motion-pr3`
 
-Goal: make renderer trustable during show design.
+Goal: consume measured parameters with labeled fallback behavior.
 
 Scope:
 
-- clean Debug View separate from Show View
-- per-layer MotionState panel
-- aim crosshair overlay
-- blanking boundary overlay
-- strobe indicator
-- sound gate indicator and override state
-- second-pattern layer indicator
-- approximation badges
-- composed vs decoded fallback diagnostic
-- model confidence diagnostic
+- renderer consumes measured parameters
+- reduced MotionState core retained as fallback:
+  - visibility gates
+  - square strobe
+  - CH2 sound gate
+  - CH10 drawMode
+- fallback remains explicitly labeled
 
-### PR 4 — `renderer-visual-polish-pr4`
+### PR 4 — `renderer-diagnostics-pr4`
 
-Goal: improve visual realism without changing motion semantics.
+Goal: diagnostics expansion.
 
 Scope:
 
-- beam core/mid/halo tuning
-- source glow
-- trail fade
-- haze wedge tuning
-- brightness scaling
-- dot appearance
-- strobe visual sharpness
-- room/camera view tuning
-- fixture spacing tuning through calibration where possible
+- expanded diagnostics and trust tooling after capture-backed authority is wired
 
-### PR 5 — `renderer-physical-calibration-pr5`
+### PR 5 — `renderer-visual-polish-pr5`
 
-Goal: correct mismatches from real laser comparison.
-
-Scope depends on physical comparison results:
-
-- CH15/CH16 waveform correction
-- CH19 wave coordinate-space correction
-- dot mode correction
-- strobe duty correction
-- dynamic macro correction
-- zoom response correction
-- pattern density/spread correction
-- color/gradient correction
-
-### PR 6 — `renderer-product-hardening-pr6`
-
-Goal: final cleanup.
+Goal: visual polish.
 
 Scope:
 
-- performance cleanup
-- docs cleanup
-- UX cleanup
-- remove dead code
-- stabilize tests
-- final operator workflow
+- visual polish after diagnostics expansion
+
+### PR 6 — `renderer-physical-hardening-pr6`
+
+Goal: physical calibration / hardening.
+
+Scope:
+
+- physical calibration and hardening in final sequence
 
 ## 6. Standard Agent Loop
 

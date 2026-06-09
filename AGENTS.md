@@ -21,7 +21,7 @@ This repo uses agent-assisted development. Follow this file before making change
 Read this first for renderer work:
 
 ```text
-docs/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md
+docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
 ```
 
 Supporting orchestration guide:
@@ -69,12 +69,12 @@ Do not ask Brandon to inspect every file or manually run every command unless bl
 
 ## Renderer PR Roadmap
 
-1. `renderer-motionstate-pr1` — MotionState foundation and visibility gates.
-2. `renderer-motion-fidelity-pr2` — rotation, zoom, waves, dot mode, oscillator fidelity.
-3. `renderer-diagnostics-pr3` — Debug View, MotionState panels, approximation warnings.
-4. `renderer-visual-polish-pr4` — beam/haze/trail/source glow polish.
-5. `renderer-physical-calibration-pr5` — corrections from physical comparison.
-6. `renderer-product-hardening-pr6` — performance, cleanup, docs, UX polish.
+1. `renderer-capture-index-pr1` — build-time capture index from manifest + per-capture analysis + analysis geometry.
+2. `renderer-capture-lookup-pr2` — runtime lookup in webserver/adapter with provenance labels and diagnostics.
+3. `renderer-measured-motion-pr3` — measured-parameter rendering with reduced MotionState fallback.
+4. `renderer-diagnostics-pr4` — diagnostics expansion.
+5. `renderer-visual-polish-pr5` — visual polish after diagnostics.
+6. `renderer-physical-hardening-pr6` — physical calibration and hardening.
 
 Do not begin the next PR until the current PR is approved and merged.
 

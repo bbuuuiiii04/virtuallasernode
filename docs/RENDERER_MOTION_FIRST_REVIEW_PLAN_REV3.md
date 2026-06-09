@@ -1,3 +1,6 @@
+# Superseded Notice (2026-06-09)
+This plan is superseded as primary plan by `docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md` on 2026-06-09 after the capture corpus audit; retained because its MotionState schema, visibility gates, and guardrails are reused by the fallback layer in PR3.
+
 # VirtualLaserNode Renderer Motion-First Review Plan — Rev 3
 
 **Updated:** 2026-06-09  

@@ -11,7 +11,7 @@ docs/RENDERER_AGENT_ORCHESTRATION.md
 Primary implementation plan:
 
 ```text
-docs/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md
+docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
 ```
 
 ## Current State
@@ -20,9 +20,9 @@ docs/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md
 active_pr: none
 active_branch: none
 base_branch: main
-phase: ready_for_pr1
+phase: ready_for_capture_index_pr1
 last_completed_step: orchestration_docs_created
-next_recommended_command: Start renderer PR 1.
+next_recommended_command: Start renderer capture-index PR 1.
 human_action_needed: none
 ```
 
@@ -30,12 +30,12 @@ human_action_needed: none
 
 | PR | Branch | Status | Notes |
 |---|---|---|---|
-| PR 1 | renderer-motionstate-pr1 | not started | MotionState foundation and visibility gates |
-| PR 2 | renderer-motion-fidelity-pr2 | blocked until PR 1 merged | Rotation, zoom, waves, dot mode, oscillator fidelity |
-| PR 3 | renderer-diagnostics-pr3 | blocked until PR 2 merged | Debug View and operator confidence |
-| PR 4 | renderer-visual-polish-pr4 | blocked until PR 3 merged | Visual polish after motion correctness |
-| PR 5 | renderer-physical-calibration-pr5 | blocked until PR 4 merged | Physical comparison corrections |
-| PR 6 | renderer-product-hardening-pr6 | blocked until PR 5 merged | Cleanup, docs, UX, performance |
+| PR 1 | renderer-capture-index-pr1 | not started | Build-time capture index generator from manifest + per-capture analysis + analysis geometry; no renderer/webserver changes |
+| PR 2 | renderer-capture-lookup-pr2 | blocked until PR 1 merged | Load index in webserver/adapter; exact vector + cue lookup; provenance labels and diagnostics |
+| PR 3 | renderer-measured-motion-pr3 | blocked until PR 2 merged | Consume measured parameters with reduced MotionState fallback layer |
+| PR 4 | renderer-diagnostics-pr4 | blocked until PR 3 merged | Diagnostics expansion |
+| PR 5 | renderer-visual-polish-pr5 | blocked until PR 4 merged | Visual polish |
+| PR 6 | renderer-physical-hardening-pr6 | blocked until PR 5 merged | Physical calibration / hardening |
 
 ## Active PR Checklist
 
