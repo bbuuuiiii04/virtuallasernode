@@ -26,7 +26,7 @@
                 spreadAngMax: 2.4, panGain: 0.5, vShiftGain: 0.70,
                 squashMax: 0.6, aimXBlank: 0.95, aimYBlank: 0.50 },
     beam: { halo: 6, mid: 2.4, core: 1.1, srcGlow: 18, coreWhiteBoost: 90,
-            srcGlowBoost: 130 },
+            srcGlowBoost: 130, tipGlow: 4.5, ambientStrength: 0.085 },
     zoom: { min: 0.55, range: 0.9 },
     dynamic: { spinRate: 0.7, aimXRate: 0.4, aimXAmp: 0.18, spread: 1.2, count: 7,
                colorBase: 0, colorSpread: 14, colorRate: 30 },
@@ -188,6 +188,15 @@
       if (!drew) {
         ctx.globalCompositeOperation = "source-over";
         ctx.clearRect(0, 0, dims.W, dims.H);
+      } else if (this._frameAmbient) {
+        const a = this._frameAmbient;
+        const alpha = CAL.beam.ambientStrength ?? 0.085;
+        ctx.globalCompositeOperation = "source-over";
+        const grad = ctx.createRadialGradient(dims.cx, dims.cy, dims.scale * 0.2, dims.cx, dims.cy, dims.scale * 1.4);
+        grad.addColorStop(0, "rgba(" + a[0] + "," + a[1] + "," + a[2] + "," + alpha + ")");
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, dims.W, dims.H);
       }
     }
 
@@ -632,13 +641,22 @@
           } else {
             this._beam(ctx, ox, oy, ex, ey, rgb, dim, wscale);
           }
+          if (drawMode === "dot") this._dotBurst(ctx, ex, ey, rgb, dim, wscale);
           ends.push([ex, ey]);
           drew = true;
         }
         if (ends.length > 1) this._hazeWedgePts(ctx, p0, ends, colMid, dim);
         this._sourceGlow(ctx, ox, oy, this._beamColor(st, 0), dim);
       }
-      this._frameAmbient = [(colMid[0] * dim) | 0, (colMid[1] * dim) | 0, (colMid[2] * dim) | 0];
+      const amb = [(colMid[0] * dim) | 0, (colMid[1] * dim) | 0, (colMid[2] * dim) | 0];
+      if (!this._frameAmbient) this._frameAmbient = amb;
+      else {
+        this._frameAmbient = [
+          Math.max(this._frameAmbient[0], amb[0]),
+          Math.max(this._frameAmbient[1], amb[1]),
+          Math.max(this._frameAmbient[2], amb[2]),
+        ];
+      }
       return drew;
     }
 
@@ -699,6 +717,13 @@
       grad.addColorStop(1, "rgba(" + cs + ",0)");
       ctx.strokeStyle = grad; ctx.lineWidth = CAL.beam.core * wscale;
       strokePts();
+      // tip accent gives endpoint presence without changing motion geometry.
+      const tipR = (CAL.beam.tipGlow ?? 4.5) * wscale;
+      const tip = ctx.createRadialGradient(last[0], last[1], 0, last[0], last[1], tipR);
+      tip.addColorStop(0, "rgba(" + cs + ",0.35)");
+      tip.addColorStop(1, "rgba(" + cs + ",0)");
+      ctx.fillStyle = tip;
+      ctx.beginPath(); ctx.arc(last[0], last[1], tipR, 0, TAU); ctx.fill();
     }
 
     _sourceGlow(ctx, x, y, rgb, dim) {
@@ -712,6 +737,24 @@
       grad.addColorStop(1, "rgba(" + er + "," + eg + "," + eb + ",0)");
       ctx.fillStyle = grad;
       ctx.beginPath(); ctx.arc(x, y, CAL.beam.srcGlow, 0, TAU); ctx.fill();
+      const ringR = CAL.beam.srcGlow * 1.2;
+      const ring = ctx.createRadialGradient(x, y, CAL.beam.srcGlow * 0.7, x, y, ringR);
+      ring.addColorStop(0, "rgba(" + er + "," + eg + "," + eb + ",0.18)");
+      ring.addColorStop(1, "rgba(" + er + "," + eg + "," + eb + ",0)");
+      ctx.fillStyle = ring;
+      ctx.beginPath(); ctx.arc(x, y, ringR, 0, TAU); ctx.fill();
+    }
+
+    _dotBurst(ctx, x, y, rgb, dim, wscale) {
+      const r = (rgb[0] * dim) | 0, g = (rgb[1] * dim) | 0, b = (rgb[2] * dim) | 0;
+      const inner = Math.max(1, 1.1 * wscale);
+      const outer = Math.max(inner + 1, 4 * wscale);
+      const grad = ctx.createRadialGradient(x, y, inner * 0.1, x, y, outer);
+      grad.addColorStop(0, "rgba(" + r + "," + g + "," + b + ",0.9)");
+      grad.addColorStop(0.45, "rgba(" + r + "," + g + "," + b + ",0.35)");
+      grad.addColorStop(1, "rgba(" + r + "," + g + "," + b + ",0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(x, y, outer, 0, TAU); ctx.fill();
     }
   }
 
