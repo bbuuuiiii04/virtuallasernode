@@ -7,7 +7,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 import dense_cue_breakpoints as dense
 
 def main():
-    root = Path("captures/fixture_model")
+    if len(sys.argv) > 1:
+        root = Path(sys.argv[1])
+    else:
+        root = Path("captures/fixture_model")
+        
     if not root.exists():
         print(f"Error: {root} does not exist.")
         return

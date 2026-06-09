@@ -312,3 +312,13 @@ The architect should direct the next physical capture session with these exact p
 3. After recapture, re-run `reprocess_60fps.py` on only the new captures, then re-assemble `fixture_model.json`.
 
 4. Once CH7×CH16 data exists, implement the composition rule in `fixture_model_adapter.py` (currently listed as `composition_missing` with reason `insufficient_data`).
+
+---
+
+## Addendum: Targeted Recapture Prepared (2026-06-08)
+
+A targeted recapture workflow has been fully prepared per the architect's corrections:
+* **Session ID:** `recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08`
+* **Preflight Gate:** Built into `calib/targeted_recapture.py` to analyze 9 boundary frames immediately and halt on `clipped` or `geometry_clipped_low` flags to ensure the slight framing shift (0.5cm) remains safe.
+* **Semantic CH16 Split:** The CH7xCH16 matrix correctly maps `CH16 <= 120` as static positional geometry (24 frames per base) and `CH16 >= 128` as temporal estimated speed geometry (9 frames per base).
+* **Tooling:** Use `python3 calib/targeted_recapture.py --rig-confirmed` to run, and `python3 calib/reprocess_60fps.py captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08` to process.
