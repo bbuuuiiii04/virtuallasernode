@@ -17,12 +17,12 @@ docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
 ## Current State
 
 ```text
-active_pr: none
-active_branch: none
+active_pr: renderer-capture-index-pr1
+active_branch: renderer-capture-index-pr1
 base_branch: main
-phase: ready_for_capture_index_pr1
-last_completed_step: orchestration_docs_created
-next_recommended_command: Start renderer capture-index PR 1.
+phase: pr1_implemented_tests_passed_review_gate_satisfied
+last_completed_step: pr1_review_completed
+next_recommended_command: Start renderer capture-lookup PR 2.
 human_action_needed: none
 ```
 
@@ -30,31 +30,27 @@ human_action_needed: none
 
 | PR | Branch | Status | Notes |
 |---|---|---|---|
-| PR 1 | renderer-capture-index-pr1 | not started | Build-time capture index generator from manifest + per-capture analysis + analysis geometry; no renderer/webserver changes |
-| PR 2 | renderer-capture-lookup-pr2 | blocked until PR 1 merged | Load index in webserver/adapter; exact vector + cue lookup; provenance labels and diagnostics |
-| PR 3 | renderer-measured-motion-pr3 | blocked until PR 2 merged | Consume measured parameters with reduced MotionState fallback layer |
+| PR 1 | renderer-capture-index-pr1 | implementation complete, tests passed, review gate satisfied | Build-time capture index generator from manifest + per-capture analysis + analysis geometry; no renderer/webserver changes |
+| PR 2 | renderer-capture-lookup-pr2 | ready to start | Load index in webserver/adapter; exact vector + cue lookup; provenance labels and diagnostics |
+| PR 3 | renderer-measured-motion-pr3 | blocked until PR 2 complete | Consume measured parameters with reduced MotionState fallback layer |
 | PR 4 | renderer-diagnostics-pr4 | blocked until PR 3 merged | Diagnostics expansion |
 | PR 5 | renderer-visual-polish-pr5 | blocked until PR 4 merged | Visual polish |
 | PR 6 | renderer-physical-hardening-pr6 | blocked until PR 5 merged | Physical calibration / hardening |
 
 ## Active PR Checklist
 
-No active PR yet.
-
-When a PR starts, update this section with:
-
 ```text
-PR:
-Branch:
-Base:
-Status:
-Codex implementation:
-Tests:
-Render smoke:
-Opus review:
-Blocking fixes:
-Human checkpoint:
-Merge state:
+PR: renderer-capture-index-pr1
+Branch: renderer-capture-index-pr1
+Base: main
+Status: implementation complete, tests passed, review gate satisfied
+Codex implementation: completed
+Tests: targeted PR1 tests passed (test_capture_index_builder)
+Render smoke: not applicable (no renderer/webserver runtime change in PR1)
+Opus review: completed (no blockers)
+Blocking fixes: completed
+Human checkpoint: not prepared yet
+Merge state: not merged
 ```
 
 ## Latest Decisions

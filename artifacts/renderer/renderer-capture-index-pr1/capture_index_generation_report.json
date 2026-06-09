@@ -1,0 +1,55 @@
+{
+  "analysis_files_joined": 8236,
+  "authority_notes": {
+    "analysis_authority": "per_capture_analysis_json",
+    "manifest_inline_analysis_used_as_analysis_authority": false,
+    "manifest_inline_fields_usage": "quality/context flags only",
+    "manifest_inline_fields_used_for_context_flags": [
+      "recapture_pending",
+      "expected_blank",
+      "blank_zone_observed"
+    ]
+  },
+  "broken_analysis_count": 0,
+  "deduped_test_id_row_count": 8236,
+  "duplicate_test_id_count": 88,
+  "duplicate_test_id_rows_total": 176,
+  "duplicate_vector_count": 2051,
+  "exact_vector_count": 5713,
+  "manifest_row_count": 8324,
+  "missing_analysis_count": 0,
+  "missing_or_broken_rows": {
+    "broken_analysis_folders": [],
+    "missing_analysis_folders": []
+  },
+  "phase_counts_deduped": {
+    "phase1_5_base_dependence": 1848,
+    "phase1_single_channel": 2472,
+    "phase2_gating": 29,
+    "phase3_composition": 3664,
+    "phase4_independence": 48,
+    "phase6_cue_validation": 175
+  },
+  "phase_counts_indexed": {
+    "phase1_5_base_dependence": 1848,
+    "phase1_single_channel": 2472,
+    "phase2_gating": 29,
+    "phase3_composition": 3664,
+    "phase4_independence": 48,
+    "phase6_cue_validation": 175
+  },
+  "quality_gate_counts": {
+    "geometry_clipped_low_false": 8150,
+    "geometry_clipped_low_true": 86,
+    "recapture_pending_false": 279,
+    "recapture_pending_null": 7745,
+    "recapture_pending_true": 212,
+    "usable_evidence_false": 763,
+    "usable_evidence_true": 7473
+  },
+  "rows_excluded_by_reason": {},
+  "unit_conversion_source": {
+    "analysis_geometry_path": "/Users/bbui/virtuallasernode/captures/fixture_model/analysis_geometry.json",
+    "px_per_inch": 10.5185
+  }
+}
