@@ -214,18 +214,17 @@ class CaptureIndex:
     def phase1_channel_rows(self, ch: int) -> list[dict[str, Any]]:
         """Get Phase 1 rows for a specific channel on the primary base."""
         ch_key = f"CH{ch}"
-        rows = [
+        all_phase1 = [
             r for r in self.by_phase.get("phase1_single_channel", [])
             if ch_key in (r.get("changed_channels") or {})
-            and r.get("baseline") == PRIMARY_BASE_NAME
         ]
         
         if ch == 16:
-            targeted = [r for r in rows if r.get("family") == "targeted_recapture_CH16_reclean"]
+            targeted = [r for r in all_phase1 if r.get("family") == "targeted_recapture_CH16_reclean"]
             if targeted:
                 return targeted
                 
-        return rows
+        return [r for r in all_phase1 if r.get("baseline") == PRIMARY_BASE_NAME]
 
     def phase15_rows(self, ch: int, base: str) -> list[dict[str, Any]]:
         """Get Phase 1.5 rows for a channel on a specific base."""
@@ -1033,13 +1032,25 @@ def analyze_composition_group(index: CaptureIndex, intent_name: str,
             continue
 
         # Determine combination rule by comparing grid values to axis-only values
-        # Row at vb=0 (ch_b neutral): effect of ch_a alone
-        a_only = {va: grid.get((va, 0)) for va in set(k[0] for k in grid) if (va, 0) in grid}
-        # Column at va=0 (ch_a neutral): effect of ch_b alone
-        b_only = {vb: grid.get((0, vb)) for vb in set(k[1] for k in grid) if (0, vb) in grid}
+        neutral_a = 0
+        neutral_b = 0
+        if intent_name == "composition_translate_CH7xCH16":
+            neutral_a = 128
+            neutral_b = 0
+            
+        a_only = {va: grid.get((va, neutral_b)) for va in set(k[0] for k in grid) if (va, neutral_b) in grid}
+        b_only = {vb: grid.get((neutral_a, vb)) for vb in set(k[1] for k in grid) if (neutral_a, vb) in grid}
 
-        # Test additivity: grid(a,b) ≈ a_only(a) + b_only(b) - baseline
-        baseline_val = grid.get((0, 0), 0.0)
+        baseline_val = grid.get((neutral_a, neutral_b))
+        if baseline_val is None or not a_only or not b_only:
+            results_per_base.append({
+                "base": base,
+                "rule": "insufficient_reference_rows",
+                "add_error": 0.0, "mult_error": 0.0, "grid_points": len(grid), "tests": 0,
+                "confidence": "low"
+            })
+            continue
+
         add_errors: list[float] = []
         mult_errors: list[float] = []
         override_a_count = 0
@@ -1047,7 +1058,7 @@ def analyze_composition_group(index: CaptureIndex, intent_name: str,
         total_tests = 0
 
         for (va, vb), measured in grid.items():
-            if va == 0 or vb == 0:
+            if va == neutral_a or vb == neutral_b:
                 continue
             a_val = a_only.get(va)
             b_val = b_only.get(vb)
@@ -1623,6 +1634,7 @@ def main() -> None:
         ch16_count = sum(1 for r in new_rows if r.get("family") == "targeted_recapture_CH16_reclean")
         ch7x16_static = sum(1 for r in new_rows if r.get("family") == "targeted_recapture_CH7xCH16_static")
         ch7x16_temp = sum(1 for r in new_rows if r.get("family") == "targeted_recapture_CH7xCH16_temporal")
+        ch7x16_ref = sum(1 for r in new_rows if r.get("family") == "targeted_recapture_CH7xCH16_reference")
         
         missing_analysis = sum(1 for r in new_rows if not r.get("analysis"))
         
@@ -1638,15 +1650,62 @@ def main() -> None:
         print(f"\nCategory counts:")
         print(f"  Preflight: {preflight_count}")
         print(f"  CH16 clean sweep: {ch16_count}")
+        print(f"  CH7xCH16 reference: {ch7x16_ref}")
         print(f"  CH7xCH16 static: {ch7x16_static}")
         print(f"  CH7xCH16 temporal: {ch7x16_temp}")
-        print(f"  Total captured categories: {preflight_count + ch16_count + ch7x16_static + ch7x16_temp}")
+        print(f"  Total captured categories: {preflight_count + ch16_count + ch7x16_ref + ch7x16_static + ch7x16_temp}")
         
-        print("\nAnalyzer routing:")
-        if ch16_count > 0 and ch7x16_static > 0:
-            print("  [OK] Analyzer will securely prefer the targeted CH16 rows and route CH7xCH16 to Stage 5 composition.")
-        else:
-            print("  [WARN] Missing critical targeted rows! Analyzer might not use them properly.")
+        print("\n=== Strict Verification Constraints ===")
+        expected_total = 155
+        fail = False
+        
+        if len(new_rows) != expected_total:
+            print(f"  [FAIL] Expected {expected_total} rows, found {len(new_rows)}.")
+            fail = True
+            
+        if missing_analysis > 0:
+            print(f"  [FAIL] Missing analysis.json for {missing_analysis} captures.")
+            fail = True
+            
+        # Verify CH16 interception
+        ch16_routed = index.phase1_channel_rows(16)
+        if not ch16_routed or not all(r.get("family") == "targeted_recapture_CH16_reclean" for r in ch16_routed):
+            print("  [FAIL] CH16 targeted interception failed (phase1_channel_rows did not prioritize targeted rows).")
+            fail = True
+            
+        # Verify CH7xCH16 reference rows
+        ch7_refs = {32, 64, 96, 128, 160, 192}
+        ch16_refs = {32, 64, 96, 120}
+        
+        found_ref_points = set()
+        for r in new_rows:
+            if r.get("family") == "targeted_recapture_CH7xCH16_reference":
+                ch1_19 = r.get("ch1_19") or {}
+                c7 = int(ch1_19.get("CH7", 0))
+                c16 = int(ch1_19.get("CH16", 0))
+                found_ref_points.add((c7, c16))
+                
+        # Since we ran 2 bases, if we captured correctly, the set of coordinates should just cover all combinations
+        for c7 in ch7_refs:
+            if (c7, 0) not in found_ref_points:
+                print(f"  [FAIL] Missing CH7 reference row (CH7={c7}, CH16=0)")
+                fail = True
+        for c16 in ch16_refs:
+            if (128, c16) not in found_ref_points:
+                print(f"  [FAIL] Missing CH16 reference row (CH7=128, CH16={c16})")
+                fail = True
+                
+        # Verify composition group
+        comp_rule = analyze_composition_group(index, "composition_translate_CH7xCH16", 7, 16, "y_range")
+        if comp_rule.get("rule") == "insufficient_reference_rows":
+            print("  [FAIL] analyze_composition_group for CH7xCH16 returned insufficient_reference_rows.")
+            fail = True
+            
+        if fail:
+            print("\n[FAIL] Verification did not pass constraints.")
+            sys.exit(1)
+        
+        print("\n[OK] Verification PASSED. Analyzer is fully prepared.")
         sys.exit(0)
     
     if run_all or args.stage == 1:

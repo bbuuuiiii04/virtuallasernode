@@ -162,9 +162,41 @@ def run_ch7xch16_matrix():
     ch7_vals = [32, 64, 96, 128, 160, 192]
     
     for base_name, base_overrides in bases:
-        # Static matrix
+        print(f"\n--- Running Base: {base_name} ---")
+        
+        # 1. Reference rows
+        ch7_refs = [32, 64, 96, 128, 160, 192]
+        for ch7 in ch7_refs:
+            overrides = {**base_overrides, 7: ch7, 16: 0}
+            name = f"CH07_{ch7:03d}_CH16_000_reference"
+            path = f"phase3_composition/{base_name}/group_translate_CH7xCH16/{name}"
+            manifest_fields = {
+                "phase": "phase3_composition",
+                "baseline": base_name,
+                "group": "group_translate_CH7xCH16",
+                "family": "targeted_recapture_CH7xCH16_reference",
+                "temporal_classification": "static_reference"
+            }
+            capture_target(name, path, overrides, "Priority 1: CH7xCH16 reference row", **manifest_fields)
+            
+        ch16_refs = [32, 64, 96, 120]
+        for ch16 in ch16_refs:
+            overrides = {**base_overrides, 7: 128, 16: ch16}
+            name = f"CH07_128_CH16_{ch16:03d}_reference"
+            path = f"phase3_composition/{base_name}/group_translate_CH7xCH16/{name}"
+            manifest_fields = {
+                "phase": "phase3_composition",
+                "baseline": base_name,
+                "group": "group_translate_CH7xCH16",
+                "family": "targeted_recapture_CH7xCH16_reference",
+                "temporal_classification": "static_reference"
+            }
+            capture_target(name, path, overrides, "Priority 1: CH7xCH16 reference row", **manifest_fields)
+        
+        # 2. Static matrix
         ch16_static = [32, 64, 96, 120]
         for ch7 in ch7_vals:
+            if ch7 == 128: continue
             for ch16 in ch16_static:
                 overrides = {**base_overrides, 7: ch7, 16: ch16}
                 name = f"CH07_{ch7:03d}_CH16_{ch16:03d}"
