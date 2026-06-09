@@ -40,12 +40,20 @@ def main():
             with open(folder / "metadata.json", "r") as f:
                 metadata = json.load(f)
             
+            # Support both original and targeted recapture schemas
+            if "ch1_19" in metadata:
+                ch1_19_data = metadata["ch1_19"]
+            elif "full_36ch_vector" in metadata:
+                ch1_19_data = {k: v for k, v in metadata["full_36ch_vector"].items() if int(k.replace("CH", "")) <= 19}
+            else:
+                raise ValueError(f"Metadata missing both ch1_19 and full_36ch_vector schemas in {folder}")
+                
             # Methodically map metadata to exactly what the analyzer expects from manifest.jsonl
             entry = {
                 "capture": str(video_path),
                 "capture_dir": str(folder),
                 "folder": str(folder.relative_to(root)),
-                "full_ch1_19_dmx": {str(k).replace("CH", ""): v for k, v in metadata.get("ch1_19", {}).items()},
+                "full_ch1_19_dmx": {str(k).replace("CH", ""): v for k, v in ch1_19_data.items()},
                 "family": metadata.get("family", ""),
                 "duration": metadata.get("duration", 3.0)
             }

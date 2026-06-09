@@ -63,7 +63,8 @@ def capture_target(name: str, rel_path: str, overrides: dict, reason: str, durat
     orch.capture_video(video, duration)
     fps = orch.ffprobe_fps(video)
     
-    # 3. Analyze immediately
+    # 3. Analyze immediately at 60 FPS
+    import dense_cue_breakpoints as dense
     dense_entry = {
         "test_id": name,
         "capture": str(video),
@@ -73,12 +74,14 @@ def capture_target(name: str, rel_path: str, overrides: dict, reason: str, durat
         "family": "targeted_recapture"
     }
     
-    analysis = orch.analyze_with_dense(dense_entry)
+    # We must explicitly call 60fps instead of orch.analyze_with_dense which hardcodes 30fps
+    analysis = dense.analyze_existing_entry(dense_entry, 60, orch.LASER_CORE_THRESHOLD_FLOOR)["analysis"]
     write_json(analysis_path, analysis)
     
     # 4. Write Metadata
     metadata = {
         "test_id": name,
+        "ch1_19": {f"CH{ch}": dmx.get(ch, 0) for ch in range(1, 20)},
         "full_36ch_vector": {f"CH{ch}": dmx.get(ch, 0) for ch in range(1, 37)},
         "changed_channels": {f"CH{ch}": val for ch, val in overrides.items()},
         "override_reason": reason,
@@ -91,9 +94,16 @@ def capture_target(name: str, rel_path: str, overrides: dict, reason: str, durat
         "requires_registration_to_original_model": False,
         "fps": fps,
         "duration": duration,
-        "timestamp": orch.now()
+        "timestamp": orch.now(),
+        "folder": rel_path
     }
     write_json(metadata_path, metadata)
+    
+    # 5. Write to session manifest
+    manifest_path = CAPTURE_ROOT / "manifest.jsonl"
+    with manifest_path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps({**metadata, "analysis": analysis}) + "\n")
+        
     return analysis
 
 def run_preflight():

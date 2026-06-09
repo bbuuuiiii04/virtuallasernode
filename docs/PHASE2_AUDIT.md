@@ -319,6 +319,7 @@ The architect should direct the next physical capture session with these exact p
 
 A targeted recapture workflow has been fully prepared per the architect's corrections:
 * **Session ID:** `recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08`
-* **Preflight Gate:** Built into `calib/targeted_recapture.py` to analyze 9 boundary frames immediately and halt on `clipped` or `geometry_clipped_low` flags to ensure the slight framing shift (0.5cm) remains safe.
+* **Preflight Gate:** Built into `calib/targeted_recapture.py` to analyze 12 boundary frames immediately at 60 FPS and halt on `clipped` or `geometry_clipped_low` flags to ensure the slight framing shift (0.5cm) remains safe.
 * **Semantic CH16 Split:** The CH7xCH16 matrix correctly maps `CH16 <= 120` as static positional geometry (24 frames per base) and `CH16 >= 128` as temporal estimated speed geometry (9 frames per base).
-* **Tooling:** Use `python3 calib/targeted_recapture.py --rig-confirmed` to run, and `python3 calib/reprocess_60fps.py captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08` to process.
+* **Total Captures:** 143 captures (12 preflight + 65 CH16 re-sweep + 33 Base A CH7xCH16 + 33 Base B CH7xCH16)
+* **Tooling:** Use `python3 calib/targeted_recapture.py --rig-confirmed` to run, `python3 calib/reprocess_60fps.py captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08` to process, and `python3 calib/fixture_model_analyzer.py --include-session captures/recapture_CH16_CH7xCH16_distance_adjusted_2026_06_08` to assemble.

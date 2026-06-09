@@ -149,9 +149,21 @@ class CaptureIndex:
         self.full_analysis: dict[str, dict[str, Any]] = {}  # folder -> full analysis.json
         self.stats = {"total": 0, "loaded_analysis": 0, "missing_analysis": 0}
 
-    def load(self) -> None:
+    def load(self, include_sessions: list[Path] = None) -> None:
         print("[Stage 1] Loading manifest and per-folder analysis.json files...")
         self.rows = read_jsonl(MANIFEST)
+        for row in self.rows:
+            row["__session_root__"] = CAPTURE_ROOT
+            
+        if include_sessions:
+            for s in include_sessions:
+                s_manifest = s / "manifest.jsonl"
+                if s_manifest.exists():
+                    s_rows = read_jsonl(s_manifest)
+                    for row in s_rows:
+                        row["__session_root__"] = s
+                    self.rows.extend(s_rows)
+                    
         self.stats["total"] = len(self.rows)
 
         for row in self.rows:
@@ -176,7 +188,8 @@ class CaptureIndex:
                 self.by_channel[ch_key].append(row)
 
             # Load full analysis.json from folder
-            analysis_path = CAPTURE_ROOT / folder / "analysis.json"
+            session_root = row.get("__session_root__", CAPTURE_ROOT)
+            analysis_path = session_root / folder / "analysis.json"
             if analysis_path.exists():
                 try:
                     self.full_analysis[folder] = json.loads(analysis_path.read_text(encoding="utf-8"))
@@ -1568,6 +1581,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Offline Phase 5 fixture model analyzer")
     ap.add_argument("--stage", type=int, default=0, help="Run only this stage (1-8); 0 = all")
     ap.add_argument("--cross-check-only", action="store_true", help="Only run fixtures.py cross-check")
+    ap.add_argument("--include-session", type=str, action="append", help="Include additional capture session directories")
     args = ap.parse_args()
 
     if args.cross_check_only:
@@ -1579,10 +1593,12 @@ def main() -> None:
 
     # Stage 1: Load & index
     index = CaptureIndex()
+    include_sessions = [Path(s) for s in args.include_session] if args.include_session else None
+    
     if run_all or args.stage == 1:
-        index.load()
+        index.load(include_sessions)
     else:
-        index.load()  # Always needed
+        index.load(include_sessions)  # Always needed
 
     # Stage 2: Transfer functions
     channels: dict[str, dict[str, Any]] = {}
