@@ -34,7 +34,8 @@ The next step is:
 ```text
 composed fixture state + browser time
 → explicit MotionState
-→ BeamPathState / existing draw fan
+→ current draw-compatible beam state
+→ existing fan draw path
 → diagnostics
 → visual draw
 ```
@@ -120,15 +121,23 @@ speed → sine oscillator
 
 But the logic is hidden inside the drawing path and the sine waveform is unverified. Rev 3 should not pretend this is absent, and should not pretend it is exact.
 
-### 2.7 CH2 sound_gated is still missing in the renderer
+### 2.7 CH2 sound_gated reaches fixture state but is not used by the renderer
 
-`fixtures.py` decodes CH2 sound mode as `control.sound_gated = true`, but the renderer currently does not carry `control` into primary/second layer state and does not hide sound-gated output.
+`fixtures.py` decodes CH2 sound mode as `control.sound_gated = true`, and `decode_36ch()` includes `control` in the fixture state. `webserver.py` includes that decoded/composed fixture state in the SSE payload, and `static/app.js` passes the chosen fixture state into `LaserRenderer.update()`.
+
+The missing piece is inside `static/renderer.js`: `_primary()` and `_second()` currently do not copy `fx.control` into layer state, and `_interp()` / `_drawFan()` do not use `control.sound_gated` as a visibility gate.
 
 This is a PR 1 fix.
 
 ### 2.8 Strobe is currently too fake
 
-Current strobe is a sine-threshold gate. Rev 3 requires square-wave phase gating, with a duty field exposed in MotionState.
+Current strobe is a sine-threshold gate in `_strobeVisible()`:
+
+```text
+Math.sin(clock * rate) > 0
+```
+
+Rev 3 requires square-wave phase gating, with a duty field exposed in MotionState.
 
 PR 1 may use a conservative fixed duty, but the model contains measured duty/strobe data and later PRs should use or approximate that more honestly.
 
@@ -243,7 +252,7 @@ second_pattern
 
 The renderer must tolerate missing fields and never produce NaN, undefined geometry, or a crashed RAF loop.
 
-### 5.1 Renderer must know whether input was composed or decoded fallback
+### 5.1 Renderer should expose whether input was composed or decoded fallback
 
 Future improvement:
 
@@ -251,11 +260,13 @@ Future improvement:
 app.js should pass fixture_models or a compact modelStatus into LaserRenderer.update()
 ```
 
-PR 1 may avoid changing update signature, but debug output should eventually show:
+PR 1 may avoid changing the update signature if that would enlarge scope, but debug output should eventually show:
 
 ```text
 inputContract: composed | decoded_fallback | adapter_error
 ```
+
+This is useful but not a blocker for PR 1 if MotionState itself is otherwise inspectable.
 
 ---
 
@@ -334,6 +345,7 @@ Browser-local is correct because:
 - render-behind interpolation is browser-side
 - debug overlays are browser-side
 - the adapter does not produce spatial coordinates
+- the web server pushes 30 Hz snapshots, while visual motion phase is browser-RAF cadence
 
 ### 7.2 MotionState output should feed current renderer first
 
@@ -342,12 +354,65 @@ PR 1 should preserve current visuals as much as possible.
 Target shape:
 
 ```text
-fixture state + layer + time
+fixture state + layer + browser time
 → MotionState
-→ existing fan draw path with minimal adapters
+→ draw-compatible state object
+→ existing _drawFan() path
 ```
 
 Do not rewrite the entire renderer in the first PR. That is how scope creep gets a driver’s license.
+
+### 7.3 MotionState integration with _drawFan()
+
+The safest PR 1 path is a compatibility bridge, not a draw rewrite.
+
+Current `_drawFan(ctx, st, idx, total, dims)` expects a compact interpolated state with fields like:
+
+```text
+visible
+dimmer
+posX
+posY
+size
+color
+strobeOn
+strobeSpeed
+gradient
+rotation
+movement
+zoom
+scan
+waves
+patternGroup
+patternIndex
+dynamic
+```
+
+PR 1 should either:
+
+1. build MotionState first, then derive this same draw-compatible object; or
+2. extend the draw-compatible object with a `motionState` property while preserving the existing fields.
+
+Recommended PR 1 bridge:
+
+```text
+primary/second layer fixture state
+→ buildMotionStateV1(layer, clock, calibration, options)
+→ toDrawState(motionState, legacyInterpolatedFields)
+→ _drawFan(ctx, drawState, idx, total, dims)
+```
+
+Do not force `_drawFan()` to understand the whole MotionState schema in PR 1. Make `_drawFan()` consume only the fields it already needs, plus maybe:
+
+```text
+drawMode
+visibleBeforeStrobe
+visibleAfterStrobe
+strobeGateOpen
+motionState
+```
+
+This preserves visuals while making motion semantics inspectable. The refactor can then peel more logic out of `_drawFan()` in later PRs without detonating the renderer like a tiny JavaScript confetti bomb.
 
 ---
 
@@ -465,6 +530,17 @@ if control.sound_gated and no soundOverride:
   killReason = "sound_gated"
 ```
 
+Important current-code fact:
+
+```text
+fixtures.py decodes control.sound_gated
+webserver.py sends decoded/composed fixture state
+app.js passes fixture state to LaserRenderer.update()
+renderer.js currently drops/ignores control in _primary()/_second()
+```
+
+So PR 1 must carry `control` into layer/MotionState construction before applying the gate.
+
 Add debug control:
 
 ```text
@@ -572,7 +648,7 @@ motion.sweepWaveform = "sine"
 Diagnostic label:
 
 ```text
-sine waveform approximate/unverified
+CH15/CH16 sine waveform approximate/unverified
 ```
 
 ### CH17 — Zoom
@@ -603,6 +679,12 @@ PR 1:
 preserve current wave path deformation
 ```
 
+Diagnostic label:
+
+```text
+CH19 sine path deformation approximate/unverified
+```
+
 PR 2 adds wave phase and trace.
 
 ### CH20–CH36 — Second pattern
@@ -613,6 +695,7 @@ PR 1:
 keep current second-pattern rendering
 create per-layer MotionState
 if incomplete/approximate, show warning
+add acceptance check that second-pattern layering is not broken
 ```
 
 Do not downgrade to warning-only unless current layer rendering breaks.
@@ -680,9 +763,10 @@ labeled approximate unless measured
 ### PR 1 defaults
 
 ```text
-CH15 speed waveform: sine, approximate
-CH16 speed waveform: sine, approximate
+CH15 speed waveform: sine, approximate/unverified
+CH16 speed waveform: sine, approximate/unverified
 CH11 strobe: square wave
+CH19 wave deformation: existing sine path deformation, approximate/unverified
 ```
 
 ### PR 2 additions
@@ -754,8 +838,9 @@ second layer approximate
 At minimum:
 
 ```text
-CH15 speed waveform approximate
-CH16 speed waveform approximate
+CH15 speed waveform approximate/unverified
+CH16 speed waveform approximate/unverified
+CH19 wave deformation approximate/unverified
 CH6xCH15 insufficient_reference_rows
 CH7xCH16 measured_interfere
 CH18 gradient approximate
@@ -764,7 +849,17 @@ higher_order_validation_pending
 adapter decoded_fallback
 ```
 
-### 12.7 Show View vs Debug View
+### 12.7 Input contract diagnostic
+
+Useful if low-scope:
+
+```text
+renderer input: composed | decoded_fallback | adapter_error | unknown
+```
+
+This can come from `fixture_models[].confidence` / `model_status` in the SSE payload. If adding this requires changing `LaserRenderer.update()` signature too much, defer it, but do not lose the existing model diagnostics.
+
+### 12.8 Show View vs Debug View
 
 Show View should stay clean.
 
@@ -809,7 +904,7 @@ PR 1 does not need a calibration migration. It may use current `rates` and a loc
 
 ### Goal
 
-Make renderer motion semantics explicit without visual redesign.
+Make renderer motion semantics explicit and inspectable without visual redesign.
 
 ### Before coding, inspect again
 
@@ -822,6 +917,8 @@ fixtures.py
 fixture_model_adapter.py
 webserver.py
 calibration.json
+calib/render_test.py
+calib/render_grid.py
 ```
 
 Confirm:
@@ -830,16 +927,17 @@ Confirm:
 app.js still prefers composed over decoded
 renderer.js still fetches calibration.json
 second_pattern still renders as layer
-CH2 control is not carried into renderer layers
+CH2 control exists in fixture state but is not carried into renderer layers
 strobe still uses sine-threshold gate
-CH10 dot mode still lacks a true drawMode path
+CH10 dot mode still lacks a true dot drawMode path
 ```
 
 ### PR 1 deliverables
 
 1. Add `docs/RENDERER_MOTION_MODEL_V1.md`.
 2. Add MotionState construction in `static/motionState.js` or isolated renderer.js section.
-3. MotionState handles:
+3. Add a small MotionState-to-`_drawFan()` compatibility bridge.
+4. MotionState handles:
    - CH1 power/dimmer visibility
    - CH2 sound_gated visibility
    - CH6/CH7 blanking
@@ -848,10 +946,12 @@ CH10 dot mode still lacks a true drawMode path
    - CH11 square-wave strobe gate
    - CH10 drawMode
    - second_pattern per-layer state
-4. Preserve current visual rendering as much as possible.
-5. Add debug panel or console-accessible MotionState.
-6. Add sound gate override.
-7. Add warnings for approximation zones.
+5. Preserve current visual rendering as much as possible.
+6. Add MotionState debug output/panel or console inspection.
+7. Add sound gate override.
+8. Add warnings for approximate/unresolved zones.
+9. Add pure-JS tests for the MotionState builder.
+10. Add visual smoke/regression baseline using `calib/render_test.py` or `calib/render_grid.py`.
 
 ### PR 1 explicit non-goals
 
@@ -885,9 +985,40 @@ CH16=200 → vMoveMode speed, oscillator active
 CH11>0 → square strobe gate active
 CH10 dot → drawMode="dot"
 second_pattern active → second layer MotionState exists
+second_pattern active → existing second-layer rendering is not broken
+CH15/CH16 speed → warning includes approximate/unverified waveform
+CH19 active → warning includes approximate/unverified wave deformation
 No NaN/undefined in MotionState
 RAF loop does not crash on missing fields
 ```
+
+### PR 1 visual baseline checks
+
+Use existing render harnesses before and after PR 1:
+
+```text
+calib/render_test.py
+calib/render_grid.py
+```
+
+Minimum cases:
+
+```text
+power off
+centered static fan
+blanked CH6
+blanked CH7
+CH10 dot
+CH11 strobe on
+CH15 position
+CH15 speed
+CH16 position
+CH16 speed
+CH19 wave x/y
+second_pattern active
+```
+
+The visual baseline does not need perfect pixel matching forever. It needs to catch obvious regressions: missing output, moved origins, broken second layer, inverted blanking, and wildly changed fan geometry.
 
 ---
 
@@ -973,6 +1104,7 @@ strobe indicator
 oscillator traces
 browser visual inspection
 headless render harnesses
+visual smoke/regression screenshot baselines
 ```
 
 Existing useful tools:
@@ -984,7 +1116,45 @@ tools/validate_model_adapter.py
 calib/test_fixture_model_readiness.py
 ```
 
-Add MotionState-specific tests/harnesses if practical.
+Add MotionState-specific tests.
+
+### 18.1 Required PR 1 MotionState tests
+
+Pure-JS unit tests should cover:
+
+```text
+CH1 power/dimmer gate
+CH2 sound_gated gate and override
+CH6/CH7 blanking gate
+CH15 off/position/speed classification
+CH16 off/position/speed classification
+CH11 square strobe phase/gate/duty
+CH10 drawMode mapping
+second_pattern layer MotionState creation
+warning generation for approximate CH15/CH16 waveform
+warning generation for approximate CH19 wave deformation
+missing-field tolerance / no NaN
+```
+
+These tests should not require canvas.
+
+### 18.2 Required PR 1 visual smoke checks
+
+Use `calib/render_test.py` or `calib/render_grid.py` to generate before/after screenshots for representative synthetic DMX states.
+
+The purpose is not fine-grained artistic pixel matching. The purpose is regression detection for:
+
+```text
+source origins moved by accident
+second_pattern disappeared
+blanked channels still render
+sound_gated channels still render without override
+CH10 dot destroys the fan unexpectedly
+CH15/CH16 movement explodes geometry
+strobe permanently dark or permanently open
+```
+
+If screenshot automation is too heavy in PR 1, at least require committed/manual screenshot artifacts in the PR report.
 
 ---
 
@@ -1041,23 +1211,27 @@ Before coding, inspect:
 - fixture_model_adapter.py
 - webserver.py
 - calibration.json
+- calib/render_test.py
+- calib/render_grid.py
 
 Confirm current behavior:
 1. app.js prefers composed state over decoded state.
 2. renderer.js fetches calibration.json.
 3. renderer.js already uses position.blanked partially.
-4. renderer.js does not currently use control.sound_gated.
+4. fixtures.py decodes CH2 as control.sound_gated, and fixture state reaches LaserRenderer.update(), but renderer.js currently drops/ignores control in _primary()/_second().
 5. renderer.js already renders second_pattern as a layer.
 6. renderer.js currently implements CH15/CH16 off/position/speed in _sweep().
 7. renderer.js currently uses sine-threshold strobe.
 8. renderer.js treats CH10 dot mostly as count/brightness, not a true drawMode path.
+9. renderer.js keeps fixture/aperture origins fixed while changing beam direction/endpoints.
 
 Implement PR 1 only.
 
 PR 1 scope:
 1. Add docs/RENDERER_MOTION_MODEL_V1.md.
 2. Add browser-local MotionState construction in static/motionState.js or an isolated renderer.js section.
-3. MotionState must handle:
+3. Add a small compatibility bridge from MotionState into the current _drawFan() path.
+4. MotionState must handle:
    - CH1 power/dimmer visibility
    - CH2 sound_gated visibility
    - CH6/CH7 position.blanked hard kill
@@ -1066,10 +1240,12 @@ PR 1 scope:
    - CH11 square-wave strobe gate
    - CH10 drawMode line-bright/line/dot
    - second_pattern per-layer state
-4. Preserve current visual rendering as much as possible.
-5. Add MotionState debug output/panel or console inspection.
-6. Add a debug sound gate override.
-7. Add warnings for approximate/unresolved zones.
+5. Preserve current visual rendering as much as possible.
+6. Add MotionState debug output/panel or console inspection.
+7. Add a debug sound gate override.
+8. Add warnings for approximate/unresolved zones, including CH15/CH16 waveform and CH19 wave deformation.
+9. Add pure-JS tests for the MotionState builder.
+10. Add visual smoke/regression baseline using calib/render_test.py or calib/render_grid.py.
 
 Acceptance checks:
 - CH1=0 draws nothing and MotionState killReason is power_off.
@@ -1077,23 +1253,30 @@ Acceptance checks:
 - CH6 or CH7 outside blank window draws nothing and killReason is position_blanked.
 - CH2 sound_gated draws nothing unless debug override is enabled.
 - CH15 position mode creates static movement contribution, not oscillator.
-- CH15 speed mode creates oscillator.
+- CH15 speed mode creates oscillator and approximate/unverified waveform warning.
 - CH16 position mode creates static vertical contribution, not oscillator.
-- CH16 speed mode creates oscillator.
+- CH16 speed mode creates oscillator and approximate/unverified waveform warning.
 - CH11 strobe uses square-wave gate.
 - CH10 dot produces drawMode=dot.
 - second_pattern active produces a second layer MotionState.
+- second_pattern active does not break existing second-layer rendering.
+- CH19 active produces approximate/unverified wave warning.
 - No NaN/undefined fields in MotionState.
 - Existing visuals are preserved as much as possible.
+- Existing fixed fixture/aperture origins remain fixed.
+- Visual smoke output from calib/render_test.py or calib/render_grid.py catches obvious regressions.
 
 After implementation:
 - run existing tests
-- run any renderer smoke harness available
+- run MotionState unit tests
+- run renderer smoke harness / screenshot baseline
 - manually smoke test browser if available
 - produce a report explaining:
   - files changed
   - how MotionState is inserted
+  - how MotionState bridges into _drawFan()
   - which acceptance checks passed
+  - what visual baseline was used
   - what remains approximate
   - what should be PR 2
 
