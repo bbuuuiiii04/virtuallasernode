@@ -1,0 +1,123 @@
+{
+  "purpose": "Physical setup geometry and photo references for the final fixture-model capture run.",
+  "units": "imperial_user_measured",
+  "camera_view": {
+    "bottom_wall_width_visible": "9 ft 9 in",
+    "top_wall_width_visible": "11 ft",
+    "left_wall_height_visible": "5 ft 11 in",
+    "right_wall_height_visible": "5 ft 11 in",
+    "coordinate_convention": "left/right names mean image-left/image-right in the saved camera frame while the camera faces the wall from behind/near the fixture; do not interpret from behind-fixture aperture side",
+    "notes": [
+      "Camera view contains the two aperture projection envelopes on the wall.",
+      "Top molding/shelf is visible and must be excluded from analysis ROI.",
+      "Use the fixture-facing camera view, not Desk View."
+    ]
+  },
+  "boundary_reference_measurements": {
+    "measurement_notes": [
+      "Four pencil ticks around the image-left projection are the image-left box outer boundary.",
+      "Four pencil ticks around the image-right projection are the image-right box outer boundary.",
+      "Measurements are user-provided. Everything is approximate except values explicitly marked exact_user_measured."
+    ],
+    "image_left_aperture_box": {
+      "left_edge_to_right_edge": {
+        "value": "3 ft 9 in",
+        "certainty": "approximate_user_measured"
+      },
+      "top_edge_to_bottom_edge": {
+        "value": "3 ft 4 in",
+        "certainty": "approximate_user_measured"
+      },
+      "floor_to_bottom_edge": {
+        "value": "24.5 in",
+        "certainty": "approximate_user_measured"
+      },
+      "floor_to_top_edge": {
+        "value": "5 ft 5 in",
+        "certainty": "approximate_user_measured"
+      }
+    },
+    "image_right_aperture_box": {
+      "left_edge_to_right_edge": {
+        "value": "4 ft 6 in to 4 ft 8 in",
+        "certainty": "approximate_range_user_measured"
+      },
+      "top_edge_to_bottom_edge": {
+        "value": "3 ft 4 in to 3 ft 5 in",
+        "certainty": "approximate_range_user_measured"
+      },
+      "floor_to_bottom_edge": {
+        "value": "24.5 in",
+        "certainty": "approximate_user_measured"
+      },
+      "floor_to_top_edge": {
+        "value": "5 ft 5 in",
+        "certainty": "approximate_user_measured"
+      }
+    },
+    "gap_between_boxes": {
+      "value": "8.5 in",
+      "certainty": "approximate_user_measured"
+    },
+    "fixed_references": {
+      "top_left_edge_of_left_outlet_to_image_left_box_left_edge": {
+        "value": "19.5 in",
+        "certainty": "approximate_user_measured"
+      },
+      "top_right_edge_of_right_outlet_to_image_right_box_right_edge": {
+        "value": "7 in",
+        "certainty": "approximate_user_measured"
+      },
+      "bottom_of_white_shelf_at_top_of_frame": {
+        "value": "5 ft",
+        "certainty": "exact_user_measured"
+      },
+      "distance_between_two_bottom_outlets": {
+        "value": "6 ft 5 in",
+        "certainty": "exact_user_measured"
+      },
+      "distance_from_bottom_outlets_to_white_shelf": {
+        "value": "5 ft 1 in",
+        "certainty": "exact_user_measured"
+      }
+    }
+  },
+  "fixture_geometry": {
+    "fixture_to_wall_distance": "approximately 6 ft 1 in",
+    "fixture_to_fixture_spacing_center_to_center": "30.5 in",
+    "fixture_height_from_floor": "typically 7-9 ft; adjustable",
+    "camera_to_wall_distance": "approximately 7 ft 5 in",
+    "fixture_orientation": "both fixtures are parallel",
+    "fixture_behavior": "both fixtures behave identically",
+    "aperture_relationship": "one fixture has two apertures that produce mirror images of each other",
+    "capture_scope": "only one fixture is used for the comprehensive capture because both fixtures are identical"
+  },
+  "physical_fixture_measurements": {
+    "laser_output_hole_center_spacing": {
+      "value": "5 in",
+      "certainty": "approximate_user_measured"
+    },
+    "fixture_housing_dimensions": {
+      "length": "9.6 in",
+      "width": "6.4 in",
+      "height": "3 in",
+      "certainty": "exact_user_provided"
+    },
+    "aperture_opening": {
+      "width": "2 in",
+      "height": "1.5 in",
+      "certainty": "approximate_user_measured"
+    }
+  },
+  "photo_references": {
+    "both_fixtures_facing_camera": "/Users/bbui/Desktop/IMG_1282.HEIC",
+    "behind_fixture_used_for_capture": "/Users/bbui/Desktop/IMG_1278.HEIC",
+    "supplemental_photo": "/Users/bbui/Desktop/IMG_1280.HEIC"
+  },
+  "manual_notes": {
+    "ch3_ch4": "CH3 selects static bank/folder; CH4 selects a new look every 5 values, with 255 also treated as terminal look.",
+    "ch6_ch7_visibility": "CH6=128 and CH7=128 are required to keep the pattern visible except during CH6/CH7 sweeps.",
+    "static_aliasing": "Static scanned outlines can appear to have a chasing bright segment in video due to scan/rolling-shutter aliasing; manual-derived static/motion intent should be used as a prior.",
+    "runtime_usage": "The capture analyzer reads this file only while deriving captures/fixture_model/analysis_geometry.json from a static reference still: it aligns detected aperture-box height to the measured box height to compute px/inch scale. Frame stats and dense analysis consume analysis_geometry.json after that. This file remains reference data for later coordinate analysis: wall pixels -> real-world wall coordinates -> fixture scan-space."
+  }
+}

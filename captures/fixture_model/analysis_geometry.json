@@ -1,0 +1,124 @@
+{
+  "analysis_roi": [
+    0,
+    129,
+    1280,
+    589
+  ],
+  "boundary_margin": {
+    "actual_headroom_inches": 0.761,
+    "actual_headroom_px": 8,
+    "desired_inches": 0.75,
+    "desired_px": 8,
+    "roi_boundary_glare_conflict": false
+  },
+  "boxes": [
+    {
+      "area_px": 18223,
+      "bbox": [
+        60,
+        156,
+        554,
+        578
+      ],
+      "corners": [
+        [
+          60,
+          156
+        ],
+        [
+          554,
+          156
+        ],
+        [
+          554,
+          578
+        ],
+        [
+          60,
+          578
+        ]
+      ],
+      "height_px": 423,
+      "label": "image_left",
+      "width_px": 495
+    },
+    {
+      "area_px": 20280,
+      "bbox": [
+        646,
+        153,
+        1219,
+        581
+      ],
+      "corners": [
+        [
+          646,
+          153
+        ],
+        [
+          1219,
+          153
+        ],
+        [
+          1219,
+          581
+        ],
+        [
+          646,
+          581
+        ]
+      ],
+      "height_px": 429,
+      "label": "image_right",
+      "width_px": 574
+    }
+  ],
+  "combined_bbox": [
+    60,
+    153,
+    1219,
+    581
+  ],
+  "created_at": "2026-06-08T00:58:35",
+  "geometry_cross_check": {
+    "box_height_inches": 40.5,
+    "gap_inches_detected": 8.65,
+    "gap_inches_expected": 8.5,
+    "gap_relative_error": 0.0176,
+    "left_width_inches_detected": 47.06,
+    "left_width_inches_expected": 45.0,
+    "left_width_relative_error": 0.0458,
+    "right_width_inches_detected": 54.57,
+    "right_width_inches_expected": 55.0,
+    "right_width_relative_error": 0.0078
+  },
+  "glare_band": {
+    "clearance_px": 6,
+    "detected": false,
+    "max_bottom_before_glare": 714,
+    "method": "bottom-up broad-row brightness run below the projection boxes",
+    "min_run_rows": 8,
+    "start_y": null,
+    "wall_luma_median": 79.0
+  },
+  "laser_core_threshold_floor": 58,
+  "scale": {
+    "measured_box_height_inches": 40.5,
+    "px_per_inch": 10.5185,
+    "source": "mean detected aperture-box height divided by setup_geometry box floor_to_top-floor_to_bottom height"
+  },
+  "selected_frame_score": {
+    "blocking_warnings": 0,
+    "relative_error_sum": 0.0712,
+    "soft_warnings": 0
+  },
+  "selected_frame_timestamp": 0.6,
+  "source_image_size": {
+    "height": 720,
+    "width": 1280
+  },
+  "source_still": "/Users/bbui/virtuallasernode/captures/fixture_model/preflight/geometry_frame.jpg",
+  "version": 1,
+  "warnings": []
+}

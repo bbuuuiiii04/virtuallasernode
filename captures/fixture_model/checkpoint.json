@@ -1,0 +1,291 @@
+{
+  "analysis_geometry": {
+    "analysis_roi": [
+      0,
+      129,
+      1280,
+      589
+    ],
+    "boundary_margin": {
+      "actual_headroom_inches": 0.761,
+      "actual_headroom_px": 8,
+      "desired_inches": 0.75,
+      "desired_px": 8,
+      "roi_boundary_glare_conflict": false
+    },
+    "boxes": [
+      {
+        "area_px": 18223,
+        "bbox": [
+          60,
+          156,
+          554,
+          578
+        ],
+        "corners": [
+          [
+            60,
+            156
+          ],
+          [
+            554,
+            156
+          ],
+          [
+            554,
+            578
+          ],
+          [
+            60,
+            578
+          ]
+        ],
+        "height_px": 423,
+        "label": "image_left",
+        "width_px": 495
+      },
+      {
+        "area_px": 20280,
+        "bbox": [
+          646,
+          153,
+          1219,
+          581
+        ],
+        "corners": [
+          [
+            646,
+            153
+          ],
+          [
+            1219,
+            153
+          ],
+          [
+            1219,
+            581
+          ],
+          [
+            646,
+            581
+          ]
+        ],
+        "height_px": 429,
+        "label": "image_right",
+        "width_px": 574
+      }
+    ],
+    "combined_bbox": [
+      60,
+      153,
+      1219,
+      581
+    ],
+    "created_at": "2026-06-08T00:58:35",
+    "geometry_cross_check": {
+      "box_height_inches": 40.5,
+      "gap_inches_detected": 8.65,
+      "gap_inches_expected": 8.5,
+      "gap_relative_error": 0.0176,
+      "left_width_inches_detected": 47.06,
+      "left_width_inches_expected": 45.0,
+      "left_width_relative_error": 0.0458,
+      "right_width_inches_detected": 54.57,
+      "right_width_inches_expected": 55.0,
+      "right_width_relative_error": 0.0078
+    },
+    "glare_band": {
+      "clearance_px": 6,
+      "detected": false,
+      "max_bottom_before_glare": 714,
+      "method": "bottom-up broad-row brightness run below the projection boxes",
+      "min_run_rows": 8,
+      "start_y": null,
+      "wall_luma_median": 79.0
+    },
+    "laser_core_threshold_floor": 58,
+    "scale": {
+      "measured_box_height_inches": 40.5,
+      "px_per_inch": 10.5185,
+      "source": "mean detected aperture-box height divided by setup_geometry box floor_to_top-floor_to_bottom height"
+    },
+    "selected_frame_score": {
+      "blocking_warnings": 0,
+      "relative_error_sum": 0.0712,
+      "soft_warnings": 0
+    },
+    "selected_frame_timestamp": 0.6,
+    "source_image_size": {
+      "height": 720,
+      "width": 1280
+    },
+    "source_still": "/Users/bbui/virtuallasernode/captures/fixture_model/preflight/geometry_frame.jpg",
+    "version": 1,
+    "warnings": []
+  },
+  "analysis_mask_sane": true,
+  "base_dependence_rule": "base-dependent if >=2 of 7 probe channels deviate >25% across bases",
+  "base_dependent_probe_count": 7,
+  "blackout_metric": 76.934,
+  "blank_retries_total": 671,
+  "blanks_or_recapture_pending": 7,
+  "buckets": {
+    "firmware_locked": 0,
+    "higher_order": 0,
+    "pass": 0,
+    "unresolved": 293
+  },
+  "by_group": {
+    "cue_relevant": 175
+  },
+  "camera_device": "0",
+  "camera_name": "brandon Camera",
+  "camera_size": "1280x720",
+  "capture_count": 8324,
+  "captured_exact_vectors": 118,
+  "captured_exact_vectors_source": "phase0_record_dense_root_absent",
+  "captures_taken": 175,
+  "ch1_captures": 0,
+  "ch1_gate": {
+    "blackout_metric": 76.934,
+    "dual_track_method": "camera_exposure_bracketing",
+    "max_nonzero_metric": 15878.0,
+    "points": 2,
+    "rule": "CH1=0 blacks out; any CH1>0 is on. CH1 is not a dimmer and must not be used for dual-track brightness.",
+    "verdict": "binary_on_off_gate"
+  },
+  "dmx_backend": "pro",
+  "dmx_port": "/dev/cu.usbserial-EN396681",
+  "dual_track_method": "camera_exposure_bracketing",
+  "error": "expected camera containing 'brandon Camera' not found. Available AVFoundation video devices: 0:OBS Virtual Camera, 1:FaceTime HD Camera, 2:Capture screen 0. Refusing to fall back to numeric device 0; invalid devices seen: 2:Capture screen 0",
+  "existing_dense_rows": 118,
+  "fps": 60.0,
+  "fps30": 0,
+  "fps_max": 60.0,
+  "fps_min": 57.75,
+  "fps_recovery_events": [],
+  "fps_reset_recovered_total": 3,
+  "fps_resets_total": 3,
+  "frame_stats": {
+    "analysis_clip_margin_px": 4,
+    "analysis_geometry_source_still": "/Users/bbui/virtuallasernode/captures/fixture_model/preflight/geometry_frame.jpg",
+    "analysis_roi": [
+      0,
+      129,
+      1280,
+      589
+    ],
+    "analysis_roi_bottom_frac": 1.0,
+    "analysis_roi_source": "analysis_geometry",
+    "analysis_roi_top_frac": 0.18,
+    "bbox": [
+      64,
+      157,
+      1214,
+      575
+    ],
+    "blank": false,
+    "bright_fraction": 0.012639,
+    "bright_pixels": 7442,
+    "clipped_roi_bottom": false,
+    "geometry_clipped_low": false,
+    "laser_core_threshold": 214.0,
+    "mean_luma": 89.451,
+    "roi_bottom_headroom_inches": 1.331,
+    "roi_bottom_headroom_px": 14,
+    "wall_luma_median": 79.0,
+    "wall_luma_p90": 133.0
+  },
+  "last_capture": "phase6_cue_validation__cue_relevant__cue_184_rotating_drop_pos",
+  "legacy_ambiguous_rows_ignored": 0,
+  "max_nonzero_metric": 15878.0,
+  "model": "/Users/bbui/virtuallasernode/data/fixture_model.json",
+  "motion_types": [
+    "color_chase",
+    "horizontal_sweep",
+    "pulse_zoom",
+    "smooth_rotation",
+    "static",
+    "strobe_gate",
+    "unknown",
+    "wave_deformation"
+  ],
+  "new_cue_validation_captures": 175,
+  "note": "Initial validation buckets require model-vs-measure comparison; unresolved is used rather than fabricated pass/fail.",
+  "phase": "phase6",
+  "phase1_5_verdicts": {
+    "CH10": "base_dependent",
+    "CH12": "base_dependent",
+    "CH15": "base_dependent",
+    "CH17": "base_dependent",
+    "CH18": "base_dependent",
+    "CH19": "base_dependent",
+    "CH8": "base_dependent"
+  },
+  "phase3_scope": {
+    "base_dependence_rule": "base-dependent if >=2 of 7 probe channels deviate >25% across bases",
+    "base_dependent_probe_count": 7,
+    "legacy_ambiguous_rows_ignored": 0,
+    "phase1_5_verdicts": {
+      "CH10": "base_dependent",
+      "CH12": "base_dependent",
+      "CH15": "base_dependent",
+      "CH17": "base_dependent",
+      "CH18": "base_dependent",
+      "CH19": "base_dependent",
+      "CH8": "base_dependent"
+    },
+    "phase3_scope": "reduce_to_varied_groups_and_real_cue_bases"
+  },
+  "planned_captures": 3664,
+  "points": 2,
+  "resume_index": 244,
+  "rule": "CH1=0 blacks out; any CH1>0 is on. CH1 is not a dimmer and must not be used for dual-track brightness.",
+  "run_stats": {
+    "blank_retries": 671,
+    "fps30": 0,
+    "fps_reset_recovered": 3,
+    "fps_resets": 3
+  },
+  "running_total": 8324,
+  "safety_state": "(all zero)",
+  "schema": "/Users/bbui/virtuallasernode/data/fixture_model_schema.json",
+  "signal": 15,
+  "status": "completed",
+  "updated_at": "2026-06-08T12:09:39",
+  "verdict": "binary_on_off_gate",
+  "warmup_discard_fps": 59.0,
+  "white_reference": "/Users/bbui/virtuallasernode/captures/fixture_model/phase1_single_channel/_white_reference/CH08_000_white_reference.jpg",
+  "white_reference_fps": 60.0,
+  "white_reference_reused": true,
+  "white_reference_stats": {
+    "analysis_clip_margin_px": 4,
+    "analysis_geometry_source_still": "/Users/bbui/virtuallasernode/captures/fixture_model/preflight/geometry_frame.jpg",
+    "analysis_roi": [
+      0,
+      129,
+      1280,
+      589
+    ],
+    "analysis_roi_bottom_frac": 1.0,
+    "analysis_roi_source": "analysis_geometry",
+    "analysis_roi_top_frac": 0.18,
+    "bbox": [
+      184,
+      337,
+      1060,
+      372
+    ],
+    "blank": false,
+    "bright_fraction": 0.022899,
+    "bright_pixels": 13483,
+    "clipped_roi_bottom": false,
+    "geometry_clipped_low": false,
+    "laser_core_threshold": 202.5,
+    "mean_luma": 112.062,
+    "roi_bottom_headroom_inches": 20.63,
+    "roi_bottom_headroom_px": 217,
+    "wall_luma_median": 105.0,
+    "wall_luma_p90": 144.0
+  }
+}

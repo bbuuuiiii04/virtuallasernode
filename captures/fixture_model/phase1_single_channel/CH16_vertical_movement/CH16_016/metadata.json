@@ -1,0 +1,59 @@
+{
+  "attempts": 3,
+  "baseline": "base_CH3_032_CH4_010",
+  "blank_retries": 3,
+  "camera": {
+    "device": "0",
+    "expected_name": "brandon Camera",
+    "exposure": "locked externally",
+    "fps": 60,
+    "pixel_format": "nv12",
+    "size": "1280x720",
+    "white_balance": "locked externally"
+  },
+  "capture_path": "phase1_single_channel/CH16_vertical_movement/CH16_016",
+  "ch1_19": {
+    "CH1": 220,
+    "CH10": 0,
+    "CH11": 0,
+    "CH12": 0,
+    "CH13": 0,
+    "CH14": 0,
+    "CH15": 0,
+    "CH16": 16,
+    "CH17": 0,
+    "CH18": 0,
+    "CH19": 0,
+    "CH2": 0,
+    "CH3": 32,
+    "CH4": 10,
+    "CH5": 90,
+    "CH6": 128,
+    "CH7": 128,
+    "CH8": 20,
+    "CH9": 0
+  },
+  "ch3_bank": 32,
+  "ch4_program": 10,
+  "changed_channels": {
+    "CH16": 16
+  },
+  "duration": 8.0,
+  "exposure_track": "geometry_motion",
+  "fps": 59.0,
+  "fps_history": [
+    59.875,
+    59.25,
+    59.0
+  ],
+  "fps_recovery_events": [],
+  "frame_strip_enabled": false,
+  "phase": "phase1_single_channel",
+  "scope_guard": {
+    "ch20_36_omitted": true,
+    "decode_36ch_contract_untouched": true,
+    "renderer_untouched": true
+  },
+  "test_id": "phase1_single_channel__CH16_vertical_movement__CH16_016",
+  "timestamp": "2026-06-07T08:01:02"
+}

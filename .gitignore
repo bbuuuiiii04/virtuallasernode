@@ -27,6 +27,16 @@ ENV/
 .idea/
 
 # Large binary / capture directories
-captures/fixture_model/
 calib/captures/
 calib/.venv/
+
+# Fixture capture corpus: keep metadata/analysis in git, raw media local only
+captures/fixture_model/**/*.mp4
+captures/fixture_model/**/*.jpg
+captures/fixture_model/**/*.png
+captures/fixture_model/**/motion_analysis_30fps/
+captures/fixture_model/**/motion_analysis_60fps/
+captures/fixture_model/manifest.jsonl.bak*
+captures/fixture_model/throwaway/
+captures/fixture_model/_camera_*/
+captures/fixture_model/_monitor/

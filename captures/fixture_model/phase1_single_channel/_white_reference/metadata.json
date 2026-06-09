@@ -1,0 +1,60 @@
+{
+  "analysis_roi_bottom_frac": 1.0,
+  "analysis_roi_top_frac": 0.18,
+  "capture_path": "phase1_single_channel/_white_reference/CH08_000_white_reference.jpg",
+  "ch1_19": {
+    "CH1": 220,
+    "CH10": 0,
+    "CH11": 0,
+    "CH12": 0,
+    "CH13": 0,
+    "CH14": 0,
+    "CH15": 0,
+    "CH16": 0,
+    "CH17": 0,
+    "CH18": 0,
+    "CH19": 0,
+    "CH2": 0,
+    "CH3": 32,
+    "CH4": 10,
+    "CH5": 90,
+    "CH6": 128,
+    "CH7": 128,
+    "CH8": 0,
+    "CH9": 0
+  },
+  "fps": 60.0,
+  "frame_stats": {
+    "analysis_clip_margin_px": 4,
+    "analysis_geometry_source_still": "/Users/bbui/virtuallasernode/captures/fixture_model/preflight/geometry_frame.jpg",
+    "analysis_roi": [
+      0,
+      129,
+      1280,
+      504
+    ],
+    "analysis_roi_bottom_frac": 1.0,
+    "analysis_roi_source": "analysis_geometry",
+    "analysis_roi_top_frac": 0.18,
+    "bbox": [
+      186,
+      340,
+      1055,
+      369
+    ],
+    "blank": false,
+    "bright_fraction": 0.015842,
+    "bright_pixels": 7604,
+    "clipped_roi_bottom": false,
+    "geometry_clipped_low": false,
+    "laser_core_threshold": 218.0,
+    "mean_luma": 115.577,
+    "roi_bottom_headroom_inches": 19.954,
+    "roi_bottom_headroom_px": 135,
+    "wall_luma_median": 108.0,
+    "wall_luma_p90": 152.0
+  },
+  "phase": "phase1_single_channel",
+  "test_id": "CH08_000_white_reference",
+  "timestamp": "2026-06-07T03:13:29"
+}
