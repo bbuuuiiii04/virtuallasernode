@@ -230,6 +230,8 @@ def run_ch7xch16_matrix():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--rig-confirmed", action="store_true")
+    parser.add_argument("--preflight-only", action="store_true", help="Run only the preflight captures and exit")
+    parser.add_argument("--skip-preflight", action="store_true", help="Skip preflight and run full capture (use with caution)")
     args = parser.parse_args()
     
     if not args.rig_confirmed:
@@ -240,9 +242,16 @@ def main():
     watchdog_stop, watchdog_thread = orch.start_watchdog_heartbeat()
     
     try:
-        run_preflight()
-        run_ch16_sweep()
-        run_ch7xch16_matrix()
+        if not args.skip_preflight:
+            run_preflight()
+        else:
+            print("WARNING: Skipping preflight. Assuming framing has been manually verified.")
+            
+        if not args.preflight_only:
+            run_ch16_sweep()
+            run_ch7xch16_matrix()
+        else:
+            print("Preflight only mode. Exiting before full capture.")
     finally:
         orch.stop_watchdog_heartbeat(watchdog_stop, watchdog_thread)
         orch.stop_daemon(daemon)
