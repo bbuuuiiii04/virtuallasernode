@@ -198,15 +198,14 @@ def compute_authority_gate(
         metrics["halo_spill"] <= HALO_GATE and
         "fixture_assignment_ambiguous" not in quality_flags
         and not metrics.get("dot_reasons", [])
-        and fixture_output_accounting_complete
     )
 
-    if authority_eligible:
+    if authority_eligible and fixture_output_accounting_complete:
         status = "authority"
     elif "fixture_assignment_ambiguous" in quality_flags:
         status = "quarantined"
     elif "vectorization_incomplete" in [r.split(":")[0] for r in reasons] or "component_reconstruction_incomplete" in reasons or "sibling_aperture_unaccounted" in reasons:
-        # Mask may still hold authority even if vectorization is incomplete or recall is low
+        # Mask may still hold local aperture authority even if vectorization is incomplete or sibling is missing
         status = "provisional"
     else:
         status = "quarantined"

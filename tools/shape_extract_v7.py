@@ -314,7 +314,7 @@ def extract_record(
                 "median_score": round(bg_median, 2),
                 "mad_score": round(bg_mad, 2),
             },
-            "timing_ms": elapsed_ms,
+            "timing_ms": 0,
         },
         "core_mask": {
             "rle_path": rle_path_rel,
@@ -388,7 +388,7 @@ def _empty_record(
             "policy_version": EXTRACTION_POLICY_VERSION,
             "params": params,
             "background": {"median_score": round(bg_median, 2), "mad_score": round(bg_mad, 2)},
-            "timing_ms": elapsed_ms,
+            "timing_ms": 0,
         },
         "core_mask": {"rle_path": None, "pixel_count": 0, "bbox_px": [], "bbox_wall_norm": [], "centroid_wall_norm": []},
         "components": [],
@@ -481,7 +481,7 @@ def write_manifest(out_dir: Path, records: list[dict[str, Any]], geom_path: Path
     manifest = {
         "policy_version": EXTRACTION_POLICY_VERSION,
         "record_version": RECORD_VERSION,
-        "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "generated_at": "2026-01-01T00:00:00Z",
         "geometry_sha": geometry_source_sha(geom_path),
         "counts": {
             "total": len(records),

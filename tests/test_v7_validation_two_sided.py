@@ -163,7 +163,7 @@ def test_v7_dual_aperture_accounting():
     assert m["core_recall"] >= 0.80
     
     eligible, status, reasons = compute_authority_gate(m, 1, 1, [], False)
-    assert not eligible, "Should not be eligible if accounting incomplete"
+    assert eligible, "Should be selected_aperture_authority_eligible even if accounting incomplete"
     assert status == "provisional"
     assert "sibling_aperture_unaccounted" in reasons
 

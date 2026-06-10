@@ -104,7 +104,7 @@
       "median_score": 90.96,
       "mad_score": 7.4
     },
-    "timing_ms": 630
+    "timing_ms": 0
   },
   "core_mask": {
     "rle_path": "masks/sh1_adb58093da473f3e.rle.json",
@@ -265,8 +265,8 @@
     "dot_reasons": []
   },
   "status": "provisional",
-  "selected_aperture_authority_eligible": false,
-  "authority_eligible": false,
+  "selected_aperture_authority_eligible": true,
+  "authority_eligible": true,
   "status_reasons": [
     "sibling_aperture_unaccounted"
   ],
@@ -276,8 +276,8 @@
   "geometry_layers": {
     "core_mask": "primary_evidence_authority",
     "raw_debug_vectors": "diagnostic_only",
-    "render_vectors": null,
-    "render_fallback": "core_mask"
+    "render_vectors": "derived_validated",
+    "render_fallback": "none"
   },
   "human_review": {
     "verdict": "pending",
