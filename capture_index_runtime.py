@@ -158,6 +158,14 @@ class CaptureIndexRuntime:
                 "cue_aliases": cue_aliases,
                 "cue_alias_count": len(cue_aliases),
                 "cue_identity_resolved": cue_identity_resolved,
+                "shape_authority": False,
+                "shape_ref": None,
+                "shape_point_count": 0,
+                "topology_class": None,
+                "shape_evidence": None,
+                "shape_fallback_reason": "no_exact_capture_vector_match",
+                "shape_quality_flags": [],
+                "shape_source_capture_path": None,
             }
 
         capture_id = int(bucket.get("preferred_capture_id"))
@@ -174,7 +182,22 @@ class CaptureIndexRuntime:
                 "cue_aliases": cue_aliases,
                 "cue_alias_count": len(cue_aliases),
                 "cue_identity_resolved": cue_identity_resolved,
+                "shape_authority": False,
+                "shape_ref": None,
+                "shape_point_count": 0,
+                "topology_class": None,
+                "shape_evidence": None,
+                "shape_fallback_reason": "preferred_capture_id_missing",
+                "shape_quality_flags": [],
+                "shape_source_capture_path": None,
             }
+
+        shape_ref = bucket.get("shape_ref")
+        shape_point_count = int(bucket.get("shape_point_count") or 0)
+        shape_authority = bool(shape_ref) and shape_point_count > 0
+        shape_fallback_reason = bucket.get("shape_fallback_reason")
+        if not shape_authority and shape_fallback_reason is None:
+            shape_fallback_reason = "no_static_shape_for_vector"
 
         return {
             "hit": True,
@@ -199,5 +222,13 @@ class CaptureIndexRuntime:
             "cue_aliases": cue_aliases,
             "cue_alias_count": len(cue_aliases),
             "cue_identity_resolved": cue_identity_resolved,
+            "shape_authority": shape_authority,
+            "shape_ref": shape_ref if shape_authority else None,
+            "shape_point_count": shape_point_count if shape_authority else 0,
+            "topology_class": bucket.get("topology_class") if shape_authority else None,
+            "shape_evidence": bucket.get("shape_evidence") if shape_authority else None,
+            "shape_fallback_reason": shape_fallback_reason if not shape_authority else None,
+            "shape_quality_flags": list(bucket.get("shape_quality_flags") or []) if shape_authority else [],
+            "shape_source_capture_path": bucket.get("shape_source_capture_path") if shape_authority else None,
         }
 

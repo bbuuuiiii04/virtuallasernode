@@ -241,6 +241,17 @@ es.onmessage = (e) => {
         appendLine('Vector Provenance', cl.provenance_label || 'unknown');
         appendLine('Capture Hit', String(!!cl.hit));
         appendLine('Capture Fallback', cl.fallback_reason || 'none');
+        const shapeDiag = primary.shape || {};
+        appendLine('Shape Ref', shapeDiag.shape_ref || cl.shape_ref || 'none');
+        appendLine('Topology Class', shapeDiag.topology_class || cl.topology_class || 'none');
+        appendLine('Shape Point Count', String(shapeDiag.shape_point_count || cl.shape_point_count || 0));
+        appendLine('Shape Evidence', shapeDiag.shape_evidence || cl.shape_evidence || 'none');
+        appendLine('Shape Fallback', shapeDiag.shape_fallback_reason || cl.shape_fallback_reason || 'none');
+        appendLine('Shape Quality Flags', (shapeDiag.shape_quality_flags || cl.shape_quality_flags || []).join(', ') || 'none');
+        appendLine('Shape Source Capture', shapeDiag.shape_source_capture_path || cl.shape_source_capture_path || 'none');
+        appendLine('Internal Shape Authority', String(!!(shapeDiag.internal_shape_authority || cl.shape_authority)));
+        appendLine('Visible Geometry Source', shapeDiag.visible_geometry_source || 'DECODER_FALLBACK_DRAWFAN');
+        appendLine('Projection Source', shapeDiag.projection_source || 'NOT_WIRED_PR_G3');
         const cueMatches = Array.isArray(cl.cue_matches) ? cl.cue_matches : [];
         const cueAliases = Array.isArray(cl.cue_aliases) ? cl.cue_aliases : cueMatches;
         appendLine('Cue Aliases (' + String(cl.cue_alias_count || cueAliases.length || 0) + ')',

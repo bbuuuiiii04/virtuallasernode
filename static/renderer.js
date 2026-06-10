@@ -716,6 +716,14 @@
       }
       if (!measured.active) warnings.push("fallback_motionstate_active");
 
+      const shapeRef = cl && cl.shape_ref ? String(cl.shape_ref) : null;
+      const shapeAuthority = !!(cl && cl.shape_authority && shapeRef);
+      const visibleGeometrySource = "DECODER_FALLBACK_DRAWFAN";
+      const projectionSource = shapeAuthority ? "NOT_WIRED_PR_G3" : "DECODER_FALLBACK_DRAWFAN";
+      if (shapeAuthority) {
+        warnings.push("shape_ref_internal_only_visible_geometry_decoder_fallback_until_PR_G3");
+      }
+
       const layoutMeasured = this._extractMeasuredLayout(st);
       const positionMeasured = this._positionFromCaptureGeometry(idx, total);
       if (layoutMeasured.applied && layoutMeasured.densityEvidence === "inferred") {
@@ -789,6 +797,18 @@
         },
         measured: measured.active ? measured : null,
         colorMeasured: colorMeasured.applied ? colorMeasured : null,
+        shape: {
+          shape_ref: shapeRef,
+          topology_class: cl && cl.topology_class ? cl.topology_class : null,
+          shape_point_count: cl && cl.shape_point_count ? cl.shape_point_count : 0,
+          shape_evidence: cl && cl.shape_evidence ? cl.shape_evidence : null,
+          shape_fallback_reason: cl && cl.shape_fallback_reason ? cl.shape_fallback_reason : null,
+          shape_quality_flags: cl && Array.isArray(cl.shape_quality_flags) ? cl.shape_quality_flags : [],
+          shape_source_capture_path: cl && cl.shape_source_capture_path ? cl.shape_source_capture_path : null,
+          internal_shape_authority: shapeAuthority,
+          visible_geometry_source: visibleGeometrySource,
+          projection_source: projectionSource,
+        },
         warnings,
       };
     }

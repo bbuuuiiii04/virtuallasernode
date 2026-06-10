@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "shape_library_v1",
+  "type": "object",
+  "required": [
+    "artifact_version",
+    "generated_at",
+    "capture_root",
+    "coordinate_space",
+    "geometry_source",
+    "selection_artifact",
+    "extraction_policy_version",
+    "shapes"
+  ],
+  "properties": {
+    "artifact_version": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "capture_root": {
+      "type": "string"
+    },
+    "coordinate_space": {
+      "const": "wall_norm_per_fixture_calibration_box"
+    },
+    "geometry_source": {
+      "type": "object",
+      "required": [
+        "path",
+        "version",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "version": {},
+        "created_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sha256": {
+          "type": "string"
+        }
+      }
+    },
+    "selection_artifact": {
+      "type": "string"
+    },
+    "extraction_policy_version": {
+      "type": "string"
+    },
+    "shapes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "shape_ref",
+          "vector_key",
+          "capture_path",
+          "source_still",
+          "fixture_box_label",
+          "topology_class",
+          "shape_point_count",
+          "clusters",
+          "polylines"
+        ]
+      }
+    }
+  }
+}

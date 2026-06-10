@@ -1,0 +1,2142 @@
+{
+  "artifact_version": "shape-library-v1",
+  "generated_at": "2026-06-10T04:37:33+00:00",
+  "capture_root": "captures/fixture_model",
+  "coordinate_space": "wall_norm_per_fixture_calibration_box",
+  "geometry_source": {
+    "path": "captures/fixture_model/analysis_geometry.json",
+    "version": 1,
+    "created_at": "2026-06-08T00:58:35",
+    "sha256": "72d99c676ebfacc2f0cdcf88e5b6b13dcd51bd677d8de67d9aeb52f340cce699"
+  },
+  "selection_artifact": "artifacts/renderer/pr-g1-shape-authority/shape_selection.json",
+  "extraction_policy_version": "v1",
+  "shapes": [
+    {
+      "shape_ref": "sh1_21b9e82ef84b930b",
+      "vector_key": "v1:220,0,0,195,90,128,128,0,0,0,0,0,0,0,0,0,0,0,0",
+      "capture_path": "phase1_5_base_dependence/base_CH3_000_CH4_195/CH08_color/CH08_000",
+      "source_still": "captures/fixture_model/phase1_5_base_dependence/base_CH3_000_CH4_195/CH08_color/CH08_000/still.jpg",
+      "test_id": "phase1_5_base_dependence__base_CH3_000_CH4_195__CH08_color__CH08_000",
+      "phase": "phase1_5_base_dependence",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 220,
+        "CH2": 0,
+        "CH3": 0,
+        "CH4": 195,
+        "CH5": 90,
+        "CH6": 128,
+        "CH7": 128,
+        "CH8": 0,
+        "CH9": 0,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 0,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 0
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        233,
+        318,
+        403,
+        387
+      ],
+      "bbox_wall_norm": [
+        -0.2995951417004049,
+        -0.09478672985782,
+        0.3886639676113359,
+        0.23222748815165872
+      ],
+      "centroid_wall_norm": [
+        0.044534412955465674,
+        0.06872037914691942
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 9855,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            233,
+            318,
+            403,
+            387
+          ],
+          "bbox_wall_norm": [
+            -0.2995951417004049,
+            -0.09478672985782,
+            0.3886639676113359,
+            0.23222748815165872
+          ],
+          "centroid_wall_norm": [
+            0.04848809765897011,
+            0.06877832841606124
+          ],
+          "area_px": 9855,
+          "point_count": 9855
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              -0.2995951417004049,
+              0.23222748815165872
+            ],
+            [
+              0.3886639676113359,
+              0.23222748815165872
+            ],
+            [
+              0.3886639676113359,
+              -0.09478672985782
+            ],
+            [
+              -0.2995951417004049,
+              -0.09478672985782
+            ],
+            [
+              -0.2995951417004049,
+              0.23222748815165872
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 99.75259999999997,
+        "background_median": 75.1798
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_c2b7857c6e4a5a1f",
+      "vector_key": "v1:220,0,24,2,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0",
+      "capture_path": "phase1_single_channel/CH03_CH04_base_look_atlas/CH03_024_CH04_002",
+      "source_still": "captures/fixture_model/phase1_single_channel/CH03_CH04_base_look_atlas/CH03_024_CH04_002/still.jpg",
+      "test_id": "phase1_single_channel__CH03_CH04_base_look_atlas__CH03_024_CH04_002",
+      "phase": "phase1_single_channel",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 220,
+        "CH2": 0,
+        "CH3": 24,
+        "CH4": 2,
+        "CH5": 90,
+        "CH6": 128,
+        "CH7": 128,
+        "CH8": 20,
+        "CH9": 0,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 0,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 0
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        168,
+        326,
+        488,
+        381
+      ],
+      "bbox_wall_norm": [
+        -0.562753036437247,
+        -0.06635071090047395,
+        0.7327935222672064,
+        0.1943127962085308
+      ],
+      "centroid_wall_norm": [
+        0.08502024291497978,
+        0.06398104265402849
+      ],
+      "topology_class": "line",
+      "shape_point_count": 15110,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            168,
+            326,
+            488,
+            381
+          ],
+          "bbox_wall_norm": [
+            -0.562753036437247,
+            -0.06635071090047395,
+            0.7327935222672064,
+            0.1943127962085308
+          ],
+          "centroid_wall_norm": [
+            0.12104352159735488,
+            0.06215148939373494
+          ],
+          "area_px": 15110,
+          "point_count": 15110
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              -0.562753036437247,
+              0.1943127962085308
+            ],
+            [
+              0.7327935222672064,
+              0.1943127962085308
+            ],
+            [
+              0.7327935222672064,
+              -0.06635071090047395
+            ],
+            [
+              -0.562753036437247,
+              -0.06635071090047395
+            ],
+            [
+              -0.562753036437247,
+              0.1943127962085308
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 100.85719999999998,
+        "background_median": 76.5684
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_41c84ad2ac1f458e",
+      "vector_key": "v1:220,0,48,0,90,128,128,0,0,0,0,0,0,0,0,0,0,0,0",
+      "capture_path": "phase1_5_base_dependence/base_CH3_048_CH4_000/CH08_color/CH08_000",
+      "source_still": "captures/fixture_model/phase1_5_base_dependence/base_CH3_048_CH4_000/CH08_color/CH08_000/still.jpg",
+      "test_id": "phase1_5_base_dependence__base_CH3_048_CH4_000__CH08_color__CH08_000",
+      "phase": "phase1_5_base_dependence",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 220,
+        "CH2": 0,
+        "CH3": 48,
+        "CH4": 0,
+        "CH5": 90,
+        "CH6": 128,
+        "CH7": 128,
+        "CH8": 0,
+        "CH9": 0,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 0,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 0
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        164,
+        316,
+        511,
+        393
+      ],
+      "bbox_wall_norm": [
+        -0.5789473684210527,
+        -0.12322274881516582,
+        0.8259109311740891,
+        0.2417061611374408
+      ],
+      "centroid_wall_norm": [
+        0.12348178137651833,
+        0.05924170616113744
+      ],
+      "topology_class": "two_clusters",
+      "shape_point_count": 7195,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            428,
+            316,
+            511,
+            393
+          ],
+          "bbox_wall_norm": [
+            0.48987854251012153,
+            -0.12322274881516582,
+            0.8259109311740891,
+            0.2417061611374408
+          ],
+          "centroid_wall_norm": [
+            0.6549207254776321,
+            0.06100198867830686
+          ],
+          "area_px": 4783,
+          "point_count": 4783
+        },
+        {
+          "cluster_id": "c1",
+          "source_pixel_bbox": [
+            164,
+            327,
+            235,
+            380
+          ],
+          "bbox_wall_norm": [
+            -0.5789473684210527,
+            -0.06161137440758302,
+            -0.291497975708502,
+            0.18957345971563977
+          ],
+          "centroid_wall_norm": [
+            -0.43743999301736936,
+            0.05983510567227068
+          ],
+          "area_px": 2412,
+          "point_count": 2412
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              0.48987854251012153,
+              0.2417061611374408
+            ],
+            [
+              0.8259109311740891,
+              0.2417061611374408
+            ],
+            [
+              0.8259109311740891,
+              -0.12322274881516582
+            ],
+            [
+              0.48987854251012153,
+              -0.12322274881516582
+            ],
+            [
+              0.48987854251012153,
+              0.2417061611374408
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 97.68040000000002,
+        "background_median": 76.5684
+      },
+      "quality_flags": [
+        "noisy_components"
+      ]
+    },
+    {
+      "shape_ref": "sh1_6fb79ee6e90df590",
+      "vector_key": "v1:220,0,96,2,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0",
+      "capture_path": "phase1_single_channel/CH03_CH04_base_look_atlas/CH03_096_CH04_002",
+      "source_still": "captures/fixture_model/phase1_single_channel/CH03_CH04_base_look_atlas/CH03_096_CH04_002/still.jpg",
+      "test_id": "phase1_single_channel__CH03_CH04_base_look_atlas__CH03_096_CH04_002",
+      "phase": "phase1_single_channel",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 220,
+        "CH2": 0,
+        "CH3": 96,
+        "CH4": 2,
+        "CH5": 90,
+        "CH6": 128,
+        "CH7": 128,
+        "CH8": 20,
+        "CH9": 0,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 0,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 0
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        260,
+        288,
+        405,
+        418
+      ],
+      "bbox_wall_norm": [
+        -0.19028340080971662,
+        -0.2417061611374407,
+        0.39676113360323884,
+        0.3744075829383886
+      ],
+      "centroid_wall_norm": [
+        0.10323886639676116,
+        0.06635071090047395
+      ],
+      "topology_class": "multi_cluster",
+      "shape_point_count": 6267,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            260,
+            366,
+            317,
+            418
+          ],
+          "bbox_wall_norm": [
+            -0.19028340080971662,
+            -0.2417061611374407,
+            0.04048582995951411,
+            0.004739336492891044
+          ],
+          "centroid_wall_norm": [
+            -0.06854006515126465,
+            -0.12187797260781363
+          ],
+          "area_px": 2252,
+          "point_count": 2252
+        },
+        {
+          "cluster_id": "c1",
+          "source_pixel_bbox": [
+            352,
+            288,
+            405,
+            343
+          ],
+          "bbox_wall_norm": [
+            0.18218623481781382,
+            0.11374407582938384,
+            0.39676113360323884,
+            0.3744075829383886
+          ],
+          "centroid_wall_norm": [
+            0.2854380774421261,
+            0.2440953596166866
+          ],
+          "area_px": 2184,
+          "point_count": 2184
+        },
+        {
+          "cluster_id": "c2",
+          "source_pixel_bbox": [
+            269,
+            293,
+            321,
+            339
+          ],
+          "bbox_wall_norm": [
+            -0.15384615384615385,
+            0.1327014218009479,
+            0.05668016194331993,
+            0.3507109004739336
+          ],
+          "centroid_wall_norm": [
+            -0.05005560997397507,
+            0.23977263609091448
+          ],
+          "area_px": 1831,
+          "point_count": 1831
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              0.18218623481781382,
+              0.3744075829383886
+            ],
+            [
+              0.39676113360323884,
+              0.3744075829383886
+            ],
+            [
+              0.39676113360323884,
+              0.11374407582938384
+            ],
+            [
+              0.18218623481781382,
+              0.11374407582938384
+            ],
+            [
+              0.18218623481781382,
+              0.3744075829383886
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 105.52439999999996,
+        "background_median": 81.5564
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_2e3da0a4330792c3",
+      "vector_key": "v1:62,0,128,83,193,100,131,0,0,0,0,0,0,0,0,0,0,0,0",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_024_neon_wandering_lines",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_024_neon_wandering_lines/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_024_neon_wandering_lines",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 62,
+        "CH2": 0,
+        "CH3": 128,
+        "CH4": 83,
+        "CH5": 193,
+        "CH6": 100,
+        "CH7": 131,
+        "CH8": 0,
+        "CH9": 0,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 0,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 0
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        352,
+        317,
+        495,
+        436
+      ],
+      "bbox_wall_norm": [
+        0.18218623481781382,
+        -0.3270142180094786,
+        0.7611336032388665,
+        0.23696682464454977
+      ],
+      "centroid_wall_norm": [
+        0.47165991902834015,
+        -0.04502369668246442
+      ],
+      "topology_class": "two_clusters",
+      "shape_point_count": 9769,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            352,
+            317,
+            490,
+            436
+          ],
+          "bbox_wall_norm": [
+            0.18218623481781382,
+            -0.3270142180094786,
+            0.7408906882591093,
+            0.23696682464454977
+          ],
+          "centroid_wall_norm": [
+            0.4417544109484546,
+            -0.036819911549933027
+          ],
+          "area_px": 9723,
+          "point_count": 9723
+        },
+        {
+          "cluster_id": "c1",
+          "source_pixel_bbox": [
+            492,
+            352,
+            495,
+            367
+          ],
+          "bbox_wall_norm": [
+            0.7489878542510122,
+            0.0,
+            0.7611336032388665,
+            0.07109004739336489
+          ],
+          "centroid_wall_norm": [
+            0.7567329695476148,
+            0.03410261693797656
+          ],
+          "area_px": 46,
+          "point_count": 46
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              0.18218623481781382,
+              0.23696682464454977
+            ],
+            [
+              0.7408906882591093,
+              0.23696682464454977
+            ],
+            [
+              0.7408906882591093,
+              -0.3270142180094786
+            ],
+            [
+              0.18218623481781382,
+              -0.3270142180094786
+            ],
+            [
+              0.18218623481781382,
+              0.23696682464454977
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 75.95300000000006,
+        "background_median": 65.6586
+      },
+      "quality_flags": [
+        "phase6_derived_substitute",
+        "noisy_components"
+      ]
+    },
+    {
+      "shape_ref": "sh1_91ebda39c0075cac",
+      "vector_key": "v1:220,0,160,10,90,128,128,20,0,0,0,0,0,0,200,0,0,0,0",
+      "capture_path": "phase2_gating/gate_CH03_static_dynamic_split/CH03_160_CH15_200",
+      "source_still": "captures/fixture_model/phase2_gating/gate_CH03_static_dynamic_split/CH03_160_CH15_200/still.jpg",
+      "test_id": "phase2_gating__gate_CH03_static_dynamic_split__CH03_160_CH15_200",
+      "phase": "phase2_gating",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 220,
+        "CH2": 0,
+        "CH3": 160,
+        "CH4": 10,
+        "CH5": 90,
+        "CH6": 128,
+        "CH7": 128,
+        "CH8": 20,
+        "CH9": 0,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 200,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 0
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        240,
+        248,
+        361,
+        338
+      ],
+      "bbox_wall_norm": [
+        -0.27125506072874495,
+        0.13744075829383884,
+        0.21862348178137658,
+        0.5639810426540284
+      ],
+      "centroid_wall_norm": [
+        -0.02631578947368418,
+        0.3507109004739336
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 7712,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            240,
+            248,
+            361,
+            338
+          ],
+          "bbox_wall_norm": [
+            -0.27125506072874495,
+            0.13744075829383884,
+            0.21862348178137658,
+            0.5639810426540284
+          ],
+          "centroid_wall_norm": [
+            -0.024572357921615384,
+            0.3445187901909499
+          ],
+          "area_px": 7712,
+          "point_count": 7712
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              -0.27125506072874495,
+              0.5639810426540284
+            ],
+            [
+              0.21862348178137658,
+              0.5639810426540284
+            ],
+            [
+              0.21862348178137658,
+              0.13744075829383884
+            ],
+            [
+              -0.27125506072874495,
+              0.13744075829383884
+            ],
+            [
+              -0.27125506072874495,
+              0.5639810426540284
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 103.35259999999997,
+        "background_median": 80.6086
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_542fc5442a80e0dc",
+      "vector_key": "v1:34,0,48,28,0,90,141,0,0,0,255,0,121,0,148,0,0,0,0",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_001_off",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_001_off/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_001_off",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 34,
+        "CH2": 0,
+        "CH3": 48,
+        "CH4": 28,
+        "CH5": 0,
+        "CH6": 90,
+        "CH7": 141,
+        "CH8": 0,
+        "CH9": 0,
+        "CH10": 0,
+        "CH11": 255,
+        "CH12": 0,
+        "CH13": 121,
+        "CH14": 0,
+        "CH15": 148,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 0
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        462,
+        364,
+        553,
+        431
+      ],
+      "bbox_wall_norm": [
+        0.6275303643724697,
+        -0.3033175355450237,
+        0.9959514170040487,
+        0.014218009478673022
+      ],
+      "centroid_wall_norm": [
+        0.811740890688259,
+        -0.14454976303317535
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 5330,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            462,
+            364,
+            553,
+            431
+          ],
+          "bbox_wall_norm": [
+            0.6275303643724697,
+            -0.3033175355450237,
+            0.9959514170040487,
+            0.014218009478673022
+          ],
+          "centroid_wall_norm": [
+            0.8264320058336054,
+            -0.15009114108640165
+          ],
+          "area_px": 5330,
+          "point_count": 5330
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              0.6275303643724697,
+              0.014218009478673022
+            ],
+            [
+              0.9959514170040487,
+              0.014218009478673022
+            ],
+            [
+              0.9959514170040487,
+              -0.3033175355450237
+            ],
+            [
+              0.6275303643724697,
+              -0.3033175355450237
+            ],
+            [
+              0.6275303643724697,
+              0.014218009478673022
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 86.7782,
+        "background_median": 70.7782
+      },
+      "quality_flags": [
+        "noisy_components"
+      ]
+    },
+    {
+      "shape_ref": "sh1_adb58093da473f3e",
+      "vector_key": "v1:28,0,31,255,41,31,134,9,176,190,0,0,0,0,255,0,0,0,88",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_002_green",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_002_green/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_002_green",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 28,
+        "CH2": 0,
+        "CH3": 31,
+        "CH4": 255,
+        "CH5": 41,
+        "CH6": 31,
+        "CH7": 134,
+        "CH8": 9,
+        "CH9": 176,
+        "CH10": 190,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 255,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 88
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        531,
+        325,
+        540,
+        337
+      ],
+      "bbox_wall_norm": [
+        0.9068825910931173,
+        0.14218009478672988,
+        0.9433198380566801,
+        0.19905213270142175
+      ],
+      "centroid_wall_norm": [
+        0.9251012145748987,
+        0.17061611374407581
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 62,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            531,
+            325,
+            540,
+            337
+          ],
+          "bbox_wall_norm": [
+            0.9068825910931173,
+            0.14218009478672988,
+            0.9433198380566801,
+            0.19905213270142175
+          ],
+          "centroid_wall_norm": [
+            0.9237299203343345,
+            0.169928145543495
+          ],
+          "area_px": 62,
+          "point_count": 62
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              0.9068825910931173,
+              0.19905213270142175
+            ],
+            [
+              0.9433198380566801,
+              0.19905213270142175
+            ],
+            [
+              0.9433198380566801,
+              0.14218009478672988
+            ],
+            [
+              0.9068825910931173,
+              0.14218009478672988
+            ],
+            [
+              0.9068825910931173,
+              0.19905213270142175
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 91.93819999999998,
+        "background_median": 74.2006
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_b92cc7b21e95ce78",
+      "vector_key": "v1:3,0,38,135,214,100,134,172,121,0,0,159,231,0,59,0,0,0,136",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_003_intro_techno",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_003_intro_techno/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_003_intro_techno",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 38,
+        "CH4": 135,
+        "CH5": 214,
+        "CH6": 100,
+        "CH7": 134,
+        "CH8": 172,
+        "CH9": 121,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 159,
+        "CH13": 231,
+        "CH14": 0,
+        "CH15": 59,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 136
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        430,
+        339,
+        519,
+        415
+      ],
+      "bbox_wall_norm": [
+        0.4979757085020242,
+        -0.22748815165876768,
+        0.8582995951417005,
+        0.1327014218009479
+      ],
+      "centroid_wall_norm": [
+        0.6781376518218623,
+        -0.04739336492891
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 2181,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            430,
+            339,
+            519,
+            415
+          ],
+          "bbox_wall_norm": [
+            0.4979757085020242,
+            -0.22748815165876768,
+            0.8582995951417005,
+            0.1327014218009479
+          ],
+          "centroid_wall_norm": [
+            0.6694455427532962,
+            -0.059151526214115346
+          ],
+          "area_px": 2181,
+          "point_count": 2181
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              0.4979757085020242,
+              0.1327014218009479
+            ],
+            [
+              0.8582995951417005,
+              0.1327014218009479
+            ],
+            [
+              0.8582995951417005,
+              -0.22748815165876768
+            ],
+            [
+              0.4979757085020242,
+              -0.22748815165876768
+            ],
+            [
+              0.4979757085020242,
+              0.1327014218009479
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 77.07359999999998,
+        "background_median": 60.191199999999995
+      },
+      "quality_flags": [
+        "noisy_components"
+      ]
+    },
+    {
+      "shape_ref": "sh1_298397439f5ce2a9",
+      "vector_key": "v1:3,0,38,138,214,96,134,172,121,0,0,196,231,0,59,0,0,0,247",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_004_breakdown_1",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_004_breakdown_1/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_004_breakdown_1",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 38,
+        "CH4": 138,
+        "CH5": 214,
+        "CH6": 96,
+        "CH7": 134,
+        "CH8": 172,
+        "CH9": 121,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 196,
+        "CH13": 231,
+        "CH14": 0,
+        "CH15": 59,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 247
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        463,
+        332,
+        553,
+        401
+      ],
+      "bbox_wall_norm": [
+        0.631578947368421,
+        -0.16113744075829395,
+        0.9959514170040487,
+        0.16587677725118488
+      ],
+      "centroid_wall_norm": [
+        0.8137651821862348,
+        0.0023696682464454666
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 1442,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            463,
+            332,
+            553,
+            401
+          ],
+          "bbox_wall_norm": [
+            0.631578947368421,
+            -0.16113744075829395,
+            0.9959514170040487,
+            0.16587677725118488
+          ],
+          "centroid_wall_norm": [
+            0.7794701466137337,
+            0.033227941708133146
+          ],
+          "area_px": 1442,
+          "point_count": 1442
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              0.631578947368421,
+              0.16587677725118488
+            ],
+            [
+              0.9959514170040487,
+              0.16587677725118488
+            ],
+            [
+              0.9959514170040487,
+              -0.16113744075829395
+            ],
+            [
+              0.631578947368421,
+              -0.16113744075829395
+            ],
+            [
+              0.631578947368421,
+              0.16587677725118488
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 74.2866,
+        "background_median": 59.3986
+      },
+      "quality_flags": [
+        "noisy_components"
+      ]
+    },
+    {
+      "shape_ref": "sh1_39cde94194e37010",
+      "vector_key": "v1:3,0,0,203,190,141,117,162,86,128,0,0,0,0,189,0,0,0,121",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_005_breakdown_2",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_005_breakdown_2/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_005_breakdown_2",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 0,
+        "CH4": 203,
+        "CH5": 190,
+        "CH6": 141,
+        "CH7": 117,
+        "CH8": 162,
+        "CH9": 86,
+        "CH10": 128,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 189,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 121
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        210,
+        356,
+        319,
+        439
+      ],
+      "bbox_wall_norm": [
+        -0.3927125506072875,
+        -0.34123222748815163,
+        0.04858299595141702,
+        0.05213270142180093
+      ],
+      "centroid_wall_norm": [
+        -0.17206477732793524,
+        -0.14454976303317535
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 5793,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            210,
+            356,
+            319,
+            439
+          ],
+          "bbox_wall_norm": [
+            -0.3927125506072875,
+            -0.34123222748815163,
+            0.04858299595141702,
+            0.05213270142180093
+          ],
+          "centroid_wall_norm": [
+            -0.15922819038194225,
+            -0.1517610320676286
+          ],
+          "area_px": 5793,
+          "point_count": 5793
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              -0.3927125506072875,
+              0.05213270142180093
+            ],
+            [
+              0.04858299595141702,
+              0.05213270142180093
+            ],
+            [
+              0.04858299595141702,
+              -0.34123222748815163
+            ],
+            [
+              -0.3927125506072875,
+              -0.34123222748815163
+            ],
+            [
+              -0.3927125506072875,
+              0.05213270142180093
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 95.3382,
+        "background_median": 76.7662
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_2bae89cc023a3c52",
+      "vector_key": "v1:3,0,0,203,190,141,117,162,86,0,0,0,0,0,155,0,0,0,121",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_006_breakdown_chill_3_turqoise_copy",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_006_breakdown_chill_3_turqoise_copy/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_006_breakdown_chill_3_turqoise_copy",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 0,
+        "CH4": 203,
+        "CH5": 190,
+        "CH6": 141,
+        "CH7": 117,
+        "CH8": 162,
+        "CH9": 86,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 155,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 121
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        383,
+        210,
+        546,
+        425
+      ],
+      "bbox_wall_norm": [
+        0.3076923076923077,
+        -0.2748815165876777,
+        0.9676113360323886,
+        0.7440758293838863
+      ],
+      "centroid_wall_norm": [
+        0.6376518218623481,
+        0.2345971563981043
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 15258,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            383,
+            210,
+            546,
+            425
+          ],
+          "bbox_wall_norm": [
+            0.3076923076923077,
+            -0.2748815165876777,
+            0.9676113360323886,
+            0.7440758293838863
+          ],
+          "centroid_wall_norm": [
+            0.633113948851681,
+            0.21638279724597898
+          ],
+          "area_px": 15258,
+          "point_count": 15258
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              0.3076923076923077,
+              0.7440758293838863
+            ],
+            [
+              0.9676113360323886,
+              0.7440758293838863
+            ],
+            [
+              0.9676113360323886,
+              -0.2748815165876777
+            ],
+            [
+              0.3076923076923077,
+              -0.2748815165876777
+            ],
+            [
+              0.3076923076923077,
+              0.7440758293838863
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 101.92100000000006,
+        "background_median": 79.9106
+      },
+      "quality_flags": [
+        "noisy_components"
+      ]
+    },
+    {
+      "shape_ref": "sh1_d9c0e1383b952508",
+      "vector_key": "v1:3,0,0,203,190,141,117,162,86,0,0,0,0,0,191,0,0,0,121",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_007_breakdown_turqoise_reverse",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_007_breakdown_turqoise_reverse/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_007_breakdown_turqoise_reverse",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 0,
+        "CH4": 203,
+        "CH5": 190,
+        "CH6": 141,
+        "CH7": 117,
+        "CH8": 162,
+        "CH9": 86,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 191,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 121
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        68,
+        218,
+        215,
+        399
+      ],
+      "bbox_wall_norm": [
+        -0.9676113360323887,
+        -0.15165876777251186,
+        -0.3724696356275303,
+        0.7061611374407584
+      ],
+      "centroid_wall_norm": [
+        -0.6700404858299596,
+        0.27725118483412325
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 14724,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            68,
+            218,
+            215,
+            399
+          ],
+          "bbox_wall_norm": [
+            -0.9676113360323887,
+            -0.15165876777251186,
+            -0.3724696356275303,
+            0.7061611374407584
+          ],
+          "centroid_wall_norm": [
+            -0.6642937196919954,
+            0.27483226920358284
+          ],
+          "area_px": 14724,
+          "point_count": 14724
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              -0.9676113360323887,
+              0.7061611374407584
+            ],
+            [
+              -0.3724696356275303,
+              0.7061611374407584
+            ],
+            [
+              -0.3724696356275303,
+              -0.15165876777251186
+            ],
+            [
+              -0.9676113360323887,
+              -0.15165876777251186
+            ],
+            [
+              -0.9676113360323887,
+              0.7061611374407584
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 83.69159999999995,
+        "background_median": 77.68599999999999
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_ca3a93cf551f850e",
+      "vector_key": "v1:3,0,28,139,0,79,121,134,86,0,0,0,0,0,176,0,73,0,248",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_008_breakdown_turqoise",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_008_breakdown_turqoise/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_008_breakdown_turqoise",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 28,
+        "CH4": 139,
+        "CH5": 0,
+        "CH6": 79,
+        "CH7": 121,
+        "CH8": 134,
+        "CH9": 86,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 176,
+        "CH16": 0,
+        "CH17": 73,
+        "CH18": 0,
+        "CH19": 248
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        232,
+        278,
+        348,
+        409
+      ],
+      "bbox_wall_norm": [
+        -0.30364372469635625,
+        -0.19905213270142186,
+        0.165991902834008,
+        0.4218009478672986
+      ],
+      "centroid_wall_norm": [
+        -0.06882591093117407,
+        0.11137440758293837
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 7400,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            232,
+            278,
+            348,
+            409
+          ],
+          "bbox_wall_norm": [
+            -0.30364372469635625,
+            -0.19905213270142186,
+            0.165991902834008,
+            0.4218009478672986
+          ],
+          "centroid_wall_norm": [
+            -0.11924444687602576,
+            0.07552709107211475
+          ],
+          "area_px": 7400,
+          "point_count": 7400
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              -0.30364372469635625,
+              0.4218009478672986
+            ],
+            [
+              0.165991902834008,
+              0.4218009478672986
+            ],
+            [
+              0.165991902834008,
+              -0.19905213270142186
+            ],
+            [
+              -0.30364372469635625,
+              -0.19905213270142186
+            ],
+            [
+              -0.30364372469635625,
+              0.4218009478672986
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 85.43080000000005,
+        "background_median": 72.25959999999999
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_14928e116b6d46fb",
+      "vector_key": "v1:3,0,28,78,0,79,131,90,0,0,0,0,0,0,176,0,73,0,74",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_009_breakdown_chill_2",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_009_breakdown_chill_2/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_009_breakdown_chill_2",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 28,
+        "CH4": 78,
+        "CH5": 0,
+        "CH6": 79,
+        "CH7": 131,
+        "CH8": 90,
+        "CH9": 0,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 176,
+        "CH16": 0,
+        "CH17": 73,
+        "CH18": 0,
+        "CH19": 74
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        273,
+        364,
+        372,
+        416
+      ],
+      "bbox_wall_norm": [
+        -0.13765182186234814,
+        -0.23222748815165883,
+        0.26315789473684204,
+        0.014218009478673022
+      ],
+      "centroid_wall_norm": [
+        0.06275303643724706,
+        -0.1090047393364928
+      ],
+      "topology_class": "two_clusters",
+      "shape_point_count": 997,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            273,
+            378,
+            330,
+            416
+          ],
+          "bbox_wall_norm": [
+            -0.13765182186234814,
+            -0.23222748815165883,
+            0.09311740890688269,
+            -0.05213270142180093
+          ],
+          "centroid_wall_norm": [
+            -0.05716666878191379,
+            -0.14683029015436277
+          ],
+          "area_px": 957,
+          "point_count": 957
+        },
+        {
+          "cluster_id": "c1",
+          "source_pixel_bbox": [
+            354,
+            364,
+            372,
+            376
+          ],
+          "bbox_wall_norm": [
+            0.1902834008097165,
+            -0.042654028436019065,
+            0.26315789473684204,
+            0.014218009478673022
+          ],
+          "centroid_wall_norm": [
+            0.22641700404858311,
+            -0.01398104265402833
+          ],
+          "area_px": 40,
+          "point_count": 40
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              0.1902834008097165,
+              0.014218009478673022
+            ],
+            [
+              0.26315789473684204,
+              0.014218009478673022
+            ],
+            [
+              0.26315789473684204,
+              -0.042654028436019065
+            ],
+            [
+              0.1902834008097165,
+              -0.042654028436019065
+            ],
+            [
+              0.1902834008097165,
+              0.014218009478673022
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 94.11939999999998,
+        "background_median": 73.5034
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_c26886280d3c7364",
+      "vector_key": "v1:3,0,14,86,190,141,110,162,86,0,0,0,0,0,191,0,0,0,121",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_010_breakdown_chill",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_010_breakdown_chill/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_010_breakdown_chill",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 14,
+        "CH4": 86,
+        "CH5": 190,
+        "CH6": 141,
+        "CH7": 110,
+        "CH8": 162,
+        "CH9": 86,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 191,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 121
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        207,
+        303,
+        355,
+        447
+      ],
+      "bbox_wall_norm": [
+        -0.40485829959514175,
+        -0.37914691943127954,
+        0.19433198380566807,
+        0.3033175355450237
+      ],
+      "centroid_wall_norm": [
+        -0.10526315789473684,
+        -0.03791469194312791
+      ],
+      "topology_class": "complex_shape",
+      "shape_point_count": 11908,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            207,
+            303,
+            355,
+            447
+          ],
+          "bbox_wall_norm": [
+            -0.40485829959514175,
+            -0.37914691943127954,
+            0.19433198380566807,
+            0.3033175355450237
+          ],
+          "centroid_wall_norm": [
+            -0.1032045275587874,
+            -0.01178107990645505
+          ],
+          "area_px": 11908,
+          "point_count": 11908
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              -0.40485829959514175,
+              0.3033175355450237
+            ],
+            [
+              0.19433198380566807,
+              0.3033175355450237
+            ],
+            [
+              0.19433198380566807,
+              -0.37914691943127954
+            ],
+            [
+              -0.40485829959514175,
+              -0.37914691943127954
+            ],
+            [
+              -0.40485829959514175,
+              0.3033175355450237
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 95.34379999999996,
+        "background_median": 78.7662
+      },
+      "quality_flags": []
+    },
+    {
+      "shape_ref": "sh1_5f0125b19c4208c0",
+      "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,74",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_011_breakdown_turqoise_pointy",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_011_breakdown_turqoise_pointy/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_011_breakdown_turqoise_pointy",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 28,
+        "CH4": 78,
+        "CH5": 0,
+        "CH6": 79,
+        "CH7": 131,
+        "CH8": 90,
+        "CH9": 115,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 176,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 74
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        272,
+        310,
+        512,
+        413
+      ],
+      "bbox_wall_norm": [
+        -0.1417004048582996,
+        -0.2180094786729858,
+        0.8299595141700404,
+        0.27014218009478674
+      ],
+      "centroid_wall_norm": [
+        0.3441295546558705,
+        0.026066350710900466
+      ],
+      "topology_class": "two_clusters",
+      "shape_point_count": 11001,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            272,
+            310,
+            491,
+            413
+          ],
+          "bbox_wall_norm": [
+            -0.1417004048582996,
+            -0.2180094786729858,
+            0.7449392712550607,
+            0.27014218009478674
+          ],
+          "centroid_wall_norm": [
+            0.30887322137808493,
+            0.04747771015261293
+          ],
+          "area_px": 10957,
+          "point_count": 10957
+        },
+        {
+          "cluster_id": "c1",
+          "source_pixel_bbox": [
+            487,
+            372,
+            512,
+            388
+          ],
+          "bbox_wall_norm": [
+            0.728744939271255,
+            -0.09952606635071093,
+            0.8299595141700404,
+            -0.023696682464454888
+          ],
+          "centroid_wall_norm": [
+            0.7812845049687156,
+            -0.06268849633778562
+          ],
+          "area_px": 44,
+          "point_count": 44
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              -0.1417004048582996,
+              0.27014218009478674
+            ],
+            [
+              0.7449392712550607,
+              0.27014218009478674
+            ],
+            [
+              0.7449392712550607,
+              -0.2180094786729858
+            ],
+            [
+              -0.1417004048582996,
+              -0.2180094786729858
+            ],
+            [
+              -0.1417004048582996,
+              0.27014218009478674
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 84.8078,
+        "background_median": 72.7598
+      },
+      "quality_flags": [
+        "noisy_components"
+      ]
+    },
+    {
+      "shape_ref": "sh1_83b4671ca39044d5",
+      "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,79",
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_012_buildup_soft",
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_012_buildup_soft/still.jpg",
+      "test_id": "phase6_cue_validation__cue_relevant__cue_012_buildup_soft",
+      "phase": "phase6_cue_validation",
+      "exposure_track": "geometry_motion",
+      "ch1_19": {
+        "CH1": 3,
+        "CH2": 0,
+        "CH3": 28,
+        "CH4": 78,
+        "CH5": 0,
+        "CH6": 79,
+        "CH7": 131,
+        "CH8": 90,
+        "CH9": 115,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 176,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 79
+      },
+      "fixture_box_label": "image_left",
+      "source_pixel_bbox": [
+        280,
+        318,
+        553,
+        423
+      ],
+      "bbox_wall_norm": [
+        -0.10931174089068829,
+        -0.2654028436018958,
+        0.9959514170040487,
+        0.23222748815165872
+      ],
+      "centroid_wall_norm": [
+        0.44331983805668007,
+        -0.016587677725118377
+      ],
+      "topology_class": "two_clusters",
+      "shape_point_count": 12261,
+      "clusters": [
+        {
+          "cluster_id": "c0",
+          "source_pixel_bbox": [
+            440,
+            336,
+            553,
+            423
+          ],
+          "bbox_wall_norm": [
+            0.5384615384615385,
+            -0.2654028436018958,
+            0.9959514170040487,
+            0.14691943127962082
+          ],
+          "centroid_wall_norm": [
+            0.7798570033409808,
+            -0.06337157697726448
+          ],
+          "area_px": 6637,
+          "point_count": 6637
+        },
+        {
+          "cluster_id": "c1",
+          "source_pixel_bbox": [
+            280,
+            318,
+            426,
+            398
+          ],
+          "bbox_wall_norm": [
+            -0.10931174089068829,
+            -0.14691943127962093,
+            0.4817813765182186,
+            0.23222748815165872
+          ],
+          "centroid_wall_norm": [
+            0.1758909186194504,
+            0.06390772788253452
+          ],
+          "area_px": 5624,
+          "point_count": 5624
+        }
+      ],
+      "polylines": [
+        {
+          "polyline_id": "p0",
+          "points": [
+            [
+              -0.10931174089068829,
+              0.23222748815165872
+            ],
+            [
+              0.4817813765182186,
+              0.23222748815165872
+            ],
+            [
+              0.4817813765182186,
+              -0.14691943127962093
+            ],
+            [
+              -0.10931174089068829,
+              -0.14691943127962093
+            ],
+            [
+              -0.10931174089068829,
+              0.23222748815165872
+            ]
+          ],
+          "source": "simplified_component",
+          "closed": true,
+          "point_count": 5
+        }
+      ],
+      "extraction_params": {
+        "threshold_k": 4.0,
+        "min_area_px": 40,
+        "threshold_value": 88.70760000000001,
+        "background_median": 72.13
+      },
+      "quality_flags": [
+        "noisy_components"
+      ]
+    }
+  ]
+}

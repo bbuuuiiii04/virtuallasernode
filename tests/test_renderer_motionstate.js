@@ -583,6 +583,32 @@ function testInterpCarriesPowerAndPosition() {
   assert(ms.visibility.killReason === "position_blanked", "blanking kill should survive interpolation");
 }
 
+function testShapeRefInternalOnlyVisibleDecoderFallback() {
+  const lr = buildRenderer();
+  const st = baseState();
+  st.captureLookup = {
+    hit: true,
+    vector_match: true,
+    validation_backed: false,
+    shape_authority: true,
+    shape_ref: "sh1_deadbeefcafebabe",
+    shape_point_count: 512,
+    topology_class: "line",
+    shape_evidence: "still",
+    shape_quality_flags: [],
+    shape_source_capture_path: "phase1/ch3_032",
+  };
+  const ms = lr._buildMotionState(st, 0, 1);
+  assert(ms.shape && ms.shape.shape_ref === "sh1_deadbeefcafebabe", "shape_ref should surface in MotionState");
+  assert(ms.shape.internal_shape_authority === true, "internal shape authority expected");
+  assert(ms.shape.visible_geometry_source === "DECODER_FALLBACK_DRAWFAN", "visible path must stay decoder fallback");
+  assert(ms.shape.projection_source === "NOT_WIRED_PR_G3", "projection not wired until PR-G3");
+  assert(
+    ms.warnings.includes("shape_ref_internal_only_visible_geometry_decoder_fallback_until_PR_G3"),
+    "PR-G1 honesty warning required when shape_ref exists",
+  );
+}
+
 function run() {
   const tests = [
     testPowerKill,
@@ -604,6 +630,7 @@ function run() {
     testFixtureGeometryOriginMapsLeftAndRight,
     testMotionExtentPrefersApertureNormalization,
     testValidationFalseNeverEmitsRenderAuthority,
+    testShapeRefInternalOnlyVisibleDecoderFallback,
     testWarningsForCaptureQualityAndFallback,
     testFixtureMetadataAndSecondPatternDiagnostics,
     testCh19WaveQuarantinedByDefault,
