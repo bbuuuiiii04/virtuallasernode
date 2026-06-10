@@ -1,6 +1,6 @@
 # Renderer Documentation Index
 
-**Last updated:** 2026-06-10
+**Last updated:** 2026-06-10 (plan rev 4)
 
 Single map of renderer-related docs: what to read first, what's active, what's historical, and what's evidence-only.
 
@@ -25,7 +25,7 @@ Plans and guides that govern **current and near-term** renderer work.
 
 | Doc | Status | Notes |
 |---|---|---|
-| [RENDERER_WALL_TO_AERIAL_PLAN_V1.md](RENDERER_WALL_TO_AERIAL_PLAN_V1.md) | **Active primary (rev 2 + §14 PR-H)** | G1–G4 core; H1–H4 hardening (timing, combos, direction, lazy load) |
+| [RENDERER_WALL_TO_AERIAL_PLAN_V1.md](RENDERER_WALL_TO_AERIAL_PLAN_V1.md) | **Active primary (rev 4 — PR-G1 spec)** | G1–G4 core; §6.0 local corpus + calibration boxes; H1–H4 hardening |
 | [RENDERER_PR_STATUS.md](RENDERER_PR_STATUS.md) | **Active** | Living status; update each PR checkpoint |
 | [RENDERER_AGENT_ORCHESTRATION.md](RENDERER_AGENT_ORCHESTRATION.md) | **Active** | Orchestration + Opus forensic checklist |
 | [RENDERER_ACCURACY_PLAN_V1.md](RENDERER_ACCURACY_PLAN_V1.md) | **Partially active** | PR-A/B/C/E policy still valid; **PR-D section superseded** by wall→aerial plan |
@@ -37,13 +37,13 @@ Plans and guides that govern **current and near-term** renderer work.
 
 Docs describing **measurement corpus and physical setup**. Not implementation plans; inform PR-G shape and projection.
 
-**Evidence authority:** `captures/fixture_model/` (8k corpus). Pre-corpus stills live in `archive/pre_corpus_2026-06-05/calib_captures/` (historical).
+**Evidence authority:** `captures/fixture_model/` (8k+ corpus, **local media only**). GitHub has metadata/schema — not reliable still/video access. Pre-corpus stills: `archive/pre_corpus_2026-06-05/calib_captures/` (historical).
 
 | Doc | Use when |
 |---|---|
 | [FIXTURE_MODEL_READINESS_AND_KNOWLEDGE.md](FIXTURE_MODEL_READINESS_AND_KNOWLEDGE.md) | Rig geometry, capture program, renderer fidelity gap statement |
 | [FIXTURE_MODEL_PROGRAM.md](FIXTURE_MODEL_PROGRAM.md) | CH1–19 semantics, honest ceiling (no firmware point lists) |
-| [WALL_CH3_LOOK_ATLAS.md](WALL_CH3_LOOK_ATLAS.md) | Look-family matrix — PR-G1/G3 smoke (**corpus paths in family table**) |
+| [WALL_CH3_LOOK_ATLAS.md](WALL_CH3_LOOK_ATLAS.md) | **CH3 family checklist only** — which families PR-G1 must cover (not extraction evidence) |
 | [CALIBRATION_RESULTS.md](CALIBRATION_RESULTS.md) | **Mixed** — decoder findings valid; pre-corpus PNG paths historical |
 | [FIXTURE_36CH.md](FIXTURE_36CH.md) | Channel chart, ±25° scanner spec |
 | [PHASE6_VALIDATION_REPORT.md](PHASE6_VALIDATION_REPORT.md) | Phase6 cue validation |
@@ -88,6 +88,9 @@ Merged or completed work from the capture-backed **metadata + fan overlay** era.
 | `artifacts/renderer/renderer-capture-index-pr1/` | PR1 | Capture index build |
 | `artifacts/renderer/renderer-forensic-review-pr1-pr5/opus_capture_grounded_review.md` | Forensic | **BLOCK_MERGE** for "capture-backed" geometry claim |
 | `artifacts/renderer/renderer-accuracy-phase1/` | PR-A/B/C | Phase 1 implementation report |
+| `artifacts/renderer/pr-g1-plan-cleanup/` | PR-G1 spec | Plan rev 4 cleanup report (docs only) |
+| `artifacts/renderer/pr-g1-shape-authority/` | PR-G1 | Future: `shape_selection.json` (local dual-lane picks) |
+| `artifacts/renderer/shape_library_v1.json` | PR-G1 | Future: wall-normalized static shapes + schema |
 
 ---
 
@@ -135,7 +138,8 @@ Reviewing a PR?
 
 Understanding capture corpus?
   → FIXTURE_MODEL_READINESS_AND_KNOWLEDGE.md
-  → WALL_CH3_LOOK_ATLAS.md
+  → captures/fixture_model/ (LOCAL media — not on GitHub)
+  → WALL_CH3_LOOK_ATLAS.md (family checklist only)
 
 Why did we build a fan?
   → docs/_archive/historical_renderer/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md

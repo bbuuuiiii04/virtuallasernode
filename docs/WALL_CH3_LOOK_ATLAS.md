@@ -1,11 +1,15 @@
 # Wall CH3 look atlas
 
-**Status:** Active look-family matrix for PR-G1/G3 smoke acceptance  
-**Last updated:** 2026-06-10 (corpus paths added; pre-corpus paths demoted)
+**Status:** Look-family **checklist only** for PR-G1/G3 — not shape extraction evidence  
+**Last updated:** 2026-06-10 (rev 4 — checklist role clarified)
 
-> **Agent rule:** Shape and motion authority live in **`captures/fixture_model/`** (8k corpus, Jun 2026-08+).  
-> **`calib/captures/`** (Jun 2026-05, 681 PNG stills) is **historical audit only** — do not use for PR-G builders or renderer wiring.  
-> See `calib/README.md` and `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md`.
+> **Agent rule — read this first:**  
+> This doc lists **which CH3 families PR-G1 should cover**. It is **not** implementation evidence.  
+> **PR-G1 inputs** are local `captures/fixture_model/**/still.jpg` (or `still_color.jpg`).  
+> **Normalization frame** is the per-fixture **calibration projection box** from `analysis_geometry.json` (`image_left`, `image_right`).  
+> Do **not** use `/tmp/vln_wall_ch3_atlas_*.png`, `calib/captures/wall_atlas_ch3_*.png`, or `archive/pre_corpus_*/` stills as PR-G1 sources.  
+> If this checklist conflicts with a local 8k+ corpus still, **the local corpus wins**.  
+> See `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md` §5.3, §6.0.
 
 This atlas isolates the first-pattern CH3 macro/group channel with CH4=0 where possible, CH5=90, CH6/7=128, CH8=20. The real sheet crops the left projection as the master fixture ROI because both physical units receive the same DMX.
 

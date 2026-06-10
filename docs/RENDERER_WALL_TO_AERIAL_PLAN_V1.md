@@ -1,6 +1,6 @@
 # Renderer Wall → Aerial Plan V1 — Capture-Driven Beam Simulation
 
-**Date:** 2026-06-09 (rev 3 — ChatGPT review additions + Brandon decisions)  
+**Date:** 2026-06-10 (rev 4 — PR-G1 static-shape spec: local corpus, calibration boxes, dual selection lanes)  
 **Status:** Active primary renderer implementation plan (supersedes fan-geometry PR-D)  
 **Owner (orchestrator + checkpoint reviewer):** Opus  
 **Implementer:** Codex (gpt-5.3-codex)  
@@ -130,7 +130,7 @@ Brandon has **both** evidence types the simulator needs. The failure is **consum
 
 | Parameter | Primary authority | Secondary / fallback |
 |---|---|---|
-| **Shape topology** | Still contour / clusters (PR-G1) | Atlas family preset → `MODEL_COMPOSED` → decoder |
+| **Shape topology** | Still contour in calibration box space (PR-G1) | Atlas family preset → `MODEL_COMPOSED` → decoder |
 | **Shape over time** | Motion frame track (PR-G1b) | Scalar-driven oscillator using `motion_type` + `loop_duration` → `MEASURED_PARAM` (approx) |
 | **Color** | `dominant_colors[]` (PR-C) | decoder |
 | **Strobe on/Hz/duty** | `strobe_frequency_hz`, `duty_cycle` (PR-C) | CAL strobe |
@@ -190,9 +190,51 @@ The quarantined CH19 `fixed` fan-endpoint hack is **not** the target model. Targ
 | `phase6_cue_validation/` | **175** cue folders (durable) | **Primary cue-vector motion** for SoundSwitch looks |
 | `data/soundswitch_cue_motion_coverage.json` | dense pass summaries | Cue timing metadata; not video |
 | `capture_index_v1.json` | runtime | Extend with shape_ref + motion_track_ref |
-| `WALL_CH3_LOOK_ATLAS.md` | 12 families | Smoke acceptance matrix |
+| `WALL_CH3_LOOK_ATLAS.md` | 12 families | **Look-family checklist only** — not shape evidence (§5.3) |
 
 **Exposure tracks:** `geometry_motion` vs `color` — index must pair or select correct still/track per vector variant.
+
+### 5.2 Local corpus vs GitHub (PR-G1 inputs)
+
+The **8,324+ capture packages** with drawable media live on **Brandon's local machine** under:
+
+```text
+captures/fixture_model/**
+```
+
+GitHub carries **code, docs, schema, tests, and review artifacts** — not reliable access to raw stills, videos, or motion frame folders. **PR-G1 extraction runs locally** against that tree.
+
+**Valid PR-G1 source inputs (local):**
+
+| File | Role |
+|---|---|
+| `still.jpg` | Primary static shape source |
+| `still_color.jpg` | Fallback when `still.jpg` missing or color-specific extraction needed |
+| `metadata.json` | CH1–19 vector, phase, exposure track |
+| `analysis.json` | Quality gates, motion classification (not shape topology) |
+| `manifest.jsonl` | Vector enumeration, folder join |
+| `analysis_geometry.json` | **Per-fixture calibration projection boxes** — normalization frame (§6.0.3) |
+| `setup_geometry.json` | Rig layout (PR-G3; optional in G1) |
+
+**Not PR-G1 evidence:**
+
+- Historical pre-corpus PNGs (`calib/captures/`, `archive/pre_corpus_*/calib_captures/`)
+- `/tmp/vln_wall_ch3_atlas_*.png` contact sheets
+- Paths in `WALL_CH3_LOOK_ATLAS.md` labeled **Historical** or **legacy still**
+- GitHub-only clones without local `captures/fixture_model/` media
+
+If atlas checklist observations conflict with a local 8k+ corpus `still.jpg`, **the local corpus still wins**.
+
+### 5.3 WALL_CH3_LOOK_ATLAS.md — checklist only
+
+`docs/WALL_CH3_LOOK_ATLAS.md` identifies **which CH3 look families PR-G1 should cover first**. It is a **smoke matrix / vocabulary checklist**, not implementation evidence.
+
+- **Use it for:** family names, rep CH3 values, priority ordering, gap notes.
+- **Do not use for:** shape extraction inputs, normalization frames, or acceptance stills.
+- **Do not use paths such as:** `/tmp/vln_wall_ch3_atlas_real.png`, `calib/captures/wall_atlas_ch3_###.png`.
+- **Selection must scan** `captures/fixture_model/**` locally and emit `shape_selection.json` (§6.0.5).
+
+**Baby-language:** the atlas is the **spelling list**. The local corpus stills are the **textbook**.
 
 ### 5.1 Dense 118 vs Phase 6 — corrected (2026-06-09)
 
@@ -229,18 +271,209 @@ Two different cue-timing sources are often conflated:
 
 ## 6. PR breakdown (PR-G1 → PR-G4)
 
-### PR-G1 — Static shape authority (stills) [routine: gpt-5.5]
+### PR-G1 — Static shape authority (local stills) [routine: gpt-5.5]
 
-**Goal:** 8k stills define wall figure **topology**, not `_patternShape()`.
+**Goal:** Local `still.jpg` files define wall figure topology in **per-fixture calibration projection box** space — not `_patternShape()`, not historical atlas PNGs, not shape-owning bbox normalization.
 
-- Build-time: extract bright-pixel contour / skeleton / clusters from each `still.jpg` → normalized wall-space polylines in aperture ROI (`analysis_geometry`).
-- Output: `artifacts/renderer/shape_library_v1.json` (+ index fields `shape_ref`, `shape_point_count`, `shape_evidence: still`).
-- Key: exact CH1–19 vector (+ exposure track).
-- Family fallback: nearest CH3/CH4 atlas representative, labeled `MODEL_COMPOSED`.
-- Runtime: load shape for vector hit; diagnostics show shape tier + point/cluster count.
-- Renderer: internal wall-space only (no aerial projection yet).
+PR-G1 is **internal wall-space shape authority only**. Visible aerial geometry may remain `_drawFan()` until PR-G3; diagnostics and tests must label visible geometry as decoder fallback when `shape_ref` exists but projection is not wired.
 
-**Accept:** CH3=48 → two-cluster topology (dual-dot). CH3=32 → line topology. Not 8-ray fan bin.
+---
+
+#### 6.0.1 Dual selection lanes (local)
+
+PR-G1 must select captures from **two local lanes** before building `shape_library_v1.json`:
+
+| Lane | Source | Purpose |
+|---|---|---|
+| **A — CH3 family coverage** | `captures/fixture_model/**` rows matching families in `WALL_CH3_LOOK_ATLAS.md` | Teach/check static shape **vocabulary** (line, dual-dot, arc, …) |
+| **B — Phase6 cue coverage** | `captures/fixture_model/phase6_cue_validation/cue_relevant/**` | Ensure shapes work on **real SoundSwitch cue vectors**, not only clean atlas sweeps |
+
+**Baby-language:**
+
+- **Lane A** teaches the renderer the **alphabet**.
+- **Lane B** checks whether it can read actual **SoundSwitch words**.
+
+Both lanes are required in `shape_selection.json` and PR-G1 acceptance.
+
+---
+
+#### 6.0.2 Per-fixture calibration projection box
+
+Replace vague “wall box” wording with:
+
+> **Per-fixture calibration projection box** — the fixed projection rectangle for one laser on the wall, detected from wall calibration / pencil tick / boundary-mark frame.
+
+In `captures/fixture_model/analysis_geometry.json`, these are the per-fixture entries in `boxes[]`, e.g.:
+
+- `image_left` — left fixture projection rectangle
+- `image_right` — right fixture projection rectangle
+
+**Rules:**
+
+- The calibration projection box is the **fixed drawing canvas** for one laser on the wall.
+- The extracted laser shape is the **bright figure inside** that box.
+- **Do not** normalize using the extracted shape's own bbox.
+- **Do not** shrink the coordinate system to a tiny dot, line, or ring bbox.
+- **Normalize shape points inside the fixed per-fixture calibration box.**
+
+**Baby-language — same invisible graph paper for every capture:**
+
+- The wall box is the laser's **wall canvas**.
+- The laser shape is the **bright drawing inside** that canvas.
+- Center of that box is **x = 0, y = 0**.
+- Left edge **x = −1**, right edge **x = +1**.
+- Top edge **y = +1**, bottom edge **y = −1** (y increases upward; flip image pixel y).
+- Every capture compares on the **same graph paper**.
+
+---
+
+#### 6.0.3 Coordinate convention (PR-G1)
+
+| Rule | Detail |
+|---|---|
+| Normalization frame | Per-fixture box from `analysis_geometry.json` (`image_left`, `image_right`, or selected box) |
+| Normalized range | x, y ∈ **[−1, +1]** inside that fixture's box |
+| x axis | Increases to the **right** |
+| y axis | Increases **upward** — **flip** image pixel y when converting |
+| Audit fields | Store `source_pixel_bbox` and `bbox_wall_norm` |
+| Box provenance | Store `fixture_box_label` used for normalization |
+| Forbidden | Using the extracted shape's own bbox as the normalization frame |
+
+`coordinate_space` in artifacts: `wall_norm_per_fixture_calibration_box`.
+
+---
+
+#### 6.0.4 Topology labels — diagnostic only
+
+Do **not** require Brandon to classify geometry terms (star polygon, closed contour, etc.).
+
+PR-G1 uses **simple debug labels only:**
+
+```text
+line | two_clusters | closed_loop | multi_cluster | complex_shape | unknown
+```
+
+These are **diagnostics, not product truth**.
+
+**Brandon validation (visual only):**
+
+1. Show **original still** beside **extracted overlay**.
+2. Brandon answers: does the overlay roughly trace what the laser actually drew? **yes / no**.
+
+No mandatory topology vocabulary from Brandon.
+
+---
+
+#### 6.0.5 Local selection artifact (required)
+
+Before or during shape-library build, PR-G1 must emit:
+
+```text
+artifacts/renderer/pr-g1-shape-authority/shape_selection.json
+```
+
+Each entry lists an **actual local capture** selected by scanning `captures/fixture_model/**` (no hardcoded GitHub paths).
+
+**Minimum fields per selection:**
+
+| Field | Description |
+|---|---|
+| `selection_lane` | `ch3_family` \| `phase6_cue` |
+| `family_or_checkpoint` | Atlas family name or phase6 cue folder id |
+| `capture_path` | Relative path under `captures/fixture_model/` |
+| `still_path` | `still.jpg` or `still_color.jpg` used |
+| `metadata_path` | `metadata.json` |
+| `analysis_path` | `analysis.json` |
+| `vector_key` | Canonical CH1–19 key |
+| `ch1_19` | Decoded channel map |
+| `phase` | Capture phase tag |
+| `exposure_track` | e.g. `geometry_motion`, `color` |
+| `quality_flags` | From analysis / selection heuristics |
+| `selected_fixture_box` | e.g. `image_left` |
+| `selection_reason` | Human-readable why this row was picked |
+| `selection_tier` | `exact_family` \| `nearest_family` \| `phase6_cue` \| `fallback_candidate` |
+
+---
+
+#### 6.0.6 Shape library schema (required)
+
+PR-G1 must produce:
+
+```text
+artifacts/renderer/shape_library_v1.json
+artifacts/renderer/shape_library_v1.schema.json
+```
+
+**`shape_library_v1.json` minimum:**
+
+| Top-level | Fields |
+|---|---|
+| Header | `artifact_version`, `generated_at`, `capture_root`, `coordinate_space`, `geometry_source` |
+| `shapes[]` | See below |
+
+**Each shape entry minimum:**
+
+| Field | Description |
+|---|---|
+| `shape_ref` | Stable id for index join |
+| `vector_key` | Lookup key |
+| `capture_path` | Source folder |
+| `source_still` | Still file used |
+| `test_id` | Harness label |
+| `phase`, `exposure_track` | From metadata |
+| `ch1_19` | Vector |
+| `fixture_box_label` | e.g. `image_left` |
+| `source_pixel_bbox` | Bright figure bbox in source image pixels |
+| `bbox_wall_norm` | Normalized bbox in calibration box space |
+| `centroid_wall_norm` | Normalized centroid |
+| `topology_class` | Diagnostic label (§6.0.4) |
+| `shape_point_count` | Extracted point count |
+| `clusters` | Cluster summaries if applicable |
+| `polylines` | Wall-normalized drawable geometry |
+| `extraction_params` | Algorithm params for audit |
+| `quality_flags` | Extraction quality |
+| `fallback_reason` | Present when shape empty or tier is fallback |
+
+Index extension (PR-G1): `shape_ref`, `shape_point_count`, `topology_class`, `shape_evidence: still`, `shape_fallback_reason`.
+
+---
+
+#### 6.0.7 Build workflow (local)
+
+```text
+1. Scan captures/fixture_model/** locally
+2. Select Lane A (CH3 families per WALL_CH3 checklist) + Lane B (phase6 cue_relevant)
+3. Write shape_selection.json
+4. For each selection: read still.jpg → extract bright figure inside selected fixture box
+5. Normalize to [-1,+1] in calibration box space; assign topology_class (diagnostic)
+6. Write shape_library_v1.json; validate against schema
+7. Extend capture index with shape_ref joins (artifacts only — do not mutate captures/)
+```
+
+**Do not implement extraction in this doc pass** — spec only until PR-G1 coding starts.
+
+---
+
+#### 6.0.8 PR-G1 acceptance (artifact-based)
+
+Acceptance depends on **locally generated artifacts**, not historical PNGs or visible aerial parity.
+
+**Required:**
+
+- [ ] `shape_selection.json` exists with **both** lanes: CH3 family coverage **and** phase6 `cue_relevant` captures
+- [ ] `shape_library_v1.json` validates against `shape_library_v1.schema.json`
+- [ ] At least one selected local capture per required family/checkpoint has a **non-empty** `shape_ref`, unless marked with explicit `quality_flags` / `fallback_reason`
+- [ ] For every selected phase6 cue still with usable evidence, exact vector lookup can expose `shape_ref`
+- [ ] Renderer/app diagnostics show: `shape_ref`, `topology_class`, `shape_point_count`, `shape_evidence`, `shape_fallback_reason`
+- [ ] **No claim** that visible aerial geometry is capture-driven yet — PR-G1 is wall-space authority only
+- [ ] `_drawFan()` may remain the **visible** path until PR-G3; docs/tests state decoder fallback for visible geometry when internal shape exists
+
+**Smoke examples (topology_class diagnostic, not Brandon vocabulary):**
+
+- CH3=48 family → `two_clusters` (not 8-ray fan bin)
+- CH3=32 family → `line`
+
+**Human gate:** side-by-side still + overlay yes/no per family representative (§6.0.4).
 
 ---
 
@@ -363,16 +596,15 @@ Recommended: atlas families first in G1/G1b (12 CH3 families), then full corpus 
 ## 9. Smoke / validation protocol
 
 ```text
-# Build shape + motion artifacts (after G1/G1b)
-python3 tools/shape_library_builder.py      # new
-python3 tools/motion_track_builder.py       # new
+# PR-G1 (local machine — requires captures/fixture_model/ media)
+python3 tools/shape_library_builder.py      # emits shape_selection.json + shape_library_v1.json
 python3 tools/build_capture_index.py
 
 # Unit tests
-python3 -m pytest tests/test_shape_extraction.py tests/test_motion_track_builder.py
+python3 -m pytest tests/test_shape_extraction.py
 node tests/test_renderer_motionstate.js
 
-# Grid — include static + motion cues
+# Grid — include static + motion cues (after G3)
 python3 calib/render_grid_capture.py /tmp/vln_pr_g.html \
   cue_023_green_solid_sinewaves cue_027_purple_dazzled_waves \
   cue_dual_dot cue_line32 cue_001_off
@@ -392,7 +624,7 @@ python3 calib/render_grid_capture.py /tmp/vln_pr_g.html \
 
 ### Look-family exit matrix (minimum)
 
-Pass/fail per family in `WALL_CH3_LOOK_ATLAS.md`: static shape correct (G1) **and** motion plausible for timed families (G1b). 12 families × {shape, motion} = exit gate for plan v1.
+Pass/fail per family in `WALL_CH3_LOOK_ATLAS.md` **checklist**: static shape overlay passes Brandon yes/no (G1) **and** motion plausible for timed families (G1b). Selection evidence comes from local corpus paths in `shape_selection.json`, not atlas PNG paths.
 
 ---
 
@@ -400,14 +632,16 @@ Pass/fail per family in `WALL_CH3_LOOK_ATLAS.md`: static shape correct (G1) **an
 
 **New build tools**
 
-- `tools/shape_library_builder.py` — still → wall polylines  
+- `tools/shape_library_builder.py` — local still → wall-normalized polylines (PR-G1; not started)
 - `tools/motion_track_builder.py` — motion_analysis_60fps → tracks  
 - `tools/capture_index_builder.py` — extend joins  
 
 **New artifacts**
 
+- `artifacts/renderer/pr-g1-shape-authority/shape_selection.json` — dual-lane local capture picks  
 - `artifacts/renderer/shape_library_v1.json`  
-- `artifacts/renderer/motion_tracks_v1/` (or single JSON + shards)  
+- `artifacts/renderer/shape_library_v1.schema.json`  
+- `artifacts/renderer/motion_tracks_v1/` (or single JSON + shards) — PR-G1b  
 - `capture_index_v1.json` — regenerate  
 
 **Runtime**
