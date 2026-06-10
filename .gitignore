@@ -13,6 +13,14 @@ build/
 venv/
 ENV/
 
+# Local secrets / offline AI extraction outputs (never commit)
+.env
+.local/renderer/pr-g1-ai-extraction/
+artifacts/renderer/pr-g1-ai-extraction/generated/
+artifacts/renderer/pr-g1-ai-extraction/contact_sheets/
+artifacts/renderer/pr-g1-ai-extraction/masks/
+artifacts/renderer/pr-g1-ai-extraction/ai_extractions.json
+
 # pytest
 .pytest_cache/
 

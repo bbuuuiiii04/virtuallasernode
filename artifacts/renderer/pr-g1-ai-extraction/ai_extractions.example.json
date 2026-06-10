@@ -1,0 +1,25 @@
+{
+  "artifact_version": "pr-g1-ai-extraction-example-v1",
+  "note": "Tiny committed example only — not bulk generated output",
+  "entries": [
+    {
+      "shape_ref": "sh1_example_horizontal_line",
+      "status": "extracted",
+      "geometry_kind": "centerline_polyline",
+      "confidence": 0.91,
+      "image_width": 494,
+      "image_height": 422,
+      "paths_px": [
+        [
+          [40, 210],
+          [454, 210]
+        ]
+      ],
+      "dot_anchors_px": [],
+      "segment_anchors_px": [],
+      "color_coverage": ["green"],
+      "failure_modes": [],
+      "reason": "example horizontal centerline in crop pixel space"
+    }
+  ]
+}

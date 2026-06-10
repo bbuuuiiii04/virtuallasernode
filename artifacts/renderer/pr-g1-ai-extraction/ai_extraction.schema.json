@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pr_g1_ai_extraction_entry",
+  "type": "object",
+  "required": [
+    "shape_ref",
+    "status",
+    "geometry_kind",
+    "confidence",
+    "image_width",
+    "image_height",
+    "paths_px",
+    "dot_anchors_px",
+    "segment_anchors_px",
+    "color_coverage",
+    "failure_modes",
+    "reason"
+  ],
+  "properties": {
+    "shape_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["extracted", "uncertain", "failed"]
+    },
+    "geometry_kind": {
+      "type": "string",
+      "enum": [
+        "centerline_polyline",
+        "branch_polyline",
+        "dot_anchor_points",
+        "segment_anchor_points",
+        "closed_loop_contour",
+        "unknown"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "image_width": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "image_height": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "paths_px": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "number" },
+            { "type": "number" }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "items": false
+        }
+      }
+    },
+    "dot_anchors_px": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          { "type": "number" },
+          { "type": "number" }
+        ],
+        "minItems": 2,
+        "maxItems": 2,
+        "items": false
+      }
+    },
+    "segment_anchors_px": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "number" },
+            { "type": "number" }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "items": false
+        }
+      }
+    },
+    "mask_path": {
+      "type": "string"
+    },
+    "color_coverage": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["red", "green", "blue", "cyan", "magenta", "yellow", "white"]
+      }
+    },
+    "failure_modes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "halo_or_glow",
+          "fragment_only",
+          "uncertain_dots",
+          "missed_color_span",
+          "wrong_fixture",
+          "low_confidence",
+          "ambiguous_shape"
+        ]
+      }
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
