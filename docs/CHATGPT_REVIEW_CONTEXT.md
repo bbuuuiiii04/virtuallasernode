@@ -17,9 +17,10 @@
 - **Plan rev 4:** PR-G1 static-shape spec — local corpus, calibration boxes, dual selection lanes
 - Repo layout refactor (`45c5734d`) — pre-corpus calib archived
 
-## PR-G1 policy (rev 4 — docs only, not implemented)
+## PR-G1 policy (rev 4 — spec committed, not implemented)
 
-- **Inputs:** local `captures/fixture_model/**/still.jpg` (or `still_color.jpg`)
+- **Implementation spec:** `docs/PR_G1_STATIC_SHAPE_IMPLEMENTATION_SPEC.md`
+- **Plan:** `RENDERER_WALL_TO_AERIAL_PLAN_V1.md` §5.2–5.3, §6.0
 - **Not inputs:** `calib/captures/`, `/tmp` atlas PNGs, WALL_CH3 legacy still column
 - **Normalization:** per-fixture calibration projection box from `analysis_geometry.json` (`image_left`, `image_right`)
 - **Selection lanes:** A = CH3 families (atlas checklist); B = phase6 `cue_relevant` cues
@@ -42,7 +43,8 @@
 ## Suggested read order
 
 1. `docs/CHATGPT_REVIEW_CONTEXT.md` (this file)
-2. `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md` — §5.2–5.3, §6.0 (PR-G1), §18
-3. `docs/WALL_CH3_LOOK_ATLAS.md` — family checklist only
-4. `artifacts/renderer/renderer-forensic-review-pr1-pr5/opus_capture_grounded_review.md`
-5. `artifacts/renderer/pr-g1-plan-cleanup/implementation_report.md`
+2. `docs/PR_G1_STATIC_SHAPE_IMPLEMENTATION_SPEC.md` — PR-G1 coding contract
+3. `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md` — §5.2–5.3, §6.0 (PR-G1), §18
+4. `docs/WALL_CH3_LOOK_ATLAS.md` — family checklist only
+5. `artifacts/renderer/renderer-forensic-review-pr1-pr5/opus_capture_grounded_review.md`
+6. `artifacts/renderer/pr-g1-plan-cleanup/implementation_report.md`

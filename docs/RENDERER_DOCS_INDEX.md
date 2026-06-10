@@ -10,6 +10,7 @@ Single map of renderer-related docs: what to read first, what's active, what's h
 
 | Doc | Role |
 |---|---|
+| **[PR_G1_STATIC_SHAPE_IMPLEMENTATION_SPEC.md](PR_G1_STATIC_SHAPE_IMPLEMENTATION_SPEC.md)** | **PR-G1 coding contract** — selection, extraction, schema, tests, acceptance |
 | **[RENDERER_WALL_TO_AERIAL_PLAN_V1.md](RENDERER_WALL_TO_AERIAL_PLAN_V1.md)** | **Primary implementation plan** — wall figure (captures) → rig projection → aerial beams |
 | **[RENDERER_PR_STATUS.md](RENDERER_PR_STATUS.md)** | Branch, PR state, merge gates, next commands |
 | **[RENDERER_AGENT_ORCHESTRATION.md](RENDERER_AGENT_ORCHESTRATION.md)** | Agent roles, review gates, forensic questions, workflow |
@@ -25,6 +26,7 @@ Plans and guides that govern **current and near-term** renderer work.
 
 | Doc | Status | Notes |
 |---|---|---|
+| [PR_G1_STATIC_SHAPE_IMPLEMENTATION_SPEC.md](PR_G1_STATIC_SHAPE_IMPLEMENTATION_SPEC.md) | **Active PR-G1 spec** | Implementation contract for static shape authority |
 | [RENDERER_WALL_TO_AERIAL_PLAN_V1.md](RENDERER_WALL_TO_AERIAL_PLAN_V1.md) | **Active primary (rev 4 — PR-G1 spec)** | G1–G4 core; §6.0 local corpus + calibration boxes; H1–H4 hardening |
 | [RENDERER_PR_STATUS.md](RENDERER_PR_STATUS.md) | **Active** | Living status; update each PR checkpoint |
 | [RENDERER_AGENT_ORCHESTRATION.md](RENDERER_AGENT_ORCHESTRATION.md) | **Active** | Orchestration + Opus forensic checklist |
@@ -126,7 +128,13 @@ Merged or completed work from the capture-backed **metadata + fan overlay** era.
 ## Quick decision tree
 
 ```text
-Implementing renderer code?
+Implementing PR-G1 code?
+  → PR_G1_STATIC_SHAPE_IMPLEMENTATION_SPEC.md
+  → RENDERER_WALL_TO_AERIAL_PLAN_V1.md §6.0
+  → RENDERER_PR_STATUS.md (current branch/PR)
+  → AGENTS.md (guardrails)
+
+Implementing renderer code (general)?
   → RENDERER_WALL_TO_AERIAL_PLAN_V1.md
   → RENDERER_PR_STATUS.md (current branch/PR)
   → AGENTS.md (guardrails)

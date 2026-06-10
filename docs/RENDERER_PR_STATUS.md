@@ -22,9 +22,9 @@ docs/RENDERER_AGENT_ORCHESTRATION.md
 active_plan: docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md (rev 4 — PR-G1 static-shape spec)
 active_branch: renderer-accuracy-phase1
 base_branch: renderer-capture-index-pr1
-phase: wall_to_aerial_rebuild — PR-G1 spec ready; implementation not started
-last_completed_step: repo_layout_refactor_committed_2026_06_10 + pr_g1_plan_cleanup
-next_recommended_command: Implement PR-G1 (local shape_selection.json + shape_library_v1.json)
+phase: wall_to_aerial_rebuild — PR-G1 implementation spec ready; coding not started
+last_completed_step: pr_g1_implementation_spec_committed
+next_recommended_command: Implement PR-G1 per docs/PR_G1_STATIC_SHAPE_IMPLEMENTATION_SPEC.md
 corpus: 8324+ captures LOCAL ONLY under captures/fixture_model/ (stills not on GitHub)
 phase6: ~175 cue folders under phase6_cue_validation/cue_relevant/
 human_action_needed: visual overlay yes/no after PR-G1 extraction harness
@@ -121,13 +121,14 @@ Next: PR-G1 — local shape_selection + shape_library (see plan §6.0)
 
 ```text
 PR: PR-G1 — static shape authority (local stills)
-Status: spec only (plan rev 4); no shape_library_builder.py yet
+Status: implementation spec committed — no builder code yet
+Spec: docs/PR_G1_STATIC_SHAPE_IMPLEMENTATION_SPEC.md
+Plan: docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md rev 4 §6.0
 Inputs: captures/fixture_model/** still.jpg (LOCAL); analysis_geometry.json boxes
 Lanes: A = CH3 families (WALL_CH3 checklist); B = phase6 cue_relevant
 Outputs: shape_selection.json, shape_library_v1.json + schema
 Visible renderer: _drawFan may remain until PR-G3; internal shape_ref in diagnostics
-Not evidence: calib/captures/, /tmp atlas PNGs, WALL_CH3 legacy still column
-Report: artifacts/renderer/pr-g1-plan-cleanup/implementation_report.md
+Report: artifacts/renderer/pr-g1-shape-authority/implementation_report.md (on code PR)
 ```
 
 ## Latest Decisions (2026-06-10)
