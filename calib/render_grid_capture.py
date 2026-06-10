@@ -120,8 +120,8 @@ def write_grid(out_path: Path, args: list[str]) -> tuple[int, int]:
     capture_geometry = load_capture_geometry()
 
     cols = int(os.environ.get("VLN_GRID_COLS", "3"))
-    quarantine_ch19 = ROOT / "static" / "quarantine" / "ch19_wave.js"
-    quarantine_fan = ROOT / "static" / "quarantine" / "fan_motion.js"
+    quarantine_ch19 = ROOT / "archive" / "experiments" / "quarantine" / "static" / "ch19_wave.js"
+    quarantine_fan = ROOT / "archive" / "experiments" / "quarantine" / "static" / "fan_motion.js"
     renderer = ROOT / "static" / "renderer.js"
     cal = load_calibration_literal(ROOT)
     cases: list[tuple[str, list[dict[str, Any]]]] = []

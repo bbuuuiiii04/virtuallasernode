@@ -1,5 +1,11 @@
 # Full DMX channel wall audit
 
+**Status:** Historical audit (2026-06-05) — findings valid; `calib/captures/wall_audit_*` paths superseded  
+**Last updated:** 2026-06-10
+
+> **Agent rule:** Per-channel stills live in **`calib/captures/wall_audit_*.png`** (pre-corpus).  
+> For PR-G, resolve baselines against **`captures/fixture_model/manifest.jsonl`**. See `calib/README.md`.
+
 Master fixture wall-pattern audit using iPhone Continuity Camera device 2, no haze, fixed camera, left wall projection cropped as the master ROI. Channels 1-19 use the first-pattern baseline. Channels 20-36 use a second-pattern-active baseline because CH4>=1 is required to enable the second pattern block.
 
 ## Baselines

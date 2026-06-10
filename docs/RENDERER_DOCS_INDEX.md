@@ -1,6 +1,6 @@
 # Renderer Documentation Index
 
-**Last updated:** 2026-06-09
+**Last updated:** 2026-06-10
 
 Single map of renderer-related docs: what to read first, what's active, what's historical, and what's evidence-only.
 
@@ -14,6 +14,8 @@ Single map of renderer-related docs: what to read first, what's active, what's h
 | **[RENDERER_PR_STATUS.md](RENDERER_PR_STATUS.md)** | Branch, PR state, merge gates, next commands |
 | **[RENDERER_AGENT_ORCHESTRATION.md](RENDERER_AGENT_ORCHESTRATION.md)** | Agent roles, review gates, forensic questions, workflow |
 | **[AGENTS.md](../AGENTS.md)** | Repo-wide guardrails (global rules, forbidden scope creep) |
+| **[../REPO_LAYOUT.md](../REPO_LAYOUT.md)** | **Repo map** — active vs archive vs corpus |
+| **[../calib/README.md](../calib/README.md)** | Active calib scripts only |
 
 ---
 
@@ -35,32 +37,43 @@ Plans and guides that govern **current and near-term** renderer work.
 
 Docs describing **measurement corpus and physical setup**. Not implementation plans; inform PR-G shape and projection.
 
+**Evidence authority:** `captures/fixture_model/` (8k corpus). Pre-corpus stills live in `archive/pre_corpus_2026-06-05/calib_captures/` (historical).
+
 | Doc | Use when |
 |---|---|
 | [FIXTURE_MODEL_READINESS_AND_KNOWLEDGE.md](FIXTURE_MODEL_READINESS_AND_KNOWLEDGE.md) | Rig geometry, capture program, renderer fidelity gap statement |
 | [FIXTURE_MODEL_PROGRAM.md](FIXTURE_MODEL_PROGRAM.md) | CH1–19 semantics, honest ceiling (no firmware point lists) |
-| [WALL_CH3_LOOK_ATLAS.md](WALL_CH3_LOOK_ATLAS.md) | Look-family matrix — PR-G1/G3 smoke acceptance |
-| [WALL_MODIFIER_PASS.md](WALL_MODIFIER_PASS.md) | Modifier behavior on wall stills |
-| [COMBINATION_CHANNEL_AUDIT.md](COMBINATION_CHANNEL_AUDIT.md) | Combo looks vs aerial fan mismatch ranking |
-| [DMX_CHANNEL_AUDIT.md](DMX_CHANNEL_AUDIT.md) | Per-channel wall projection audit |
-| [TIMED_MOTION_CH1_19_CALIBRATION.md](TIMED_MOTION_CH1_19_CALIBRATION.md) | Timed/burst motion evidence |
-| [CALIBRATION_RESULTS.md](CALIBRATION_RESULTS.md) | Wall vs virtual comparison; pan/zoom sign fixes |
-| [CALIBRATION.md](CALIBRATION.md) | Agent-driven calibration phases |
+| [WALL_CH3_LOOK_ATLAS.md](WALL_CH3_LOOK_ATLAS.md) | Look-family matrix — PR-G1/G3 smoke (**corpus paths in family table**) |
+| [CALIBRATION_RESULTS.md](CALIBRATION_RESULTS.md) | **Mixed** — decoder findings valid; pre-corpus PNG paths historical |
 | [FIXTURE_36CH.md](FIXTURE_36CH.md) | Channel chart, ±25° scanner spec |
+| [PHASE6_VALIDATION_REPORT.md](PHASE6_VALIDATION_REPORT.md) | Phase6 cue validation |
+
+### Archived pre-corpus audits (`docs/_archive/pre_corpus/`)
+
+| Doc | Notes |
+|---|---|
+| [_archive/pre_corpus/COMBINATION_CHANNEL_AUDIT.md](_archive/pre_corpus/COMBINATION_CHANNEL_AUDIT.md) | Combo mismatch ranking |
+| [_archive/pre_corpus/DMX_CHANNEL_AUDIT.md](_archive/pre_corpus/DMX_CHANNEL_AUDIT.md) | Per-channel wall audit |
+| [_archive/pre_corpus/TIMED_MOTION_CH1_19_CALIBRATION.md](_archive/pre_corpus/TIMED_MOTION_CH1_19_CALIBRATION.md) | Superseded by corpus motion clips |
+| [_archive/pre_corpus/WALL_MODIFIER_PASS.md](_archive/pre_corpus/WALL_MODIFIER_PASS.md) | Modifier still pass |
+| [_archive/pre_corpus/CALIBRATION.md](_archive/pre_corpus/CALIBRATION.md) | Early agent calibration phases |
+| [_archive/pre_corpus/CALIBRATION_WALL_MASTER_DMX_LOG.md](_archive/pre_corpus/CALIBRATION_WALL_MASTER_DMX_LOG.md) | Wall master DMX log |
+| [_archive/pre_corpus/CODEX_REVIEW_CALIBRATION.md](_archive/pre_corpus/CODEX_REVIEW_CALIBRATION.md) | Calibration review |
 
 ---
 
-## Historical — superseded plans
+## Historical — superseded plans (`docs/_archive/historical_renderer/`)
 
-Kept for audit trail. **Do not implement from these without cross-checking the active plan.**
+Kept for audit trail. **Do not implement from these.**
 
-| Doc | Superseded by | Why historical |
-|---|---|---|
-| [RENDERER_PLAN.md](RENDERER_PLAN.md) | PR-G2 (transform) + PR-G3 (projection) | Original Step 6 polyline-on-canvas plan; partially reused but never shipped as primary path |
-| [RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md](RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md) | PR-G3 | Pivoted to "preserve `_drawFan()`"; explicitly rejected wall-projection thinking |
-| [PLANNING.md](PLANNING.md) §Renderer | RENDERER_WALL_TO_AERIAL_PLAN_V1 | North-star MVP; v3 "photograph patterns" never wired to renderer |
+| Doc | Superseded by |
+|---|---|
+| [_archive/historical_renderer/RENDERER_PLAN.md](_archive/historical_renderer/RENDERER_PLAN.md) | RENDERER_WALL_TO_AERIAL_PLAN_V1.md |
+| [_archive/historical_renderer/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md](_archive/historical_renderer/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md) | RENDERER_WALL_TO_AERIAL_PLAN_V1.md |
+| [_archive/historical_renderer/RENDERER_REVIEW.md](_archive/historical_renderer/RENDERER_REVIEW.md) | Forensic review artifact |
+| [PLANNING.md](PLANNING.md) §Renderer | RENDERER_WALL_TO_AERIAL_PLAN_V1.md |
 
-**Accuracy plan PR-D (fan geometry):** documented in [RENDERER_ACCURACY_PLAN_V1.md](RENDERER_ACCURACY_PLAN_V1.md) §PR-D but **superseded** — see [RENDERER_WALL_TO_AERIAL_PLAN_V1.md](RENDERER_WALL_TO_AERIAL_PLAN_V1.md) §7. Implementation report only: `artifacts/renderer/renderer-accuracy-pr-d/`.
+**PR-D (fan geometry):** superseded — reports in `archive/experiments/pr_d/` (local).
 
 ---
 
@@ -74,8 +87,7 @@ Merged or completed work from the capture-backed **metadata + fan overlay** era.
 | [RENDERER_REVIEW.md](RENDERER_REVIEW.md) | Early review | Pre-forensic review notes |
 | `artifacts/renderer/renderer-capture-index-pr1/` | PR1 | Capture index build |
 | `artifacts/renderer/renderer-forensic-review-pr1-pr5/opus_capture_grounded_review.md` | Forensic | **BLOCK_MERGE** for "capture-backed" geometry claim |
-| `artifacts/renderer/renderer-accuracy-phase1/` | PR-A/B/C | Phase 1 implementation report (uncommitted) |
-| `artifacts/renderer/renderer-accuracy-pr-d/` | PR-D | Composer implementation — **do not merge** |
+| `artifacts/renderer/renderer-accuracy-phase1/` | PR-A/B/C | Phase 1 implementation report |
 
 ---
 
@@ -83,20 +95,19 @@ Merged or completed work from the capture-backed **metadata + fan overlay** era.
 
 | Doc | Notes |
 |---|---|
-| [RENDERER_REVIEW.md](RENDERER_REVIEW.md) | General renderer review |
-| [CODEX_REVIEW_CALIBRATION.md](CODEX_REVIEW_CALIBRATION.md) | Calibration code review |
+| [CODEX_REVIEW_CALIBRATION.md](_archive/pre_corpus/CODEX_REVIEW_CALIBRATION.md) | Calibration code review |
 | [PHASE2_AUDIT.md](PHASE2_AUDIT.md) | Capture phase 2 audit |
 | [FIXTURE_MODEL_POST_CAPTURE_ANALYSIS.md](FIXTURE_MODEL_POST_CAPTURE_ANALYSIS.md) | Post-capture corpus stats |
 
 ---
 
-## Quarantine / experiments (non-production)
+## Archive / experiments (non-production, local)
 
-| Artifact | Notes |
+| Path | Notes |
 |---|---|
-| [../artifacts/renderer/COMPOSER_QUARANTINE_LEDGER.md](../artifacts/renderer/COMPOSER_QUARANTINE_LEDGER.md) | CH19 wave, fan motion experiments — default off |
-| `static/quarantine/ch19_wave.js` | Opt-in only |
-| `static/quarantine/fan_motion.js` | Opt-in only |
+| [../archive/README.md](../archive/README.md) | Pre-corpus stills + legacy scripts + quarantine |
+| `archive/experiments/quarantine/` | Superseded CH19/fan motion experiments |
+| `archive/experiments/pr_d/` | Superseded PR-D reports |
 
 ---
 
@@ -104,7 +115,7 @@ Merged or completed work from the capture-backed **metadata + fan overlay** era.
 
 1. **One active primary plan:** `RENDERER_WALL_TO_AERIAL_PLAN_V1.md`. New architectural direction supersedes via new `_V2` doc + index update — do not silently fork plans.
 2. **Status lives in** `RENDERER_PR_STATUS.md` only — plans describe intent, not merge state.
-3. **Historical docs stay in place** (no moves) to preserve links; this index assigns category.
+3. **Historical docs** live under `docs/_archive/`; this index assigns category.
 4. **Evidence docs** (`captures/`, fixture model program) are read-only for renderer agents.
 5. **Every implementation PR** adds `artifacts/renderer/<pr-name>/implementation_report.md`; checkpoint PRs add `opus_review.md`.
 
@@ -127,7 +138,7 @@ Understanding capture corpus?
   → WALL_CH3_LOOK_ATLAS.md
 
 Why did we build a fan?
-  → RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md (historical)
+  → docs/_archive/historical_renderer/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md
   → opus_capture_grounded_review.md (forensic verdict)
 
 Tuning calibration.json for fan spread?

@@ -426,7 +426,7 @@ Read:
 - AGENTS.md
 - docs/RENDERER_AGENT_ORCHESTRATION.md
 - docs/RENDERER_PR_STATUS.md
-- docs/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md
+- docs/_archive/historical_renderer/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md
 - relevant source files for this PR
 
 Stay within the current PR scope.
@@ -453,7 +453,7 @@ Review the actual current PR diff against:
 - AGENTS.md
 - docs/RENDERER_AGENT_ORCHESTRATION.md
 - docs/RENDERER_PR_STATUS.md
-- docs/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md
+- docs/_archive/historical_renderer/RENDERER_MOTION_FIRST_REVIEW_PLAN_REV3.md
 - implementation report
 - smoke/test results
 

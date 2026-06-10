@@ -54,8 +54,8 @@ function makeCanvasStub() {
 
 function buildRenderer(ch19Flag, fanMotionFlag) {
   const quarantinePaths = [
-    path.resolve(__dirname, "..", "static", "quarantine", "ch19_wave.js"),
-    path.resolve(__dirname, "..", "static", "quarantine", "fan_motion.js"),
+    path.resolve(__dirname, "..", "archive", "experiments", "quarantine", "static", "ch19_wave.js"),
+    path.resolve(__dirname, "..", "archive", "experiments", "quarantine", "static", "fan_motion.js"),
   ];
   const rendererPath = path.resolve(__dirname, "..", "static", "renderer.js");
   const context = {

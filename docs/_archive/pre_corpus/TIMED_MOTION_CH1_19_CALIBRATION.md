@@ -1,5 +1,12 @@
 # Timed motion calibration CH1-19
 
+**Status:** Historical (2026-06-05) — superseded by 8k corpus motion clips  
+**Last updated:** 2026-06-10
+
+> **Agent rule:** Artifacts under `/tmp/vln_timed_motion_*` and `calib/timed_motion_ch1_19.py` are **pre-corpus**.  
+> For PR-G1b motion tracks use `captures/fixture_model/<capture_path>/motion_analysis_60fps/` and `video.mp4`.  
+> See `calib/README.md`.
+
 Evidence-only timed/burst pass for one master fixture using wall projection, no haze, iPhone Continuity Camera device 2, and deterministic first-pattern CH3 bases only.
 
 No renderer behavior, calibration.json values, CH20-36 channels, or second-pattern behavior were changed or used in this pass. CH4 is included only as the first-pattern program selector inside deterministic CH3 banks.

@@ -19,8 +19,9 @@
 ## Explicitly excluded (local-only or superseded)
 
 - Index regen / PR-D builder changes
-- Quarantine modules (`static/quarantine/`, preview bar)
+- Quarantine experiments → `archive/experiments/quarantine/` (not served in production)
 - Raw capture media (~37 GB, not in git)
+- **Pre-corpus stills** → `archive/pre_corpus_2026-06-05/calib_captures/` — see `calib/README.md`
 
 ## Prior review verdict (2026-06-09)
 

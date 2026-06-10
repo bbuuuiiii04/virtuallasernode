@@ -1,5 +1,10 @@
 # Wall modifier pass
 
+**Status:** Historical (2026-06-05) — modifier findings valid; evidence in `/tmp` + `calib/captures/wall_mod_*`  
+**Last updated:** 2026-06-10
+
+> **Agent rule:** Stills from this pass are pre-8k corpus. For PR-G use `captures/fixture_model/` vector lookup. See `calib/README.md`.
+
 Limited modifier pass against representative wall look families. This is not an exhaustive combination sweep.
 
 ## Artifacts

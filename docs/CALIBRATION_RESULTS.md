@@ -1,5 +1,13 @@
 # Calibration results (observed from the real lasers)
 
+**Status:** Mixed — decoder findings still valid; **`calib/captures/` paths are historical**  
+**Last updated:** 2026-06-10
+
+> **Agent rule:** Sessions through **2026-06-05** logged stills under **`calib/captures/`** (681 PNGs, single-frame, no motion clips).  
+> The **8k capture corpus** (`captures/fixture_model/`, from **2026-06-08**) supersedes those paths for shape/motion evidence.  
+> CH8 colour bands, CH15/16 sweep behaviour, and blank-window findings below remain valid for `fixtures.py`.  
+> See `calib/README.md`.
+
 Rig: Enttec Open via pyftdi, camera + haze, agent-driven sweep. White-balanced
 to the CH8=0 white reference (camera renders white as blue in dark haze).
 
@@ -97,7 +105,7 @@ VERDICT: each movement channel = ONE clean translate/sweep behaviour per axis.
 No wave/shift sub-banks (the wrong 34CH manual's sub-ranges do NOT apply to 36CH).
 CH16 vertical range is narrower than CH15 horizontal.
 Fixes applied this session: CH6/7 blank window [55,254]; CH2 sound_gated; CH10
-scan density/brightness in renderer. Position stills logged to calib/captures/.
+scan density/brightness in renderer. Position stills logged to `calib/captures/` *(historical — superseded by 8k corpus)*.
 
 ## CH19 waves deep-dive 2026-06-05
 1-127 = X-wave, 128-255 = Y-wave. Both distort straight beams into animated
@@ -105,13 +113,14 @@ undulating/rippling beams; amplitude+speed grow with value within each bank.
 Axis distinction (X vs Y) hard to read from this camera angle (both = beam ripple).
 NOTE: renderer does NOT yet implement wave distortion (minor gap).
 
-## Look library (combinatorial, logged) — building 2026-06-05
+## Look library (combinatorial, logged) — building 2026-06-05 *(historical)*
 - Pattern x colour matrix: CH3 {16,0,32,48,64} x CH8 {white,red,yellow,green,cyan,
-  blue,magenta,flowing} = 40 static looks (calib/captures/look_p*_c*.png).
+  blue,magenta,flowing} = 40 static looks (`calib/captures/look_p*_c*.png` — **pre-corpus; use `captures/fixture_model/` for PR-G**).
 - + moving + second-pattern stacks (below).
 
-## Live calibration pass — 2026-06-05 15:11–15:14
-Captured a focused evidence set for the current renderer calibration:
+## Live calibration pass — 2026-06-05 15:11–15:14 *(historical — `calib/captures/`)*
+
+Captured a focused evidence set for the early renderer calibration loop (pre-8k corpus):
 - `calib_center_cyan_dense`: CH3=32 CH4=10 CH5=90 CH8=20 centered cyan dense reference.
 - `calib_left_cyan_dense` / `calib_right_cyan_dense`: CH6=64/192 horizontal position.
 - `calib_up_cyan_dense`: CH7=200, which nearly blanks/dims the look from this angle.
@@ -252,7 +261,7 @@ Artifacts:
 - Modifier comparison:
   `/tmp/vln_wall_modifier_comparison_dynamiccolorfix.png`
 - Modifier report:
-  `docs/WALL_MODIFIER_PASS.md`
+  `docs/_archive/pre_corpus/WALL_MODIFIER_PASS.md`
 
 Observed CH3 look families:
 - 0-8: circle/ring static.
@@ -295,7 +304,7 @@ numbers were changed.
 
 Artifacts:
 - Full channel audit report:
-  `docs/DMX_CHANNEL_AUDIT.md`
+  `docs/_archive/pre_corpus/DMX_CHANNEL_AUDIT.md`
 - Overview contact sheet:
   `/tmp/vln_channel_audit_overview.png`
 - Per-channel contact sheets:
@@ -357,7 +366,7 @@ Audit conclusion:
 <!-- TIMED_MOTION_CH1_19_START -->
 ## Timed Motion CH1-19 Pass
 
-- Report: `/Users/bbui/virtuallasernode/docs/TIMED_MOTION_CH1_19_CALIBRATION.md`
+- Report: `docs/_archive/pre_corpus/TIMED_MOTION_CH1_19_CALIBRATION.md`
 - Motion capture root: `/tmp/vln_timed_motion_ch1_19_fine_ch4bank_20260605_1855`
 - Master contact sheet: `/tmp/vln_timed_motion_ch1_19_fine_ch4bank_20260605_1855/contact_sheets/timed_motion_ch1_19_master.png`
 - Automated quality-flag count: 249

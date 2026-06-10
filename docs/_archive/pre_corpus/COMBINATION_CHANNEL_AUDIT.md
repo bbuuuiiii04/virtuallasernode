@@ -1,13 +1,24 @@
 # Combination-channel wall audit
 
+**Status:** Historical audit (2026-06-05) — mismatch findings still valid; capture paths superseded  
+**Last updated:** 2026-06-10
+
+> **Agent rule:** The **`capture`** column below points at **`calib/captures/wall_combo_*.png`** — pre-corpus stills from **2026-06-05**.  
+> **Do not use these PNGs for PR-G shape/motion authority.**  
+> For implementation, resolve the **DMX state** column against `captures/fixture_model/manifest.jsonl` and read `still.jpg` + `motion_analysis_60fps/` from the matched `capture_path`.  
+> See `calib/README.md`.
+
 Master fixture wall-pattern combination audit using iPhone Continuity Camera device 2, no haze, fixed camera, and left projection as the master ROI.
 
 No renderer behavior, haze/glow/bloom, Laser 2 override, or calibration numbers were changed in this audit.
 
-## Artifacts
-- Combination contact sheet: `/tmp/vln_combo_audit_real.png`
-- Virtual render sheet: `/tmp/vln_combo_audit_virtual.png`
-- Real-vs-virtual comparison sheet: `/tmp/vln_combo_audit_comparison.png`
+## Artifacts (historical)
+
+| Artifact | Status |
+|----------|--------|
+| `/tmp/vln_combo_audit_*.png` | Historical contact sheets (Jun 2026-05) |
+| `calib/captures/wall_combo_*.png` | **Superseded** — pre-corpus; see 8k corpus |
+| `captures/fixture_model/...` | **Authoritative** for PR-G (vector lookup → still + motion) |
 
 ## Scope
 - Representative primary CH3 looks: ring/circle, horizontal line, dual-dot, dense dotted arc/swirl, U-wave dynamic, three-star dynamic, compact swirl dynamic, large star/polygon, dotted row/point macro.
@@ -16,7 +27,7 @@ No renderer behavior, haze/glow/bloom, Laser 2 override, or calibration numbers 
 
 ## Tested Combinations
 
-| label | family | DMX state | visual behavior / purpose | classification | mismatch type | still enough | capture | metrics |
+| label | family | DMX state | visual behavior / purpose | classification | mismatch type | still enough | legacy capture (pre-corpus) | metrics |
 |---|---|---|---|---|---|---|---|---|
 | ring_cyan | ring/circle | `CH1=200 CH5=90 CH6=128 CH7=128 CH8=20` | representative cyan base look | needs macro-shape preset | shape | yes | `calib/captures/wall_combo_ring_cyan.png` | pixels=106151 bbox=[152, 48, 715, 719] dominant=blue |
 | ring_red | ring/circle | `CH1=200 CH5=90 CH6=128 CH7=128 CH8=8` | same look with fixed red color | static wall-shape calibration ready | color | yes | `calib/captures/wall_combo_ring_red.png` | pixels=18572 bbox=[164, 302, 515, 719] dominant=red |

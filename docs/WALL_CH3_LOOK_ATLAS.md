@@ -1,30 +1,55 @@
 # Wall CH3 look atlas
 
-This atlas isolates the first-pattern CH3 macro/group channel with CH4=0, CH5=90, CH6/7=128, CH8=20. Captures use iPhone Continuity Camera device 2. The real sheet crops the left projection as the master fixture ROI because both physical units receive the same DMX.
+**Status:** Active look-family matrix for PR-G1/G3 smoke acceptance  
+**Last updated:** 2026-06-10 (corpus paths added; pre-corpus paths demoted)
+
+> **Agent rule:** Shape and motion authority live in **`captures/fixture_model/`** (8k corpus, Jun 2026-08+).  
+> **`calib/captures/`** (Jun 2026-05, 681 PNG stills) is **historical audit only** — do not use for PR-G builders or renderer wiring.  
+> See `calib/README.md` and `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md`.
+
+This atlas isolates the first-pattern CH3 macro/group channel with CH4=0 where possible, CH5=90, CH6/7=128, CH8=20. The real sheet crops the left projection as the master fixture ROI because both physical units receive the same DMX.
+
+The **8k corpus** uses structured sweep programs (phase1/2/3/6); isolated atlas baseline vectors are not always present verbatim. The **corpus capture path** column below is the best current match with still + video + motion frames on disk.
+
+---
 
 ## Artifacts
-- Real wall atlas: `/tmp/vln_wall_ch3_atlas_real.png`
-- Virtual atlas: `/tmp/vln_wall_ch3_atlas_virtual_dynamiccolorfix.png`
-- Comparison atlas: `/tmp/vln_wall_ch3_atlas_comparison_dynamiccolorfix.png`
 
-## Discovered look families
+| Artifact | Status | Notes |
+|----------|--------|-------|
+| `/tmp/vln_wall_ch3_atlas_*.png` | **Historical** | Pre-corpus contact sheets (Jun 2026-05) |
+| `calib/captures/wall_atlas_ch3_*.png` | **Historical** | Superseded by corpus `still.jpg` |
+| `captures/fixture_model/.../still.jpg` | **Authoritative** | PR-G1 static shape input |
+| `captures/fixture_model/.../motion_analysis_60fps/` | **Authoritative** | PR-G1b motion track input |
 
-| DMX range sampled | representative | family | behavior | evidence status | representative capture | priority |
-|---|---:|---|---|---|---|---|
-| 0-8 | 0 | circle/ring static | static wall figure | still sufficient for family; CH4 selection may vary shape | `calib/captures/wall_atlas_ch3_000.png` | medium |
-| 16-40 | 32 | horizontal line static | static wall figure | still sufficient; useful as baseline and strobe/zoom test | `calib/captures/wall_atlas_ch3_032.png` | high |
-| 48-56 | 48 | two-point / dual-dot static | static wall figure | still sufficient; low beam-count effect | `calib/captures/wall_atlas_ch3_048.png` | low-medium |
-| 64-120 | 96 | dotted arc / compact swirl static-animation bank | selected static/animated-looking figure | still sample identifies family; CH4 selection likely important | `calib/captures/wall_atlas_ch3_096.png` | high |
-| 128-136 | 128 | U-wave dynamic macro | motion-dependent macro | timed/burst evidence needed for loop; still identifies family | `calib/captures/wall_atlas_ch3_128.png` | high |
-| 144-152 | 144 | three-star dynamic macro | motion-dependent macro | timed/burst evidence needed; high EDM/drop potential | `calib/captures/wall_atlas_ch3_144.png` | high |
-| 160-168 | 160 | compact swirl dynamic macro | motion-dependent macro | timed/burst evidence needed | `calib/captures/wall_atlas_ch3_160.png` | medium-high |
-| 176 | 176 | large star polygon dynamic macro | motion-dependent macro | timed/burst evidence needed; strong impact look | `calib/captures/wall_atlas_ch3_176.png` | high |
-| 184-192, 208-216, 232-240, 255 | 216 | horizontal line dynamic variants | motion-dependent or macro-selected line | still identifies line family; timed evidence needed for whether it moves | `calib/captures/wall_atlas_ch3_216.png` | medium |
-| 200 | 200 | low dotted-row dynamic macro | motion-dependent macro | still identifies impact row; timed evidence needed | `calib/captures/wall_atlas_ch3_200.png` | high |
-| 224 | 224 | compact point/dot dynamic macro | motion-dependent macro | still identifies family; lower priority unless used in cues | `calib/captures/wall_atlas_ch3_224.png` | low-medium |
-| 248 | 248 | late ring dynamic macro | motion-dependent macro | timed/burst evidence needed; possible build/drop accent | `calib/captures/wall_atlas_ch3_248.png` | medium-high |
+---
 
-## Per-sample observations
+## Discovered look families (PR-G smoke matrix)
+
+Paths are relative to `captures/fixture_model/`. Media = still + video + motion frames on disk unless noted.
+
+| DMX range | rep CH3 | family | behavior | corpus capture path | corpus coverage | legacy still (historical) | priority |
+|---|---:|---|---|---|---|---|---|
+| 0-8 | 0 | circle/ring static | static wall figure | `phase1_5_base_dependence/base_CH3_000_CH4_195/CH08_color/CH08_000` | partial — CH4≠0; 1800+ CH3=0 hits in manifest | `calib/captures/wall_atlas_ch3_000.png` | medium |
+| 16-40 | 32 | horizontal line static | static wall figure | `phase1_5_base_dependence/base_CH3_032_CH4_010/CH08_color/CH08_000` | good — 3000+ CH3=32; CH4=10 common in corpus | `calib/captures/wall_atlas_ch3_032.png` | high |
+| 48-56 | 48 | two-point / dual-dot static | static wall figure | `phase1_5_base_dependence/base_CH3_048_CH4_000/CH10_pattern_line/CH10_000` | good — CH4=0 match | `calib/captures/wall_atlas_ch3_048.png` | low-medium |
+| 64-120 | 96 | dotted arc / compact swirl static-animation bank | static/animated-looking figure | `phase1_single_channel/CH03_CH04_base_look_atlas/CH03_096_CH04_002` | good — 104 CH3=96 hits | `calib/captures/wall_atlas_ch3_096.png` | high |
+| 128-136 | 128 | U-wave dynamic macro | motion-dependent macro | `phase6_cue_validation/cue_relevant/cue_024_neon_wandering_lines` | **thin** — show vector, not isolated atlas baseline; 1 manifest hit | `calib/captures/wall_atlas_ch3_128.png` | high |
+| 144-152 | 144 | three-star dynamic macro | motion-dependent macro | **GAP** — no CH3=144 rows in manifest | none — use phase6 show cues by motion_type until sweep recapture | `calib/captures/wall_atlas_ch3_144.png` | high |
+| 160-168 | 160 | compact swirl dynamic macro | motion-dependent macro | `phase2_gating/gate_CH03_static_dynamic_split/CH03_160_CH15_200` | thin — 1 isolated hit; includes CH15 modifier | `calib/captures/wall_atlas_ch3_160.png` | medium-high |
+| 176 | 176 | large star polygon dynamic macro | motion-dependent macro | **GAP** — no CH3=176 in manifest | none | `calib/captures/wall_atlas_ch3_176.png` | high |
+| 184-192, 208-216, 232-240, 255 | 216 | horizontal line dynamic variants | motion-dependent line | **GAP** — no CH3=216 in manifest | none | `calib/captures/wall_atlas_ch3_216.png` | medium |
+| 200 | 200 | low dotted-row dynamic macro | motion-dependent macro | **GAP** — no CH3=200 in manifest | none | `calib/captures/wall_atlas_ch3_200.png` | high |
+| 224 | 224 | compact point/dot dynamic macro | motion-dependent macro | **GAP** — no CH3=224 in manifest | none | `calib/captures/wall_atlas_ch3_224.png` | low-medium |
+| 248 | 248 | late ring dynamic macro | motion-dependent macro | **GAP** — no CH3=248 in manifest | none | `calib/captures/wall_atlas_ch3_248.png` | medium-high |
+
+**Corpus coverage note:** Static families (CH3 ≤ 96) are well represented in the 8k sweep. Isolated dynamic macro values (CH3 ≥ 144) were characterized in Jun 2026-05 pre-corpus stills but were **not re-shot as isolated vectors** in the 8k program. PR-G1b should prioritize **phase6 cue folders** and **motion_type**-matched corpus hits for dynamic families until gaps are recaptured.
+
+---
+
+## Per-sample observations (historical — Jun 2026-05 pre-corpus)
+
+The table below records laser pixel metrics from **`calib/captures/wall_atlas_ch3_*.png`** (Continuity Camera, single still). Metrics remain useful for human comparison; **do not treat PNG paths as renderer inputs.**
 
 | CH3 | family | logged DMX | laser pixels | bbox | center | dominant note |
 |---:|---|---|---:|---|---|---|
@@ -62,16 +87,20 @@ This atlas isolates the first-pattern CH3 macro/group channel with CH4=0, CH5=90
 | 248 | dynamic line set 3 | `CH1=200 CH3=248 CH5=90 CH6=128 CH7=128 CH8=20` | 33691 | `[279, 374, 501, 583]` | `[389.2, 477.4]` | blue |
 | 255 | dynamic line set 3 | `CH1=200 CH3=255 CH5=90 CH6=128 CH7=128 CH8=20` | 19919 | `[212, 434, 555, 510]` | `[394.8, 472.5]` | blue |
 
+---
+
 ## Mismatch ranking by family
 
-1. Dynamic CH3>=128 families are the worst shape mismatch: the physical laser produces distinct wall figures (U-wave, stars, swirl, polygon, dotted row, ring), while the virtual renderer still uses a generic aerial fan shape for most dynamic macros.
+1. Dynamic CH3≥128 families are the worst shape mismatch: the physical laser produces distinct wall figures (U-wave, stars, swirl, polygon, dotted row, ring), while the virtual renderer still uses a generic aerial fan shape for most dynamic macros.
 2. Wall projection vs aerial fan model remains a global mismatch; wall figures cannot be fully matched by tuning aerial beam constants alone.
 3. Static animation bank CH3=64-120 is visually distinct as dotted arc/swirl figures, while the virtual output remains a generic beam fan.
 4. Static line/ring/two-dot families CH3=0-56 are identifiable from still frames, but the virtual output mostly changes beam density rather than wall figure shape.
-5. Dynamic fixed-color handling is now improved: CH8 fixed colors are respected for dynamic macros, but timed/burst evidence is still required for macro motion loops.
+5. Dynamic fixed-color handling is now improved: CH8 fixed colors are respected for dynamic macros; **8k corpus motion clips** now supply timed evidence (supersedes Jun 2026-05 “timed/burst needed” for corpus-covered vectors).
+
+---
 
 ## Deferred
 
-- Timed/burst capture for dynamic families, CH15/CH16 sweeps, CH12 spin rates, and CH19 waves.
-- Haze/glow/bloom tuning.
+- Targeted recapture for **GAP** dynamic CH3 values (144, 176, 200, 216, 224, 248) as isolated corpus vectors.
+- Haze/glow/bloom tuning (PR-G5 / visual polish after motion correctness).
 - Laser 2 independent calibration.

@@ -6,6 +6,7 @@ This repo uses agent-assisted development. Follow this file before making change
 
 - Do not modify `data/fixture_model.json` unless explicitly authorized.
 - Do not modify capture data unless explicitly authorized.
+- Do not use `archive/pre_corpus_*` or old `calib/captures/` stills as renderer shape/motion authority; use `captures/fixture_model/` per `calib/README.md` and `REPO_LAYOUT.md`.
 - Do not convert the renderer to WebGL unless explicitly authorized.
 - Do not do visual polish before MotionState correctness.
 - Do not remove existing `second_pattern` rendering.
@@ -28,6 +29,7 @@ Documentation map (historical vs active):
 
 ```text
 docs/RENDERER_DOCS_INDEX.md
+REPO_LAYOUT.md
 ```
 
 Status and branch tracking:

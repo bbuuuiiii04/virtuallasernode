@@ -29,6 +29,9 @@ ENV/
 # Large binary / capture directories
 calib/captures/
 calib/.venv/
+archive/pre_corpus_*/
+archive/experiments/
+static/quarantine/
 
 # Fixture capture corpus: keep metadata/analysis in git, raw media local only
 captures/fixture_model/**/*.mp4

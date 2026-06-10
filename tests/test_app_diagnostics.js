@@ -109,7 +109,7 @@ function buildContext() {
   const root = path.resolve(__dirname, "..");
   for (const name of ["ch19_wave.js", "fan_motion.js"]) {
     vm.runInContext(
-      fs.readFileSync(path.join(root, "static", "quarantine", name), "utf8"),
+      fs.readFileSync(path.join(root, "archive", "experiments", "quarantine", "static", name), "utf8"),
       context,
       { filename: name },
     );
