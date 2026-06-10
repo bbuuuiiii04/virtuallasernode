@@ -93,15 +93,44 @@ def _path_forbidden(path: str) -> bool:
     return any(frag in lower for frag in FORBIDDEN_PATH_FRAGMENTS)
 
 
-def _score_candidate(meta: dict[str, Any], analysis: dict[str, Any]) -> tuple[Any, ...]:
+def score_lane_a_candidate(
+    meta: dict[str, Any],
+    analysis: dict[str, Any],
+    rep_ch3: int,
+) -> tuple[Any, ...]:
     ch1_19 = _ch1_19_from_metadata(meta)
     ch3 = ch1_19.get("CH3", 0)
+    ch3_dist = abs(ch3 - rep_ch3)
+    exact = 1 if ch3 == rep_ch3 else 0
     neutral = abs(ch1_19.get("CH5", 90) - 90) + abs(ch1_19.get("CH6", 128) - 128) + abs(ch1_19.get("CH7", 128) - 128)
     usable = 1 if analysis.get("usable_evidence") is True else 0
     not_clipped = 1 if analysis.get("geometry_clipped_low") is False else 0
     not_blank = 1 if analysis.get("expected_blank") is not True else 0
     geom_track = 1 if meta.get("exposure_track") == "geometry_motion" else 0
-    return (usable, not_clipped, not_blank, geom_track, -neutral, -abs(ch3))
+    return (exact, usable, not_clipped, not_blank, geom_track, -ch3_dist, -neutral)
+
+
+def _lane_a_selection_reason(
+    family: dict[str, Any],
+    ch3: int,
+    tier: str,
+    *,
+    exact_available: bool,
+    analysis: dict[str, Any],
+) -> str:
+    rep = int(family["rep_ch3"])
+    ch3_min = int(family["ch3_min"])
+    ch3_max = int(family["ch3_max"])
+    if tier == "exact_family":
+        return f"exact CH3={rep} representative in range {ch3_min}-{ch3_max}"
+    parts = [f"nearest CH3={ch3} to rep CH3={rep} (distance={abs(ch3 - rep)}) in range {ch3_min}-{ch3_max}"]
+    if not exact_available:
+        parts.append(f"no usable local capture at exact CH3={rep}")
+    if analysis.get("usable_evidence") is False:
+        parts.append("exact rep candidates had usable_evidence=false")
+    if analysis.get("geometry_clipped_low"):
+        parts.append("exact rep candidates had geometry_clipped_low")
+    return "; ".join(parts)
 
 
 def _manifest_rows(manifest_path: Path) -> list[dict[str, Any]]:
@@ -143,6 +172,7 @@ def _select_lane_a(
     for family in CH3_FAMILIES:
         ch3_min = int(family["ch3_min"])
         ch3_max = int(family["ch3_max"])
+        rep = int(family["rep_ch3"])
         candidates: list[tuple[tuple[Any, ...], dict[str, Any], Path, Path, dict[str, Any], dict[str, Any]]] = []
 
         for row in rows:
@@ -161,16 +191,19 @@ def _select_lane_a(
             ch3 = ch1_19.get("CH3", 0)
             if ch3 < ch3_min or ch3 > ch3_max:
                 continue
-            candidates.append((_score_candidate(meta, analysis), row, folder, still, meta, analysis))
+            candidates.append((score_lane_a_candidate(meta, analysis, rep), row, folder, still, meta, analysis))
 
         entry: dict[str, Any] | None = None
         if candidates:
+            exact_available = any(
+                _ch1_19_from_metadata(c[4]).get("CH3") == rep for c in candidates
+            )
             candidates.sort(key=lambda c: c[0], reverse=True)
             _, row, folder, still, meta, analysis = candidates[0]
             folder_rel = _capture_folder_rel(row)
             ch1_19 = _ch1_19_from_metadata(meta)
-            rep = int(family["rep_ch3"])
-            tier = "exact_family" if ch1_19.get("CH3") == rep else "nearest_family"
+            ch3 = ch1_19.get("CH3", 0)
+            tier = "exact_family" if ch3 == rep else "nearest_family"
             entry = {
                 "selection_lane": "ch3_family",
                 "family_or_checkpoint": family["family_or_checkpoint"],
@@ -184,7 +217,9 @@ def _select_lane_a(
                 "exposure_track": str(meta.get("exposure_track") or row.get("exposure_track") or ""),
                 "quality_flags": [],
                 "selected_fixture_box": DEFAULT_FIXTURE_BOX,
-                "selection_reason": f"best local manifest match for CH3 {ch3_min}-{ch3_max}",
+                "selection_reason": _lane_a_selection_reason(
+                    family, ch3, tier, exact_available=exact_available, analysis=analysis
+                ),
                 "selection_tier": tier,
                 "local_media_exists": True,
             }
@@ -340,10 +375,16 @@ def _extract_shapes(
             continue
 
         image = Image.open(still_path)
-        extraction = extract_shape_from_image(image, box)
+        other_boxes = {k: v for k, v in boxes.items() if k != box_label}
+        extraction = extract_shape_from_image(image, box, other_boxes=other_boxes)
         if extraction["shape_point_count"] <= 0:
             entry["excluded_reason"] = extraction["quality_flags"][0] if extraction["quality_flags"] else "extraction_empty"
             entry["fallback_reason"] = entry["excluded_reason"]
+            updated_entries.append(entry)
+            continue
+        if not extraction.get("polylines"):
+            entry["excluded_reason"] = "no_extracted_polylines"
+            entry["fallback_reason"] = "no_extracted_polylines"
             updated_entries.append(entry)
             continue
 
@@ -371,6 +412,7 @@ def _extract_shapes(
             "polylines": extraction["polylines"],
             "extraction_params": extraction["extraction_params"],
             "quality_flags": list(set((entry.get("quality_flags") or []) + extraction["quality_flags"])),
+            "fallback_reason": None,
         }
         shapes.append(shape)
         updated_entries.append(entry)
@@ -503,8 +545,7 @@ def build_pr_g1_artifacts(
     library_path.parent.mkdir(parents=True, exist_ok=True)
     library_path.write_text(json.dumps(library_doc, indent=2) + "\n", encoding="utf-8")
 
-    if not schema_path.is_file():
-        schema_path.write_text(_default_schema(), encoding="utf-8")
+    schema_path.write_text(_default_schema(), encoding="utf-8")
 
     contact_dir = out_dir / "contact_sheets"
     contact_dir.mkdir(parents=True, exist_ok=True)
@@ -546,6 +587,27 @@ def build_pr_g1_artifacts(
 
 
 def _default_schema() -> str:
+    shape_required = [
+        "shape_ref",
+        "vector_key",
+        "capture_path",
+        "source_still",
+        "test_id",
+        "phase",
+        "exposure_track",
+        "ch1_19",
+        "fixture_box_label",
+        "source_pixel_bbox",
+        "bbox_wall_norm",
+        "centroid_wall_norm",
+        "topology_class",
+        "shape_point_count",
+        "clusters",
+        "polylines",
+        "extraction_params",
+        "quality_flags",
+        "fallback_reason",
+    ]
     return json.dumps(
         {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -582,17 +644,46 @@ def _default_schema() -> str:
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "required": [
-                            "shape_ref",
-                            "vector_key",
-                            "capture_path",
-                            "source_still",
-                            "fixture_box_label",
-                            "topology_class",
-                            "shape_point_count",
-                            "clusters",
-                            "polylines",
-                        ],
+                        "required": shape_required,
+                        "properties": {
+                            "shape_ref": {"type": "string"},
+                            "vector_key": {"type": "string"},
+                            "capture_path": {"type": "string"},
+                            "source_still": {"type": "string"},
+                            "test_id": {"type": "string"},
+                            "phase": {"type": "string"},
+                            "exposure_track": {"type": "string"},
+                            "ch1_19": {"type": "object"},
+                            "fixture_box_label": {"type": "string"},
+                            "source_pixel_bbox": {
+                                "type": "array",
+                                "items": {"type": "number"},
+                                "minItems": 4,
+                                "maxItems": 4,
+                            },
+                            "bbox_wall_norm": {
+                                "type": "array",
+                                "items": {"type": "number"},
+                                "minItems": 4,
+                                "maxItems": 4,
+                            },
+                            "centroid_wall_norm": {
+                                "type": "array",
+                                "items": {"type": "number"},
+                                "minItems": 2,
+                                "maxItems": 2,
+                            },
+                            "topology_class": {"type": "string"},
+                            "shape_point_count": {"type": "integer", "minimum": 1},
+                            "clusters": {"type": "array"},
+                            "polylines": {
+                                "type": "array",
+                                "minItems": 1,
+                            },
+                            "extraction_params": {"type": "object"},
+                            "quality_flags": {"type": "array", "items": {"type": "string"}},
+                            "fallback_reason": {"type": ["string", "null"]},
+                        },
                     },
                 },
             },

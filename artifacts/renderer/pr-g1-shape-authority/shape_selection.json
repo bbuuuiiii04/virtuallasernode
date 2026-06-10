@@ -1,6 +1,6 @@
 {
   "artifact_version": "pr-g1-shape-selection-v1",
-  "generated_at": "2026-06-10T04:37:33+00:00",
+  "generated_at": "2026-06-10T04:57:28+00:00",
   "capture_root": "captures/fixture_model",
   "plan_revision": "RENDERER_WALL_TO_AERIAL_PLAN_V1 rev 4",
   "selection_policy_version": "v1",
@@ -38,23 +38,23 @@
       "exposure_track": "geometry_motion",
       "quality_flags": [],
       "selected_fixture_box": "image_left",
-      "selection_reason": "best local manifest match for CH3 0-8",
+      "selection_reason": "exact CH3=0 representative in range 0-8",
       "selection_tier": "exact_family",
       "local_media_exists": true
     },
     {
       "selection_lane": "ch3_family",
       "family_or_checkpoint": "horizontal line static",
-      "capture_path": "phase1_single_channel/CH03_CH04_base_look_atlas/CH03_024_CH04_002",
-      "still_path": "captures/fixture_model/phase1_single_channel/CH03_CH04_base_look_atlas/CH03_024_CH04_002/still.jpg",
-      "metadata_path": "captures/fixture_model/phase1_single_channel/CH03_CH04_base_look_atlas/CH03_024_CH04_002/metadata.json",
-      "analysis_path": "captures/fixture_model/phase1_single_channel/CH03_CH04_base_look_atlas/CH03_024_CH04_002/analysis.json",
-      "vector_key": "v1:220,0,24,2,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0",
+      "capture_path": "phase1_single_channel/CH01_master_dimmer/CH01_220",
+      "still_path": "captures/fixture_model/phase1_single_channel/CH01_master_dimmer/CH01_220/still.jpg",
+      "metadata_path": "captures/fixture_model/phase1_single_channel/CH01_master_dimmer/CH01_220/metadata.json",
+      "analysis_path": "captures/fixture_model/phase1_single_channel/CH01_master_dimmer/CH01_220/analysis.json",
+      "vector_key": "v1:220,0,32,10,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0",
       "ch1_19": {
         "CH1": 220,
         "CH2": 0,
-        "CH3": 24,
-        "CH4": 2,
+        "CH3": 32,
+        "CH4": 10,
         "CH5": 90,
         "CH6": 128,
         "CH7": 128,
@@ -75,8 +75,8 @@
       "exposure_track": "geometry_motion",
       "quality_flags": [],
       "selected_fixture_box": "image_left",
-      "selection_reason": "best local manifest match for CH3 16-40",
-      "selection_tier": "nearest_family",
+      "selection_reason": "exact CH3=32 representative in range 16-40",
+      "selection_tier": "exact_family",
       "local_media_exists": true
     },
     {
@@ -112,7 +112,7 @@
       "exposure_track": "geometry_motion",
       "quality_flags": [],
       "selected_fixture_box": "image_left",
-      "selection_reason": "best local manifest match for CH3 48-56",
+      "selection_reason": "exact CH3=48 representative in range 48-56",
       "selection_tier": "exact_family",
       "local_media_exists": true
     },
@@ -149,7 +149,7 @@
       "exposure_track": "geometry_motion",
       "quality_flags": [],
       "selected_fixture_box": "image_left",
-      "selection_reason": "best local manifest match for CH3 64-120",
+      "selection_reason": "exact CH3=96 representative in range 64-120",
       "selection_tier": "exact_family",
       "local_media_exists": true
     },
@@ -266,7 +266,7 @@
       "exposure_track": "geometry_motion",
       "quality_flags": [],
       "selected_fixture_box": "image_left",
-      "selection_reason": "best local manifest match for CH3 160-168",
+      "selection_reason": "exact CH3=160 representative in range 160-168",
       "selection_tier": "exact_family",
       "local_media_exists": true
     },

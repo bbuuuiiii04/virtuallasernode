@@ -63,12 +63,104 @@
           "vector_key",
           "capture_path",
           "source_still",
+          "test_id",
+          "phase",
+          "exposure_track",
+          "ch1_19",
           "fixture_box_label",
+          "source_pixel_bbox",
+          "bbox_wall_norm",
+          "centroid_wall_norm",
           "topology_class",
           "shape_point_count",
           "clusters",
-          "polylines"
-        ]
+          "polylines",
+          "extraction_params",
+          "quality_flags",
+          "fallback_reason"
+        ],
+        "properties": {
+          "shape_ref": {
+            "type": "string"
+          },
+          "vector_key": {
+            "type": "string"
+          },
+          "capture_path": {
+            "type": "string"
+          },
+          "source_still": {
+            "type": "string"
+          },
+          "test_id": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string"
+          },
+          "exposure_track": {
+            "type": "string"
+          },
+          "ch1_19": {
+            "type": "object"
+          },
+          "fixture_box_label": {
+            "type": "string"
+          },
+          "source_pixel_bbox": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "bbox_wall_norm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "centroid_wall_norm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "topology_class": {
+            "type": "string"
+          },
+          "shape_point_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "clusters": {
+            "type": "array"
+          },
+          "polylines": {
+            "type": "array",
+            "minItems": 1
+          },
+          "extraction_params": {
+            "type": "object"
+          },
+          "quality_flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fallback_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
       }
     }
   }

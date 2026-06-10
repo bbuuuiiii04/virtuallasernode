@@ -87,7 +87,7 @@ def test_extract_closed_loop() -> None:
     _draw_closed_loop(img)
     out = extract_shape_from_image(img, BOX, min_area_px=20)
     assert out["shape_point_count"] > 0
-    assert out["topology_class"] in ("closed_loop", "complex_shape")
+    assert out["topology_class"] == "closed_loop"
 
 
 def test_extract_multi_cluster() -> None:
@@ -112,9 +112,10 @@ def test_low_contrast() -> None:
 
 def test_out_of_box_flag() -> None:
     inner = FixtureBox(label="image_left", x0=40, y0=40, x1=160, y1=160)
+    right = FixtureBox(label="image_right", x0=160, y0=0, x1=200, y1=200)
     img = Image.new("RGB", (200, 200), DARK)
     px = img.load()
     for x in range(0, 200):
         px[x, 10] = BRIGHT
-    out = extract_shape_from_image(img, inner, min_area_px=10)
+    out = extract_shape_from_image(img, inner, min_area_px=10, other_boxes={"image_right": right})
     assert "out_of_box" in out["quality_flags"]

@@ -1,4 +1,4 @@
-"""Validate shape_library_v1.json against schema."""
+"""Validate shape_library_v1.json against schema (jsonschema required)."""
 
 from __future__ import annotations
 
@@ -13,29 +13,25 @@ LIBRARY_PATH = ROOT / "artifacts" / "renderer" / "shape_library_v1.json"
 SCHEMA_PATH = ROOT / "artifacts" / "renderer" / "shape_library_v1.schema.json"
 
 
+def _require_jsonschema():
+    try:
+        import jsonschema  # type: ignore
+    except ImportError:
+        pytest.fail(
+            "jsonschema missing — install test requirements: pip install -r test-requirements.txt"
+        )
+    return jsonschema
+
+
 @pytest.mark.skipif(not LIBRARY_PATH.is_file(), reason="shape library not built yet")
 @pytest.mark.skipif(not SCHEMA_PATH.is_file(), reason="shape library schema missing")
 def test_shape_library_validates_against_schema() -> None:
+    jsonschema = _require_jsonschema()
     library = json.loads(LIBRARY_PATH.read_text(encoding="utf-8"))
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
-    try:
-        import jsonschema  # type: ignore
-
-        jsonschema.validate(instance=library, schema=schema)
-    except ImportError:
-        _validate_shape_library_minimal(library, schema)
+    jsonschema.validate(instance=library, schema=schema)
     assert library.get("coordinate_space") == "wall_norm_per_fixture_calibration_box"
     assert isinstance(library.get("shapes"), list)
-
-
-def _validate_shape_library_minimal(library: dict, schema: dict) -> None:
-    required = schema.get("required") or []
-    for key in required:
-        assert key in library, f"missing required key {key}"
-    for shape in library.get("shapes") or []:
-        for key in ("shape_ref", "vector_key", "capture_path", "fixture_box_label", "topology_class"):
-            assert key in shape, f"shape missing {key}"
-        assert shape["shape_point_count"] > 0
 
 
 @pytest.mark.skipif(not LIBRARY_PATH.is_file(), reason="shape library not built yet")
