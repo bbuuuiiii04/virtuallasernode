@@ -39,6 +39,10 @@ AI_FAILURE_MODES = frozenset(
 AI_COLOR_COVERAGE = frozenset(
     {"red", "green", "blue", "cyan", "magenta", "yellow", "white"}
 )
+AI_COLOR_ALIASES = {
+    "purple": "magenta",
+    "violet": "magenta",
+}
 
 DEFAULT_MIN_AUTHORITY_CONFIDENCE = 0.75
 
@@ -82,6 +86,25 @@ def _validate_paths(name: str, paths: Any, *, image_width: int, image_height: in
             _validate_point_list(f"{name}[{pidx}]", path, image_width=image_width, image_height=image_height)
         )
     return validated
+
+
+def normalize_ai_color_coverage(colors: Any) -> list[str]:
+    """Map AI color aliases to canonical coverage tokens; reject unknown colors."""
+    if not isinstance(colors, list):
+        raise AIExtractionValidationError("color_coverage must be an array")
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for color in colors:
+        if not isinstance(color, str):
+            raise AIExtractionValidationError(f"unsupported color_coverage value: {color!r}")
+        token = color.strip().lower()
+        canonical = AI_COLOR_ALIASES.get(token, token)
+        if canonical not in AI_COLOR_COVERAGE:
+            raise AIExtractionValidationError(f"unsupported color_coverage value: {color!r}")
+        if canonical not in seen:
+            seen.add(canonical)
+            normalized.append(canonical)
+    return normalized
 
 
 def validate_ai_extraction_result(result: dict[str, Any]) -> dict[str, Any]:
@@ -142,12 +165,7 @@ def validate_ai_extraction_result(result: dict[str, Any]) -> dict[str, Any]:
     if mask_path is not None and not isinstance(mask_path, str):
         raise AIExtractionValidationError("mask_path must be a string when present")
 
-    color_coverage = result.get("color_coverage", [])
-    if not isinstance(color_coverage, list):
-        raise AIExtractionValidationError("color_coverage must be an array")
-    for color in color_coverage:
-        if color not in AI_COLOR_COVERAGE:
-            raise AIExtractionValidationError(f"unsupported color_coverage value: {color!r}")
+    color_coverage = normalize_ai_color_coverage(result.get("color_coverage", []))
 
     failure_modes = result.get("failure_modes", [])
     if not isinstance(failure_modes, list):
@@ -202,6 +220,36 @@ def _convert_path(path_px: list[list[float]], *, box: FixtureBox, crop_width: in
     ]
 
 
+def explain_authority_ineligibility(
+    result: dict[str, Any],
+    *,
+    min_confidence: float = DEFAULT_MIN_AUTHORITY_CONFIDENCE,
+    require_status: str = "extracted",
+) -> str | None:
+    """Return None when eligible for authority; otherwise a specific gate reason."""
+    try:
+        validated = validate_ai_extraction_result(result)
+    except AIExtractionValidationError as exc:
+        msg = str(exc)
+        if "unsupported color_coverage value" in msg:
+            token = msg.split("unsupported color_coverage value:", 1)[-1].strip()
+            return f"unsupported_color_coverage={token}"
+        return msg
+
+    if validated["status"] != require_status:
+        return f"status={validated['status']}"
+    if validated["geometry_kind"] == "unknown":
+        return "geometry_kind=unknown"
+    if validated["confidence"] < min_confidence:
+        return f"low_confidence={validated['confidence']:.3f}"
+    if validated["failure_modes"]:
+        return "failure_modes=" + ",".join(validated["failure_modes"])
+    has_geometry = bool(validated["paths_px"] or validated["dot_anchors_px"] or validated["segment_anchors_px"])
+    if not has_geometry:
+        return "no_geometry"
+    return None
+
+
 def ai_result_eligible_for_authority(
     result: dict[str, Any],
     *,
@@ -209,20 +257,11 @@ def ai_result_eligible_for_authority(
     require_status: str = "extracted",
 ) -> bool:
     """Opt-in authority gate for --require-ai-pass-for-authority integration."""
-    try:
-        validated = validate_ai_extraction_result(result)
-    except AIExtractionValidationError:
-        return False
-    if validated["status"] != require_status:
-        return False
-    if validated["geometry_kind"] == "unknown":
-        return False
-    if validated["confidence"] < min_confidence:
-        return False
-    if validated["failure_modes"]:
-        return False
-    has_geometry = bool(validated["paths_px"] or validated["dot_anchors_px"] or validated["segment_anchors_px"])
-    return has_geometry
+    return explain_authority_ineligibility(
+        result,
+        min_confidence=min_confidence,
+        require_status=require_status,
+    ) is None
 
 
 def ai_result_to_shape_entry(

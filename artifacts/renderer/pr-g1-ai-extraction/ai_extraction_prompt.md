@@ -22,10 +22,22 @@ Choose one `geometry_kind`:
 - `closed_loop_contour` — closed rings/polygons traced as a closed path
 - `unknown` — use when uncertain
 
+### Mixed geometry
+
+- Closed loops belong in `paths_px`.
+- Isolated leading or trailing dots that are not part of the closed loop should still be listed separately in `dot_anchors_px`.
+- Do not merge isolated dots into the loop path when they are visibly separate laser marks.
+
 ## Color
 
-Preserve visible color sections when present: blue, cyan, purple/magenta, green, yellow, red, white.
-List detected colors in `color_coverage`.
+Use **canonical** `color_coverage` tokens only:
+
+`red`, `green`, `blue`, `cyan`, `magenta`, `yellow`, `white`
+
+Rules:
+- Purple-looking or violet-looking laser sections must be returned as **`magenta`**, not `purple` or `violet`.
+- Do not invent non-canonical color names.
+- Preserve visible multicolor spans using the canonical list above.
 
 ## Quality rules
 

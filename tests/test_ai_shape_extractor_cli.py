@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))
 from capture_index_runtime import CaptureIndexRuntime, vector_key_from_ch1_19  # noqa: E402
 from tools.ai_shape_extractor import (  # noqa: E402
     AUTHORITY_OVERLAY_YELLOW,
+    REJECTED_DEBUG_OVERLAY_COLOR,
     _encode_crop_png,
     _render_ai_overlay,
     run_extraction,
@@ -26,11 +27,6 @@ try:
     from PIL import Image
 except ImportError:  # pragma: no cover
     Image = None  # type: ignore
-
-SELECTION = ROOT / "artifacts/renderer/pr-g1-shape-authority/shape_selection.json"
-GEOMETRY = ROOT / "captures/fixture_model/analysis_geometry.json"
-PROMPT = ROOT / "artifacts/renderer/pr-g1-ai-extraction/ai_extraction_prompt.md"
-GITIGNORE = ROOT / ".gitignore"
 
 SELECTION = ROOT / "artifacts/renderer/pr-g1-shape-authority/shape_selection.json"
 GEOMETRY = ROOT / "captures/fixture_model/analysis_geometry.json"
@@ -138,6 +134,20 @@ def test_encode_crop_png_uses_png_mime_type() -> None:
 
 
 @pytest.mark.skipif(Image is None, reason="Pillow required")
+def test_rejected_geometry_has_no_overlay_by_default() -> None:
+    crop = Image.new("RGB", (40, 20), (0, 0, 0))
+    result = {
+        "paths_px": [[[0, 10], [39, 10]]],
+        "dot_anchors_px": [[20, 5]],
+        "segment_anchors_px": [[[5, 15], [15, 15]]],
+    }
+    overlay = _render_ai_overlay(crop, result, authority_eligible=False)
+    assert overlay.getpixel((10, 10)) == (0, 0, 0)
+    assert overlay.getpixel((20, 5)) == (0, 0, 0)
+    assert overlay.getpixel((10, 15)) == (0, 0, 0)
+
+
+@pytest.mark.skipif(Image is None, reason="Pillow required")
 def test_render_overlay_yellow_only_when_authority_eligible() -> None:
     crop = Image.new("RGB", (40, 20), (0, 0, 0))
     result = {
@@ -153,6 +163,21 @@ def test_render_overlay_yellow_only_when_authority_eligible() -> None:
     assert approved.getpixel((10, 10)) == AUTHORITY_OVERLAY_YELLOW
     assert approved.getpixel((20, 5)) == AUTHORITY_OVERLAY_YELLOW
     assert approved.getpixel((10, 15)) == AUTHORITY_OVERLAY_YELLOW
+
+
+@pytest.mark.skipif(Image is None, reason="Pillow required")
+def test_debug_draw_rejected_ai_uses_non_yellow_overlay() -> None:
+    crop = Image.new("RGB", (40, 20), (0, 0, 0))
+    result = {
+        "paths_px": [[[0, 10], [39, 10]]],
+        "dot_anchors_px": [[20, 5]],
+        "segment_anchors_px": [[[5, 15], [15, 15]]],
+    }
+    debug = _render_ai_overlay(crop, result, authority_eligible=False, debug_draw_rejected=True)
+    assert debug.getpixel((10, 10)) == REJECTED_DEBUG_OVERLAY_COLOR
+    assert debug.getpixel((20, 5)) == REJECTED_DEBUG_OVERLAY_COLOR
+    assert debug.getpixel((10, 15)) == REJECTED_DEBUG_OVERLAY_COLOR
+    assert REJECTED_DEBUG_OVERLAY_COLOR != AUTHORITY_OVERLAY_YELLOW
 
 
 def test_generated_ai_artifact_paths_are_gitignored() -> None:

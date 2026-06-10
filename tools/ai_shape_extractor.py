@@ -21,11 +21,7 @@ from tools.ai_shape_extractor_adapter import (  # noqa: E402
     GeminiShapeExtractorAdapter,
     get_adapter,
 )
-from tools.ai_shape_geometry_convert import (  # noqa: E402
-    AIExtractionValidationError,
-    ai_result_eligible_for_authority,
-    validate_ai_extraction_result,
-)
+from tools.ai_shape_geometry_convert import explain_authority_ineligibility  # noqa: E402
 from tools.shape_extraction import (  # noqa: E402
     compute_shape_ref,
     load_fixture_boxes,
@@ -47,9 +43,12 @@ MASKS_DIR = ARTIFACT_ROOT / "masks"
 DEFAULT_OUTPUT = GENERATED_DIR / "ai_extractions.json"
 DEFAULT_FIXTURE_BOX = "image_left"
 AUTHORITY_OVERLAY_YELLOW = (255, 255, 0)
+REJECTED_DEBUG_OVERLAY_COLOR = (0, 180, 255)
 PATH_LINE_WIDTH = 1
 DOT_RADIUS = 3
 SEGMENT_LINE_WIDTH = 1
+REJECTED_PATH_LINE_WIDTH = 1
+REJECTED_DOT_RADIUS = 2
 
 
 def _encode_crop_png(crop: Image.Image) -> tuple[bytes, str]:
@@ -83,32 +82,71 @@ def _crop_to_fixture_box(image: Image.Image, box: Any) -> Image.Image:
     return image.crop((box.x0, box.y0, box.x1, box.y1)).convert("RGB")
 
 
-def _render_ai_overlay(crop: Image.Image, result: dict[str, Any], *, authority_eligible: bool) -> Image.Image:
-    overlay = crop.copy()
-    if not authority_eligible:
-        return overlay
-    draw = ImageDraw.Draw(overlay)
+def _has_drawable_geometry(result: dict[str, Any]) -> bool:
+    return bool(result.get("paths_px") or result.get("dot_anchors_px") or result.get("segment_anchors_px"))
+
+
+def _draw_ai_geometry(
+    draw: ImageDraw.ImageDraw,
+    result: dict[str, Any],
+    *,
+    color: tuple[int, int, int],
+    path_line_width: int,
+    dot_radius: int,
+    segment_line_width: int,
+) -> None:
     for path in result.get("paths_px") or []:
         if len(path) >= 2:
-            draw.line([(x, y) for x, y in path], fill=AUTHORITY_OVERLAY_YELLOW, width=PATH_LINE_WIDTH)
+            draw.line([(x, y) for x, y in path], fill=color, width=path_line_width)
         elif len(path) == 1:
             x, y = path[0]
             draw.ellipse(
-                (x - DOT_RADIUS, y - DOT_RADIUS, x + DOT_RADIUS, y + DOT_RADIUS),
-                fill=AUTHORITY_OVERLAY_YELLOW,
+                (x - dot_radius, y - dot_radius, x + dot_radius, y + dot_radius),
+                fill=color,
             )
     for x, y in result.get("dot_anchors_px") or []:
         draw.ellipse(
-            (x - DOT_RADIUS, y - DOT_RADIUS, x + DOT_RADIUS, y + DOT_RADIUS),
-            fill=AUTHORITY_OVERLAY_YELLOW,
+            (x - dot_radius, y - dot_radius, x + dot_radius, y + dot_radius),
+            fill=color,
         )
     for seg in result.get("segment_anchors_px") or []:
         if len(seg) == 2:
             draw.line(
                 [(seg[0][0], seg[0][1]), (seg[1][0], seg[1][1])],
-                fill=AUTHORITY_OVERLAY_YELLOW,
-                width=SEGMENT_LINE_WIDTH,
+                fill=color,
+                width=segment_line_width,
             )
+
+
+def _render_ai_overlay(
+    crop: Image.Image,
+    result: dict[str, Any],
+    *,
+    authority_eligible: bool,
+    debug_draw_rejected: bool = False,
+) -> Image.Image:
+    overlay = crop.copy()
+    if authority_eligible:
+        draw = ImageDraw.Draw(overlay)
+        _draw_ai_geometry(
+            draw,
+            result,
+            color=AUTHORITY_OVERLAY_YELLOW,
+            path_line_width=PATH_LINE_WIDTH,
+            dot_radius=DOT_RADIUS,
+            segment_line_width=SEGMENT_LINE_WIDTH,
+        )
+        return overlay
+    if debug_draw_rejected and _has_drawable_geometry(result):
+        draw = ImageDraw.Draw(overlay)
+        _draw_ai_geometry(
+            draw,
+            result,
+            color=REJECTED_DEBUG_OVERLAY_COLOR,
+            path_line_width=REJECTED_PATH_LINE_WIDTH,
+            dot_radius=REJECTED_DOT_RADIUS,
+            segment_line_width=REJECTED_PATH_LINE_WIDTH,
+        )
     return overlay
 
 
@@ -148,17 +186,10 @@ def _finalize_result(
 
 
 def _authority_gate(result: dict[str, Any]) -> tuple[bool, str]:
-    try:
-        validated = validate_ai_extraction_result(result)
-    except AIExtractionValidationError as exc:
-        return False, str(exc)
-    if validated["status"] != "extracted":
-        return False, f"status={validated['status']}"
-    if validated["geometry_kind"] == "unknown":
-        return False, "geometry_kind=unknown"
-    if not ai_result_eligible_for_authority(validated):
-        return False, "low_confidence_or_failure_modes"
-    return True, "eligible"
+    reason = explain_authority_ineligibility(result)
+    if reason is None:
+        return True, "eligible"
+    return False, reason
 
 
 def run_extraction(
@@ -172,6 +203,7 @@ def run_extraction(
     enable_gemini: bool,
     limit: int | None,
     write_contact_sheets: bool,
+    debug_draw_rejected: bool = False,
 ) -> dict[str, Any]:
     if enable_gemini and adapter_name == "mock":
         adapter_name = "gemini"
@@ -250,7 +282,12 @@ def run_extraction(
             stats["authority_eligible"] += 1
 
         if write_contact_sheets:
-            overlay = _render_ai_overlay(crop, result, authority_eligible=eligible)
+            overlay = _render_ai_overlay(
+                crop,
+                result,
+                authority_eligible=eligible,
+                debug_draw_rejected=debug_draw_rejected,
+            )
             sheet = make_contact_sheet(crop, overlay)
             sheet_path = CONTACT_DIR / f"{shape_ref}.png"
             sheet.save(sheet_path)
@@ -265,6 +302,7 @@ def run_extraction(
         "prompt_artifact": str(prompt_path.relative_to(root)),
         "adapter": adapter.provider,
         "enable_gemini": enable_gemini,
+        "debug_draw_rejected_ai": debug_draw_rejected,
         "entries": results,
         "stats": stats,
     }
@@ -288,6 +326,11 @@ def main() -> int:
     )
     parser.add_argument("--limit", type=int, default=None, help="Process only first N PR-G1 selection entries")
     parser.add_argument("--no-contact-sheets", action="store_true")
+    parser.add_argument(
+        "--debug-draw-rejected-ai",
+        action="store_true",
+        help="Draw rejected/uncertain/failed AI geometry on local contact sheets in non-yellow debug color",
+    )
     args = parser.parse_args()
 
     try:
@@ -301,6 +344,7 @@ def main() -> int:
             enable_gemini=args.enable_gemini,
             limit=args.limit,
             write_contact_sheets=not args.no_contact_sheets,
+            debug_draw_rejected=args.debug_draw_rejected_ai,
         )
     except (AIShapeExtractorError, FileNotFoundError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

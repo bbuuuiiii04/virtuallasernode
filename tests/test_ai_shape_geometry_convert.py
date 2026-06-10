@@ -15,6 +15,8 @@ from tools.ai_shape_geometry_convert import (  # noqa: E402
     ai_result_eligible_for_authority,
     ai_result_to_shape_entry,
     convert_ai_px_to_wall_norm,
+    explain_authority_ineligibility,
+    normalize_ai_color_coverage,
     validate_ai_extraction_result,
 )
 from tools.shape_extraction import ARTIFACT_VERSION, FixtureBox, compute_shape_ref  # noqa: E402
@@ -117,3 +119,27 @@ def test_ai_result_to_shape_entry_uses_repo_shape_ref_not_ai_value() -> None:
     assert entry["shape_ref"] == expected
     assert entry["shape_ref"] != wrong_ref
     assert entry["ai_extraction"]["ai_returned_shape_ref"] == wrong_ref
+
+
+def test_purple_and_violet_normalize_to_magenta() -> None:
+    validated = validate_ai_extraction_result(_base_result(color_coverage=["purple", "violet", "green"]))
+    assert validated["color_coverage"] == ["magenta", "green"]
+    assert normalize_ai_color_coverage(["Purple", "violet"]) == ["magenta"]
+
+
+def test_unknown_color_coverage_still_rejects() -> None:
+    with pytest.raises(AIExtractionValidationError, match="unsupported color_coverage"):
+        validate_ai_extraction_result(_base_result(color_coverage=["orange"]))
+
+
+def test_fragment_only_remains_authority_ineligible() -> None:
+    result = _base_result(failure_modes=["fragment_only"])
+    assert ai_result_eligible_for_authority(result) is False
+    assert explain_authority_ineligibility(result) == "failure_modes=fragment_only"
+
+
+def test_authority_gate_reports_unsupported_color_coverage() -> None:
+    result = _base_result(color_coverage=["chartreuse"])
+    reason = explain_authority_ineligibility(result)
+    assert reason is not None
+    assert reason.startswith("unsupported_color_coverage=")
