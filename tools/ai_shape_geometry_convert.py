@@ -36,6 +36,9 @@ AI_FAILURE_MODES = frozenset(
         "wrong_fixture",
         "low_confidence",
         "ambiguous_shape",
+        "topology_mismatch_partial_loop_candidate",
+        "halo_flood_component",
+        "reconstruction_blob_too_filled",
     }
 )
 AI_COLOR_COVERAGE = frozenset(
@@ -250,6 +253,23 @@ def explain_authority_ineligibility(
     has_geometry = bool(validated["paths_px"] or validated["dot_anchors_px"] or validated["segment_anchors_px"])
     if not has_geometry:
         return "no_geometry"
+    geometry_kind = validated["geometry_kind"]
+    cv = result.get("cv_refinement") or {}
+    if cv and geometry_kind == "closed_loop_contour" and validated["paths_px"]:
+        matched = cv.get("matched_component_ids")
+        if not cv.get("applied") or matched is None or len(matched) != len(validated["paths_px"]):
+            reason = cv.get("reason")
+            if isinstance(reason, str) and reason in {
+                "halo_flood_component",
+                "reconstruction_blob_too_filled",
+            }:
+                return reason
+            if isinstance(reason, str) and (
+                reason.startswith("component_strict_core_low=")
+                or reason in {"merged_component_split_required", "component_match_failed"}
+            ):
+                return reason
+            return "topology_mismatch_no_component_match"
     if laser_mask is not None:
         spatial_reason = explain_spatial_authority_mismatch(validated, laser_mask)
         if spatial_reason is not None:

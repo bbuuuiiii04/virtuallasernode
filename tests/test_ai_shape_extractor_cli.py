@@ -141,7 +141,13 @@ def test_rejected_geometry_has_no_overlay_by_default() -> None:
         "dot_anchors_px": [[20, 5]],
         "segment_anchors_px": [[[5, 15], [15, 15]]],
     }
-    overlay = _render_ai_overlay(crop, result, authority_eligible=False)
+    overlay = _render_ai_overlay(
+        crop,
+        authority_geometry=None,
+        raw_geometry=result,
+        authority_eligible=False,
+        debug_draw_rejected=False,
+    )
     assert overlay.getpixel((10, 10)) == (0, 0, 0)
     assert overlay.getpixel((20, 5)) == (0, 0, 0)
     assert overlay.getpixel((10, 15)) == (0, 0, 0)
@@ -155,11 +161,23 @@ def test_render_overlay_yellow_only_when_authority_eligible() -> None:
         "dot_anchors_px": [[20, 5]],
         "segment_anchors_px": [[[5, 15], [15, 15]]],
     }
-    rejected = _render_ai_overlay(crop, result, authority_eligible=False)
+    rejected = _render_ai_overlay(
+        crop,
+        authority_geometry=None,
+        raw_geometry=result,
+        authority_eligible=False,
+        debug_draw_rejected=False,
+    )
     assert rejected.getpixel((10, 10)) == (0, 0, 0)
     assert rejected.getpixel((20, 5)) == (0, 0, 0)
 
-    approved = _render_ai_overlay(crop, result, authority_eligible=True)
+    approved = _render_ai_overlay(
+        crop,
+        authority_geometry=result,
+        raw_geometry=result,
+        authority_eligible=True,
+        debug_draw_rejected=False,
+    )
     assert approved.getpixel((10, 10)) == AUTHORITY_OVERLAY_YELLOW
     assert approved.getpixel((20, 5)) == AUTHORITY_OVERLAY_YELLOW
     assert approved.getpixel((10, 15)) == AUTHORITY_OVERLAY_YELLOW
@@ -173,7 +191,13 @@ def test_debug_draw_rejected_ai_uses_non_yellow_overlay() -> None:
         "dot_anchors_px": [[20, 5]],
         "segment_anchors_px": [[[5, 15], [15, 15]]],
     }
-    debug = _render_ai_overlay(crop, result, authority_eligible=False, debug_draw_rejected=True)
+    debug = _render_ai_overlay(
+        crop,
+        authority_geometry=None,
+        raw_geometry=result,
+        authority_eligible=False,
+        debug_draw_rejected=True,
+    )
     assert debug.getpixel((10, 10)) == REJECTED_DEBUG_OVERLAY_COLOR
     assert debug.getpixel((20, 5)) == REJECTED_DEBUG_OVERLAY_COLOR
     assert debug.getpixel((10, 15)) == REJECTED_DEBUG_OVERLAY_COLOR

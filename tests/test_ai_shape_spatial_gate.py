@@ -174,10 +174,16 @@ def test_spatial_mismatch_rejected_overlay_not_yellow_by_default() -> None:
     result = _regression_geometry_too_low()
     eligible = explain_authority_ineligibility(result, laser_mask=masks) is None
     assert eligible is False
+    raw_geometry = {
+        "paths_px": result["paths_px"],
+        "dot_anchors_px": result["dot_anchors_px"],
+        "segment_anchors_px": result["segment_anchors_px"],
+    }
     overlay = _render_ai_overlay(
         crop,
-        result,
-        authority_eligible=eligible,
+        authority_geometry=None,
+        raw_geometry=raw_geometry,
+        authority_eligible=False,
         debug_draw_rejected=False,
     )
     assert overlay.getpixel((100, GEO_Y0)) == crop.getpixel((100, GEO_Y0))
@@ -188,11 +194,17 @@ def test_debug_rejected_spatial_mismatch_draws_non_yellow() -> None:
     crop = _regression_crop_with_core_and_glow()
     masks = build_laser_spatial_masks(crop)
     result = _regression_geometry_too_low()
-    eligible = explain_authority_ineligibility(result, laser_mask=masks) is None
+    assert explain_authority_ineligibility(result, laser_mask=masks) is not None
+    raw_geometry = {
+        "paths_px": result["paths_px"],
+        "dot_anchors_px": result["dot_anchors_px"],
+        "segment_anchors_px": result["segment_anchors_px"],
+    }
     overlay = _render_ai_overlay(
         crop,
-        result,
-        authority_eligible=eligible,
+        authority_geometry=None,
+        raw_geometry=raw_geometry,
+        authority_eligible=False,
         debug_draw_rejected=True,
     )
     sample = overlay.getpixel((100, GEO_Y0))

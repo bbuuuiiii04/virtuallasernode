@@ -21,6 +21,11 @@ from tools.ai_shape_extractor_adapter import (  # noqa: E402
     GeminiShapeExtractorAdapter,
     get_adapter,
 )
+from tools.ai_shape_cv_refinement import (  # noqa: E402
+    apply_cv_refinement_to_result,
+    collect_strict_core_pixels,
+    extract_raw_gemini_geometry,
+)
 from tools.ai_shape_geometry_convert import explain_authority_ineligibility  # noqa: E402
 from tools.ai_shape_spatial_gate import LaserSpatialMasks, build_laser_spatial_masks  # noqa: E402
 from tools.shape_extraction import (  # noqa: E402
@@ -50,6 +55,15 @@ DOT_RADIUS = 3
 SEGMENT_LINE_WIDTH = 1
 REJECTED_PATH_LINE_WIDTH = 1
 REJECTED_DOT_RADIUS = 2
+DEBUG_CONTEXT_CROP_OUTLINE = (0, 255, 255)
+DEBUG_CONTEXT_STRICT_CORE_PIXEL = (160, 32, 160)
+DEBUG_CONTEXT_PARENT_BBOX = (255, 0, 255)
+DEBUG_CONTEXT_CHILD_BBOX = (255, 200, 0)
+DEBUG_CONTEXT_COMPONENT_BBOX = (255, 128, 0)
+DEBUG_CONTEXT_MATCHED_BBOX = (0, 255, 128)
+DEBUG_CONTEXT_FIXTURE_LABEL = (200, 200, 200)
+DEBUG_CONTEXT_REJECTED_MASK = (255, 0, 255)
+DEBUG_CONTEXT_REJECTED_LABEL = (255, 120, 255)
 
 
 def _encode_crop_png(crop: Image.Image) -> tuple[bytes, str]:
@@ -119,34 +133,92 @@ def _draw_ai_geometry(
             )
 
 
+def _draw_debug_context_overlay(
+    draw: ImageDraw.ImageDraw,
+    crop: Image.Image,
+    *,
+    debug_context: dict[str, Any],
+) -> None:
+    width, height = crop.size
+    draw.rectangle([0, 0, width - 1, height - 1], outline=DEBUG_CONTEXT_CROP_OUTLINE, width=1)
+    label = debug_context.get("selected_fixture_box")
+    if isinstance(label, str) and label:
+        draw.text((2, 2), f"fixture={label}", fill=DEBUG_CONTEXT_FIXTURE_LABEL)
+    matched_ids = set(debug_context.get("matched_component_ids") or [])
+    classes = debug_context.get("core_component_classes") or []
+    parent_bbox = debug_context.get("parent_component_bbox")
+    if isinstance(parent_bbox, (list, tuple)) and len(parent_bbox) == 4:
+        x0, y0, x1, y1 = [int(v) for v in parent_bbox]
+        draw.rectangle([x0, y0, x1, y1], outline=DEBUG_CONTEXT_PARENT_BBOX, width=2)
+        draw.text((x0 + 1, max(0, y0 - 22)), "parent:merged", fill=DEBUG_CONTEXT_PARENT_BBOX)
+    split_child_bboxes = debug_context.get("split_child_bboxes") or []
+    split_child_match_ids = debug_context.get("split_child_match_ids") or []
+    for child_idx, bbox in enumerate(split_child_bboxes):
+        if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+            continue
+        x0, y0, x1, y1 = [int(v) for v in bbox]
+        match_id = (
+            split_child_match_ids[child_idx]
+            if child_idx < len(split_child_match_ids)
+            else child_idx
+        )
+        color = DEBUG_CONTEXT_MATCHED_BBOX if match_id in matched_ids else DEBUG_CONTEXT_CHILD_BBOX
+        draw.rectangle([x0, y0, x1, y1], outline=color, width=1)
+        draw.text((x0 + 1, max(0, y0 - 10)), f"child={match_id}", fill=color)
+    for idx, bbox in enumerate(debug_context.get("core_component_bboxes") or []):
+        if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+            continue
+        x0, y0, x1, y1 = [int(v) for v in bbox]
+        color = DEBUG_CONTEXT_MATCHED_BBOX if idx in matched_ids else DEBUG_CONTEXT_COMPONENT_BBOX
+        draw.rectangle([x0, y0, x1, y1], outline=color, width=1)
+        class_label = classes[idx] if idx < len(classes) else "unknown"
+        draw.text((x0 + 1, max(0, y0 - 10)), f"{idx}:{class_label}", fill=color)
+    for pt in debug_context.get("strict_core_pixels") or []:
+        if isinstance(pt, (list, tuple)) and len(pt) == 2:
+            x, y = int(pt[0]), int(pt[1])
+            if 0 <= x < width and 0 <= y < height:
+                draw.point((x, y), fill=DEBUG_CONTEXT_STRICT_CORE_PIXEL)
+    rejected_pixels = debug_context.get("rejected_debug_pixels") or []
+    for pt in rejected_pixels:
+        if isinstance(pt, (list, tuple)) and len(pt) == 2:
+            x, y = int(pt[0]), int(pt[1])
+            if 0 <= x < width and 0 <= y < height:
+                draw.point((x, y), fill=DEBUG_CONTEXT_REJECTED_MASK)
+    reject_reason = debug_context.get("rejection_reason")
+    if isinstance(reject_reason, str) and reject_reason:
+        draw.text((2, 14), f"reject={reject_reason[:48]}", fill=DEBUG_CONTEXT_REJECTED_LABEL)
+
+
 def _render_ai_overlay(
     crop: Image.Image,
-    result: dict[str, Any],
     *,
+    authority_geometry: dict[str, Any] | None,
+    raw_geometry: dict[str, Any] | None,
     authority_eligible: bool,
     debug_draw_rejected: bool = False,
+    debug_context: dict[str, Any] | None = None,
 ) -> Image.Image:
     overlay = crop.copy()
-    if authority_eligible:
-        draw = ImageDraw.Draw(overlay)
+    draw = ImageDraw.Draw(overlay)
+    if debug_context:
+        _draw_debug_context_overlay(draw, overlay, debug_context=debug_context)
+    if debug_draw_rejected and raw_geometry and _has_drawable_geometry(raw_geometry):
         _draw_ai_geometry(
             draw,
-            result,
-            color=AUTHORITY_OVERLAY_YELLOW,
-            path_line_width=PATH_LINE_WIDTH,
-            dot_radius=DOT_RADIUS,
-            segment_line_width=SEGMENT_LINE_WIDTH,
-        )
-        return overlay
-    if debug_draw_rejected and _has_drawable_geometry(result):
-        draw = ImageDraw.Draw(overlay)
-        _draw_ai_geometry(
-            draw,
-            result,
+            raw_geometry,
             color=REJECTED_DEBUG_OVERLAY_COLOR,
             path_line_width=REJECTED_PATH_LINE_WIDTH,
             dot_radius=REJECTED_DOT_RADIUS,
             segment_line_width=REJECTED_PATH_LINE_WIDTH,
+        )
+    if authority_eligible and authority_geometry and _has_drawable_geometry(authority_geometry):
+        _draw_ai_geometry(
+            draw,
+            authority_geometry,
+            color=AUTHORITY_OVERLAY_YELLOW,
+            path_line_width=PATH_LINE_WIDTH,
+            dot_radius=DOT_RADIUS,
+            segment_line_width=SEGMENT_LINE_WIDTH,
         )
     return overlay
 
@@ -205,6 +277,7 @@ def run_extraction(
     limit: int | None,
     write_contact_sheets: bool,
     debug_draw_rejected: bool = False,
+    debug_draw_context: bool = False,
 ) -> dict[str, Any]:
     if enable_gemini and adapter_name == "mock":
         adapter_name = "gemini"
@@ -232,7 +305,7 @@ def run_extraction(
     MASKS_DIR.mkdir(parents=True, exist_ok=True)
 
     results: list[dict[str, Any]] = []
-    stats = {"processed": 0, "extracted": 0, "uncertain": 0, "failed": 0, "authority_eligible": 0}
+    stats = {"processed": 0, "extracted": 0, "uncertain": 0, "failed": 0, "authority_eligible": 0, "cv_refined": 0}
 
     for entry in entries:
         still_path = root / entry["still_path"]
@@ -270,9 +343,17 @@ def run_extraction(
         result["model"] = response.model
 
         spatial_masks = build_laser_spatial_masks(crop)
+        apply_cv_refinement_to_result(result, spatial_masks)
         eligible, gate_reason = _authority_gate(result, spatial_masks=spatial_masks)
         result["authority_eligible"] = eligible
         result["authority_gate_reason"] = gate_reason
+
+        authority_geometry = {
+            "paths_px": result.get("paths_px") or [],
+            "dot_anchors_px": result.get("dot_anchors_px") or [],
+            "segment_anchors_px": result.get("segment_anchors_px") or [],
+        }
+        raw_geometry = result.get("gemini_raw_geometry") or extract_raw_gemini_geometry(result)
 
         status = result.get("status", "failed")
         stats["processed"] += 1
@@ -282,13 +363,33 @@ def run_extraction(
             stats["failed"] += 1
         if eligible:
             stats["authority_eligible"] += 1
+        if result.get("cv_refinement", {}).get("applied"):
+            stats["cv_refined"] += 1
 
         if write_contact_sheets:
+            debug_context = None
+            if debug_draw_context:
+                cv_meta = result.get("cv_refinement") or {}
+                debug_context = {
+                    "selected_fixture_box": box_label,
+                    "strict_core_pixels": collect_strict_core_pixels(spatial_masks),
+                    "core_component_bboxes": cv_meta.get("core_component_bboxes") or [],
+                    "core_component_classes": cv_meta.get("core_component_classes") or [],
+                    "matched_component_ids": cv_meta.get("matched_component_ids") or [],
+                    "reconstruction_method": cv_meta.get("reconstruction_method"),
+                    "parent_component_bbox": cv_meta.get("parent_component_bbox"),
+                    "split_child_bboxes": cv_meta.get("split_child_bboxes") or [],
+                    "split_child_match_ids": cv_meta.get("split_child_match_ids") or [],
+                    "rejected_debug_pixels": cv_meta.get("rejected_debug_pixels") or [],
+                    "rejection_reason": None if eligible else gate_reason,
+                }
             overlay = _render_ai_overlay(
                 crop,
-                result,
+                authority_geometry=authority_geometry,
+                raw_geometry=raw_geometry,
                 authority_eligible=eligible,
                 debug_draw_rejected=debug_draw_rejected,
+                debug_context=debug_context,
             )
             sheet = make_contact_sheet(crop, overlay)
             sheet_path = CONTACT_DIR / f"{shape_ref}.png"
@@ -305,6 +406,7 @@ def run_extraction(
         "adapter": adapter.provider,
         "enable_gemini": enable_gemini,
         "debug_draw_rejected_ai": debug_draw_rejected,
+        "debug_draw_context": debug_draw_context,
         "entries": results,
         "stats": stats,
     }
@@ -333,6 +435,11 @@ def main() -> int:
         action="store_true",
         help="Draw rejected/uncertain/failed AI geometry on local contact sheets in non-yellow debug color",
     )
+    parser.add_argument(
+        "--debug-draw-context",
+        action="store_true",
+        help="Draw local fixture/crop/component debug boxes on contact sheets (non-authority colors)",
+    )
     args = parser.parse_args()
 
     try:
@@ -347,6 +454,7 @@ def main() -> int:
             limit=args.limit,
             write_contact_sheets=not args.no_contact_sheets,
             debug_draw_rejected=args.debug_draw_rejected_ai,
+            debug_draw_context=args.debug_draw_context,
         )
     except (AIShapeExtractorError, FileNotFoundError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
