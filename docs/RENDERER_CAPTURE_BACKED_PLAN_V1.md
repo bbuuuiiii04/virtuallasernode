@@ -1,7 +1,9 @@
 # Renderer Capture-Backed Plan V1
 
 **Date:** 2026-06-09  
-**Status:** Active primary renderer plan
+**Status:** Active **policy reference** (authority tiers, corpus boundaries).  
+**Implementation plan:** superseded for geometry/shape work by `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md`.  
+**Doc index:** `docs/RENDERER_DOCS_INDEX.md`
 
 ## Purpose
 
@@ -31,7 +33,7 @@ Make the capture-backed architecture the active renderer authority model after t
 
 - corpus covers CH1-19 first pattern only
 - CH20-36 second_pattern and CH2 remain decoder-driven with warnings
-- committed corpus is numeric (raw media is local-only), so capture-backed means measured parameters driving the existing procedural aerial renderer
+- committed corpus is numeric (raw media is local-only); capture-backed shape authority is implemented via PR-G (wall figure → aerial projection), not fan-bin tuning
 - x_range/y_range and model maps are camera pixels, converted via analysis_geometry.json px_per_inch = 10.5185
 - wall-space conversion is approximate (no homography, <=~5% error)
 - manifest inline analysis is stale - per-capture analysis.json is the analysis authority

@@ -252,11 +252,17 @@ def _decode_second_pattern(ch):
 
 def decode_36ch(ch):
     """Decode a 36CH fixture given ch(n) -> value for 1-based channel n."""
-    dimmer = ch(1)
+    # CH1 is a BINARY on/off gate, NOT a master dimmer: CH1=0 is off, any
+    # CH1>0 is fully ON. Confirmed by the fixture model + measurement docs
+    # (docs/FIXTURE_MODEL_READINESS_AND_KNOWLEDGE.md "CH1: binary on/off ...
+    # Do not use CH1 as a dimmer"). Treating it as a 0-255 dimmer crushed
+    # low-CH1 cues to faint output and washed out their measured colours.
+    ch1 = ch(1)
+    power = ch1 > 0
     group = _pattern_group(ch(3))
     state = {
-        "power": dimmer > 0,
-        "dimmer": round(dimmer / 255, 3),
+        "power": power,
+        "dimmer": 1.0 if power else 0.0,
         "control": _auto_sound(ch(2)),
         "pattern": {**group,
                     "selection": _pattern_select(ch(4), group["kind"]),

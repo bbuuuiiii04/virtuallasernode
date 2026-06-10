@@ -180,5 +180,17 @@ def compose_fixture_model(channels: list[int] | tuple[int, ...], model: dict[str
             "gating_partial": gating_partial,
             "unsupported": ["higher_order_validation_pending", "118_dense_missing"],
             "coverage": coverage,
+            "authority": {
+                "parameters": {
+                    "color": "MODEL_COMPOSED",
+                    "motion": "MODEL_COMPOSED",
+                    "spread": "MODEL_COMPOSED",
+                    "count": "MODEL_COMPOSED",
+                    "position": "MODEL_COMPOSED",
+                    "strobe": "MODEL_COMPOSED",
+                    "dots": "MODEL_COMPOSED",
+                },
+                "headline": "MODEL_COMPOSED",
+            },
         },
     }

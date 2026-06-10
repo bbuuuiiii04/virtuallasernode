@@ -41,6 +41,8 @@ from .fixture_model_adapter import compose_fixture_model, load_fixture_model, sa
 ROOT = Path(__file__).resolve().parent
 CAPTURE_INDEX_PATH = ROOT / "artifacts" / "renderer" / "renderer-capture-index-pr1" / "capture_index_v1.json"
 SOUNDSWITCH_CUES_PATH = ROOT / "data" / "soundswitch_laser_cues.json"
+FIXTURE_MODEL_PATH = ROOT / "data" / "fixture_model.json"
+
 
 def _snapshot(node, fixture_model_cache=None, capture_index_runtime=None):
     """JSON-serializable snapshot of all universes + the fixture patch.
@@ -155,6 +157,7 @@ class SnapshotProducer:
             self._capture_index_runtime = CaptureIndexRuntime.from_paths(
                 index_path=CAPTURE_INDEX_PATH,
                 cues_path=SOUNDSWITCH_CUES_PATH,
+                fixture_model_path=FIXTURE_MODEL_PATH,
             )
         except Exception as e:
             log(f"[web] failed to load capture index: {e}")

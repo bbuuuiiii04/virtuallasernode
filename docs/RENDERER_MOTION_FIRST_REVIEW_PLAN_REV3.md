@@ -1,5 +1,8 @@
 # Superseded Notice (2026-06-09)
-This plan is superseded as primary plan by `docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md` on 2026-06-09 after the capture corpus audit; retained because its MotionState schema, visibility gates, and guardrails are reused by the fallback layer in PR3.
+**Historical.** Superseded as primary plan by `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md` (2026-06-09).  
+This doc pivoted to preserving `_drawFan()` — that path is being replaced by wall→aerial projection (PR-G).  
+Retained for MotionState schema, visibility gates, and transform-order reference.  
+See `docs/RENDERER_DOCS_INDEX.md`.
 
 # VirtualLaserNode Renderer Motion-First Review Plan — Rev 3
 

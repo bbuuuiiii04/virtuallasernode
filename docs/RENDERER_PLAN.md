@@ -1,5 +1,7 @@
 # Step 6 — 2D Canvas Renderer: Implementation Plan
 
+> **Historical (2026-06-09).** Original Step 6 polyline plan. Transform pipeline ideas are reused in PR-G2 (`docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md`). Primary view is aerial beams, not wall glyphs on canvas. See `docs/RENDERER_DOCS_INDEX.md`.
+
 ## Goal
 Draw the two decoded laser fixtures in the browser on an HTML5 canvas, driven by
 the SSE `decoded` feed, at 60fps with interpolation. **v1 target:**

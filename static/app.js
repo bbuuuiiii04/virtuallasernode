@@ -5,6 +5,9 @@
 const COLS = 32, ROWS = 16, CELL = 20;
 const uniEls = {};   // universe -> {canvas, ctx, meta}
 const fxEls = {};
+function authorityColor(tier) {
+  return tier === "EXACT_CAPTURE_RENDER_AUTHORITY" ? "#0a3" : "#b00";
+}
 
 function ensureUni(u) {
   if (uniEls[u]) return uniEls[u];
@@ -110,6 +113,43 @@ function renderDecoded(list) {
 // Laser render stage (renderer.js runs its own rAF loop; we only feed it state)
 const laser = new LaserRenderer(document.getElementById('stage'));
 
+function initQuarantinePreviewControls() {
+  const ch19Sel = document.getElementById('q-ch19');
+  const fanSel = document.getElementById('q-fan');
+  const statusEl = document.getElementById('q-status');
+  if (!ch19Sel || !fanSel || !laser.setQuarantinePreview) return;
+
+  const params = new URLSearchParams(window.location.search || '');
+  const quickPreview = params.get('quarantinePreview') === '1';
+  let ch19 = params.get('ch19Quarantine') || '';
+  let fan = params.get('fanMotionQuarantine') || '';
+  if (!ch19 && !fan) {
+    try {
+      ch19 = localStorage.getItem('vln_quarantine_ch19') || '';
+      fan = localStorage.getItem('vln_quarantine_fan') || '';
+    } catch (e) {}
+  }
+  if (quickPreview) {
+    if (!ch19) ch19 = 'fixed';
+    if (!fan) fan = 'scan_phase';
+  }
+
+  const apply = (ch19Wave, fanMotion) => {
+    laser.setQuarantinePreview({ ch19Wave: ch19Wave, fanMotion: fanMotion });
+    ch19Sel.value = ch19Wave || 'off';
+    fanSel.value = fanMotion || 'off';
+    if (statusEl) {
+      const p = laser.getQuarantinePreview ? laser.getQuarantinePreview() : {};
+      statusEl.textContent = 'active: CH19=' + (p.ch19Wave || 'off') + ', fan=' + (p.fanMotion || 'off');
+    }
+  };
+
+  apply(ch19 || 'off', fan || 'off');
+  ch19Sel.addEventListener('change', () => apply(ch19Sel.value, fanSel.value));
+  fanSel.addEventListener('change', () => apply(ch19Sel.value, fanSel.value));
+}
+initQuarantinePreviewControls();
+
 const es = new EventSource('/stream');
 es.onopen = () => {
   document.getElementById('dot').className = 'dot live';
@@ -136,6 +176,10 @@ es.onmessage = (e) => {
   document.getElementById('nuni').textContent = Object.keys(universes).length;
   document.getElementById('polls').textContent = d.polls || 0;
   const sourceState = composed.length ? composed : decoded;
+  const captureGeometry = d.analysis_geometry || null;
+  if (captureGeometry && laser.setCaptureGeometry) {
+    laser.setCaptureGeometry(captureGeometry);
+  }
   const renderState = sourceState.map((fx, i) => {
     const fm = fixtureModels[i] || {};
     const cl = fm.capture_lookup || null;
@@ -145,6 +189,7 @@ es.onmessage = (e) => {
       __provenance_label: cl && cl.provenance_label ? cl.provenance_label : 'MEASURED_FIXTURE_MODEL',
       __model_status: fm.model_status || 'unknown',
       __model_confidence: fm.confidence || 'unknown',
+      __capture_geometry: captureGeometry,
     };
   });
   laser.update(renderState);
@@ -176,22 +221,41 @@ es.onmessage = (e) => {
             span.textContent = value;
             div.appendChild(span);
             diagEl.appendChild(div);
+            // Return the value span so callers can style it (e.g. colour the
+            // headline). Callers must still null-guard before using it.
+            return span;
         };
         appendLine('Unsupported', (fm.unsupported || []).join(', ') || 'None');
         appendLine('Coverage', JSON.stringify(fm.coverage || {}));
         const cl = fm.capture_lookup || {};
-        appendLine('Capture Provenance', cl.provenance_label || 'unknown');
+        const dbg = laser.getDebugState ? laser.getDebugState() : {};
+        const motion = Array.isArray(dbg.motionStates) ? dbg.motionStates : [];
+        const primary = motion.find(m => m && m.fixture && m.fixture.layerKind === 'primary') || {};
+        const paramTiers = (primary.fixture && primary.fixture.parameterTiers) || {};
+        const headlineTier = (primary.fixture && primary.fixture.headlineTier) || 'DECODER_FALLBACK';
+        const headline = appendLine('Headline Authority', headlineTier);
+        if (headline && headline.style) {
+            headline.style.color = authorityColor(headlineTier);
+            headline.style.fontWeight = '700';
+        }
+        appendLine('Vector Provenance', cl.provenance_label || 'unknown');
         appendLine('Capture Hit', String(!!cl.hit));
         appendLine('Capture Fallback', cl.fallback_reason || 'none');
         const cueMatches = Array.isArray(cl.cue_matches) ? cl.cue_matches : [];
-        appendLine('Cue Matches', cueMatches.length ? cueMatches.map(c => c.cue_name || c.cue_id).join(', ') : 'None');
+        const cueAliases = Array.isArray(cl.cue_aliases) ? cl.cue_aliases : cueMatches;
+        appendLine('Cue Aliases (' + String(cl.cue_alias_count || cueAliases.length || 0) + ')',
+          cueAliases.length ? cueAliases.map(c => c.cue_name || c.cue_id).join(', ') : 'None');
+        appendLine('Identity Resolved', String(!!cl.cue_identity_resolved));
+        const tierDiv = document.createElement('div');
+        tierDiv.style.margin = '6px 0 8px';
+        const keys = ['color', 'motion', 'spread', 'count', 'position', 'strobe', 'dots'];
+        const rows = keys.map(k => k + '=' + (paramTiers[k] || 'DECODER_FALLBACK'));
+        tierDiv.textContent = 'Parameter Tiers: ' + rows.join(' | ');
+        diagEl.appendChild(tierDiv);
         appendLine('Composition Applied', (fm.composition_applied || []).join(', ') || 'None');
         appendLine('Composition Supported', (fm.composition_supported || []).join(', ') || 'None');
         appendLine('Composition Missing', JSON.stringify(fm.composition_missing || []));
         appendLine('Gating Missing/Partial', (fm.gating_missing || []).join(', ') + ' / ' + (fm.gating_partial || []).join(', '));
-        const dbg = laser.getDebugState ? laser.getDebugState() : {};
-        const motion = Array.isArray(dbg.motionStates) ? dbg.motionStates : [];
-        const primary = motion.find(m => m && m.fixture && m.fixture.layerKind === 'primary') || {};
         const vis = primary.visibility || {};
         const aim = primary.aim || {};
         const strobe = primary.strobe || {};

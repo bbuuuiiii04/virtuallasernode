@@ -21,13 +21,31 @@ This repo uses agent-assisted development. Follow this file before making change
 Read this first for renderer work:
 
 ```text
-docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
+docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md
+```
+
+Documentation map (historical vs active):
+
+```text
+docs/RENDERER_DOCS_INDEX.md
+```
+
+Status and branch tracking:
+
+```text
+docs/RENDERER_PR_STATUS.md
 ```
 
 Supporting orchestration guide:
 
 ```text
 docs/RENDERER_AGENT_ORCHESTRATION.md
+```
+
+Capture corpus policy (authority tiers, boundaries):
+
+```text
+docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
 ```
 
 ## Agent Roles
@@ -69,12 +87,16 @@ Do not ask Brandon to inspect every file or manually run every command unless bl
 
 ## Renderer PR Roadmap
 
+**Active (2026-06-09):** see `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md` (PR-G1–G4).
+
+Historical (PR1–PR5, merged or complete):
+
 1. `renderer-capture-index-pr1` — build-time capture index from manifest + per-capture analysis + analysis geometry.
 2. `renderer-capture-lookup-pr2` — runtime lookup in webserver/adapter with provenance labels and diagnostics.
 3. `renderer-measured-motion-pr3` — measured-parameter rendering with reduced MotionState fallback.
 4. `renderer-diagnostics-pr4` — diagnostics expansion.
 5. `renderer-visual-polish-pr5` — visual polish after diagnostics.
-6. `renderer-physical-hardening-pr6` — physical calibration and hardening.
+6. `renderer-physical-hardening-pr6` — **SUSPENDED** — physical calibration after PR-G + human validation.
 
 Do not begin the next PR until the current PR is approved and merged.
 

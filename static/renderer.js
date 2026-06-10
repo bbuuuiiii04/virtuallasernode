@@ -8,6 +8,24 @@
 (function () {
   "use strict";
   const TAU = Math.PI * 2;
+  const AUTHORITY_TIER = {
+    DECODER_FALLBACK: 1,
+    MODEL_COMPOSED: 2,
+    MEASURED_PARAM: 3,
+    EXACT_CAPTURE_RENDER_AUTHORITY: 4,
+  };
+  const COLOR_PALETTE = {
+    red: [255, 40, 40],
+    green: [40, 255, 70],
+    blue: [60, 90, 255],
+    cyan: [40, 230, 230],
+    magenta: [255, 60, 220],
+    yellow: [255, 230, 60],
+    white: [255, 255, 255],
+    orange: [255, 150, 40],
+    purple: [150, 60, 255],
+    pink: [255, 120, 200],
+  };
 
   // ---- Calibration ---------------------------------------------------------
   // Tunable constants live in calibration.json (single source of truth) so the
@@ -100,6 +118,14 @@
       };
       this._lastMotionStates = [];
       this._frameMotionStates = [];
+      this._captureGeometry = null;
+      this._ch19ModeResolved = null;
+      this._fanMotionModeResolved = null;
+      try {
+        if (typeof window !== "undefined" && window.__VLN_CAPTURE_GEOMETRY) {
+          this.setCaptureGeometry(window.__VLN_CAPTURE_GEOMETRY);
+        }
+      } catch (e) {}
       this._resize();
       loadCalibration().then(() => this._resize());   // apply live calibration.json
       window.addEventListener("resize", () => this._resize());
@@ -120,6 +146,116 @@
 
     setSoundOverride(enabled) {
       this.debug.soundOverride = !!enabled;
+    }
+
+    setCaptureGeometry(geo) {
+      this._captureGeometry = (geo && typeof geo === "object") ? geo : null;
+    }
+
+    _ch19QuarantineMode() {
+      if (this._ch19ModeResolved !== null) return this._ch19ModeResolved;
+      const Q = (typeof VLNQuarantineCH19Wave !== "undefined") ? VLNQuarantineCH19Wave : null;
+      if (Q && Q.resolveModeFromEnv) {
+        this._ch19ModeResolved = Q.resolveModeFromEnv({
+          flag: (typeof window !== "undefined") ? window.__VLN_QUARANTINE_CH19_WAVE : null,
+          location: (typeof window !== "undefined") ? window.location : null,
+        });
+      } else {
+        this._ch19ModeResolved = "off";
+      }
+      return this._ch19ModeResolved;
+    }
+
+    _ch19WaveActive(st) {
+      return !!(st && !st.dynamic && st.waves && st.waves.axis !== "off");
+    }
+
+    _drawCh19Beam(ctx, ox, oy, ex, ey, fr, wave, rgb, dim, wscale, spreadAng, metrics) {
+      const mode = this._ch19QuarantineMode();
+      const Q = (typeof VLNQuarantineCH19Wave !== "undefined") ? VLNQuarantineCH19Wave : null;
+      if (!wave || mode === "off" || !Q) {
+        this._beam(ctx, ox, oy, ex, ey, rgb, dim, wscale);
+        return { ex: ex, ey: ey };
+      }
+      if (mode === "legacy" && Q.legacySpaghettiPoints) {
+        const pts = Q.legacySpaghettiPoints(ox, oy, ex, ey, wave, this.clock);
+        this._beam(ctx, pts, rgb, dim, wscale);
+        const last = pts[pts.length - 1];
+        return { ex: last[0], ey: last[1] };
+      }
+      if (mode === "fixed" && Q.fixedCoherentEndpoints) {
+        const ep = Q.fixedCoherentEndpoints(
+          ox, oy, ex, ey, fr, wave, this.clock, spreadAng, this.dims.scale, metrics);
+        this._beam(ctx, ox, oy, ep.ex, ep.ey, rgb, dim, wscale);
+        return { ex: ep.ex, ey: ep.ey };
+      }
+      this._beam(ctx, ox, oy, ex, ey, rgb, dim, wscale);
+      return { ex: ex, ey: ey };
+    }
+
+    _fanMotionQuarantineMode() {
+      if (this._fanMotionModeResolved !== null) return this._fanMotionModeResolved;
+      const Q = (typeof VLNQuarantineFanMotion !== "undefined") ? VLNQuarantineFanMotion : null;
+      if (Q && Q.resolveModeFromEnv) {
+        this._fanMotionModeResolved = Q.resolveModeFromEnv({
+          flag: (typeof window !== "undefined") ? window.__VLN_QUARANTINE_FAN_MOTION : null,
+          location: (typeof window !== "undefined") ? window.location : null,
+        });
+      } else {
+        this._fanMotionModeResolved = "off";
+      }
+      return this._fanMotionModeResolved;
+    }
+
+    _periodicSweepOffset(hz, sign, amp) {
+      const hzAbs = Math.abs(Number(hz) || 0);
+      const s = sign >= 0 ? 1 : -1;
+      if (!hzAbs) return 0;
+      const mode = this._fanMotionQuarantineMode();
+      const Q = (typeof VLNQuarantineFanMotion !== "undefined") ? VLNQuarantineFanMotion : null;
+      if (mode === "sweep_triangle" && Q && Q.speedWaveform) {
+        return Q.speedWaveform("sweep_triangle", this.clock, hzAbs, s) * amp;
+      }
+      return Math.sin(this.clock * TAU * hzAbs * s) * amp;
+    }
+
+    _fanMotionChannelsActive(st) {
+      if (!st) return false;
+      const mh = st.movement && st.movement.h;
+      const mv = st.movement && st.movement.v;
+      const rz = st.rotation && st.rotation.z;
+      return !!(mh && mh.mode !== "off") || !!(mv && mv.mode !== "off")
+        || !!(rz && rz.mode === "speed");
+    }
+
+    /** Dev preview only — clears cached quarantine mode; not production-default. */
+    setQuarantinePreview(opts) {
+      opts = opts || {};
+      if (typeof window !== "undefined") {
+        if (Object.prototype.hasOwnProperty.call(opts, "ch19Wave")) {
+          window.__VLN_QUARANTINE_CH19_WAVE = opts.ch19Wave;
+        }
+        if (Object.prototype.hasOwnProperty.call(opts, "fanMotion")) {
+          window.__VLN_QUARANTINE_FAN_MOTION = opts.fanMotion;
+        }
+        try {
+          if (Object.prototype.hasOwnProperty.call(opts, "ch19Wave")) {
+            localStorage.setItem("vln_quarantine_ch19", String(opts.ch19Wave || "off"));
+          }
+          if (Object.prototype.hasOwnProperty.call(opts, "fanMotion")) {
+            localStorage.setItem("vln_quarantine_fan", String(opts.fanMotion || "off"));
+          }
+        } catch (e) {}
+      }
+      this._ch19ModeResolved = null;
+      this._fanMotionModeResolved = null;
+    }
+
+    getQuarantinePreview() {
+      return {
+        ch19Wave: this._ch19QuarantineMode(),
+        fanMotion: this._fanMotionQuarantineMode(),
+      };
     }
 
     getDebugState() {
@@ -291,12 +427,120 @@
 
     _directionSigns(direction) {
       const s = String(direction || "").toLowerCase();
-      let h = 1, v = 1;
-      if (s.includes("right_to_left")) h = -1;
-      else if (s.includes("left_to_right")) h = 1;
-      if (s.includes("up_to_down")) v = -1;
-      else if (s.includes("down_to_up")) v = 1;
+      let h = 0, v = 0, r = 0, z = 0;
+      if (s.includes("right_to_left") || s.includes("leftward")) h = -1;
+      else if (s.includes("left_to_right") || s.includes("rightward")) h = 1;
+      if (s.includes("up_to_down") || s.includes("downward")) v = -1;
+      else if (s.includes("down_to_up") || s.includes("upward")) v = 1;
+      if (s.includes("clockwise")) r = 1;
+      else if (s.includes("counterclockwise")) r = -1;
+      if (s.includes("growing")) z = 1;
+      else if (s.includes("shrinking")) z = -1;
       return { h, v };
+    }
+
+    _withTier(validationBacked, measuredApplied) {
+      if (!measuredApplied) return "DECODER_FALLBACK";
+      if (validationBacked) return "EXACT_CAPTURE_RENDER_AUTHORITY";
+      return "MEASURED_PARAM";
+    }
+
+    _isUsableEvidence(cl) {
+      const q = cl && cl.quality ? cl.quality : null;
+      return !!(q && q.usable_evidence);
+    }
+
+    _fixtureBoxLabel(idx, total) {
+      if (total <= 1) return "image_left";
+      return idx === 0 ? "image_left" : "image_right";
+    }
+
+    _fixtureGeometryOrigin(geo, idx, total, dims) {
+      if (!geo || !dims) return null;
+      const boxes = Array.isArray(geo.boxes) ? geo.boxes : [];
+      const label = this._fixtureBoxLabel(idx, total);
+      let box = boxes.find((b) => b && b.label === label);
+      if (!box && boxes.length >= 2 && total > 1) {
+        box = boxes[Math.min(idx, boxes.length - 1)];
+      }
+      if (!box || !Array.isArray(box.bbox) || box.bbox.length !== 4) return null;
+      const cb = Array.isArray(geo.combined_bbox) && geo.combined_bbox.length === 4
+        ? geo.combined_bbox : null;
+      if (!cb) return null;
+      const bcx = (box.bbox[0] + box.bbox[2]) / 2;
+      const bcy = (box.bbox[1] + box.bbox[3]) / 2;
+      const ccx = (cb[0] + cb[2]) / 2;
+      const ccy = (cb[1] + cb[3]) / 2;
+      const cbW = Math.max(1, cb[2] - cb[0]);
+      const cbH = Math.max(1, cb[3] - cb[1]);
+      const relX = (bcx - ccx) / cbW;
+      const relY = (bcy - ccy) / cbH;
+      const span = dims.scale * 0.95;
+      const apW = Number(geo.aperture_box_width_px);
+      const apGap = Number.isFinite(apW) && apW > 0
+        ? dims.scale * (apW / cbW) * 0.12
+        : dims.scale * CAL.geometry.apGapFrac;
+      return {
+        ox0: dims.cx + relX * span,
+        oy: dims.cy + relY * span * 0.35,
+        apGap: Math.max(dims.scale * 0.02, apGap),
+      };
+    }
+
+    _positionFromCaptureGeometry(idx, total) {
+      const geo = this._captureGeometry;
+      if (!geo) return false;
+      const probe = { cx: 450, cy: 400, scale: 350 };
+      return !!this._fixtureGeometryOrigin(geo, idx, total, probe);
+    }
+
+    _extractMeasuredLayout(st) {
+      const cl = st.captureLookup;
+      if (!cl || !cl.hit || !cl.vector_match || st.layerKind !== "primary" || !this._isUsableEvidence(cl)) {
+        return { applied: false, reason: "no_exact_vector_capture" };
+      }
+      const m = cl.metrics || {};
+      const angleDeg = this._clamp(m.angle_range_deg, 1, 120, null);
+      const derivedCount = Number.isFinite(Number(m.density_beam_count_derived))
+        ? Number(m.density_beam_count_derived) : null;
+      const densityEvidence = String(m.density_evidence || "inferred");
+      if (angleDeg === null && derivedCount === null) {
+        return { applied: false, reason: "missing_geometry_metrics" };
+      }
+      return {
+        applied: true,
+        spreadAngRad: angleDeg !== null ? (angleDeg * Math.PI / 180) : null,
+        count: derivedCount,
+        densityEvidence,
+      };
+    }
+
+    _extractMeasuredColor(st) {
+      const cl = st.captureLookup;
+      if (!cl || !cl.hit || !cl.vector_match || st.layerKind !== "primary" || !this._isUsableEvidence(cl)) {
+        return { applied: false, reason: "no_exact_vector_capture" };
+      }
+      const metrics = cl.metrics || {};
+      const names = Array.isArray(metrics.dominant_colors) ? metrics.dominant_colors : [];
+      const mapped = [];
+      const unknown = [];
+      for (const rawName of names) {
+        const key = String(rawName || "").toLowerCase().trim();
+        if (!key) continue;
+        if (Object.prototype.hasOwnProperty.call(COLOR_PALETTE, key)) mapped.push(COLOR_PALETTE[key].slice());
+        else unknown.push(key);
+      }
+      if (!mapped.length || unknown.length) {
+        return {
+          applied: false,
+          reason: unknown.length ? "unknown_dominant_color_name" : "missing_dominant_colors",
+          unknown,
+        };
+      }
+      // 1 color -> solid; 2 -> per-beam alternation; >=3 -> per-beam cycle
+      // through the measured palette (a measured rainbow spread). All colours
+      // come from dominant_colors only; none are invented.
+      return { applied: true, colors: mapped };
     }
 
     _extractMeasuredMotion(st) {
@@ -305,27 +549,44 @@
         return { active: false, source: "FALLBACK_MOTIONSTATE" };
       }
       const m = cl.metrics || {};
+      const periodicMotion = !!m.periodic_motion;
+      const loopConfidence = Number.isFinite(Number(m.loop_confidence)) ? Number(m.loop_confidence) : null;
+      const directionConfidence = Number.isFinite(Number(m.motion_direction_confidence))
+        ? Number(m.motion_direction_confidence) : null;
+      const dir = this._directionSigns(m.motion_direction);
+      const directionLabel = String(m.motion_direction || "");
+      const signedDirection = directionConfidence !== null
+        && directionConfidence >= 0.6
+        && (dir.h !== 0 || dir.v !== 0);
       const loopDuration = this._clamp(m.loop_duration_estimate, 0.001, 9999, null);
-      const loopHz = loopDuration ? 1 / loopDuration : null;
+      const loopHz = (periodicMotion && loopConfidence !== null && loopConfidence >= 0.5 && loopDuration)
+        ? 1 / loopDuration : null;
       const strobeHz = this._clamp(m.strobe_frequency_hz, 0.0, 60.0, null);
       const strobeDuty = this._clamp(m.duty_cycle, 0.05, 0.95, null);
-      const xExtent = this._clamp(m.x_range_norm_roi, 0.05, 1.2, null);
-      const yExtent = this._clamp(m.y_range_norm_roi, 0.05, 1.2, null);
-      const dir = this._directionSigns(m.motion_direction);
+      const xExtent = this._clamp(m.x_range_norm_aperture ?? m.x_range_norm_roi, 0.05, 1.2, null);
+      const yExtent = this._clamp(m.y_range_norm_aperture ?? m.y_range_norm_roi, 0.05, 1.2, null);
+      const motionType = String(m.motion_type || "unknown");
+      const translational = motionType === "horizontal_sweep" || motionType === "vertical_sweep";
+      const nonTranslational = new Set(["static", "smooth_rotation", "wave_deformation", "pulse_zoom", "color_chase", "strobe_gate"]);
+      const knownMotionType = translational || nonTranslational.has(motionType);
       return {
         active: true,
         source: "MEASURED_MOTION_ANALYSIS",
-        motionType: String(m.motion_type || "unknown"),
+        motionType,
+        knownMotionType,
+        translational,
+        periodicMotion,
+        loopConfidence,
         loopHz,
         strobeHz,
         strobeDuty,
         xExtent,
         yExtent,
-        direction: String(m.motion_direction || ""),
-        directionConfidence: Number.isFinite(Number(m.motion_direction_confidence))
-          ? Number(m.motion_direction_confidence) : null,
-        hSign: dir.h,
-        vSign: dir.v,
+        direction: directionLabel,
+        directionConfidence,
+        signedDirection,
+        hSign: signedDirection ? dir.h : 0,
+        vSign: signedDirection ? dir.v : 0,
       };
     }
 
@@ -340,24 +601,51 @@
           source: "channel_position",
         };
       }
-      // speed mode
-      if (measured.active && measured.motionType === "static") {
+      // speed mode. The KIND of motion comes from the capture motion_type
+      // (plan 3.4), applied PER AXIS — never from "CH15/CH16 > 127" alone:
+      //   horizontal_sweep -> measured translation on H only
+      //   vertical_sweep   -> measured translation on V only
+      //   other known types (static/rotation/wave/zoom/color_chase/strobe_gate)
+      //                    -> NO measured translational offset on either axis
+      //   unknown motion_type -> decoder/CAL sine fallback (NOT zeroed) + warning
+      const fallbackHz = this._sweepHz(val);
+      const decoderFallback = () => ({
+        mode: "speed",
+        offset: this._periodicSweepOffset(fallbackHz, 1, 1),
+        source: "FALLBACK_MOTIONSTATE",
+      });
+      if (!measured.active) return decoderFallback();
+      const axisMeasured = (axis === "h" && measured.motionType === "horizontal_sweep")
+        || (axis === "v" && measured.motionType === "vertical_sweep");
+      if (axisMeasured) {
+        const hz = measured.loopHz ? measured.loopHz : fallbackHz;
+        const signRaw = axis === "h" ? measured.hSign : measured.vSign;
+        const sign = measured.signedDirection && signRaw ? signRaw : 1;
+        const extent = axis === "h" ? measured.xExtent : measured.yExtent;
+        const amp = extent ? extent : 1.0;
+        return {
+          mode: "speed",
+          offset: this._periodicSweepOffset(hz, sign, amp),
+          source: measured.source,
+        };
+      }
+      if (measured.knownMotionType) {
+        // Known non-translational type, or translation on the OTHER axis:
+        // this axis gets no measured translational offset.
         return { mode: "speed", offset: 0, source: measured.source };
       }
-      const fallbackHz = this._sweepHz(val);
-      const hz = measured.active && measured.loopHz ? measured.loopHz : fallbackHz;
-      const sign = axis === "h" ? (measured.hSign || 1) : (measured.vSign || 1);
-      const extent = axis === "h" ? measured.xExtent : measured.yExtent;
-      const amp = measured.active && extent ? extent : 1.0;
-      return {
-        mode: "speed",
-        offset: Math.sin(this.clock * TAU * hz * sign) * amp,
-        source: measured.active ? measured.source : "FALLBACK_MOTIONSTATE",
-      };
+      // Unknown motion_type: fall back to the decoder/CAL sine for this axis.
+      return decoderFallback();
     }
 
     _buildMotionState(st, idx, total) {
       const measured = this._extractMeasuredMotion(st);
+      const cl = st.captureLookup || null;
+      const validationBacked = !!(cl && cl.validation_backed);
+      const colorMeasured = this._extractMeasuredColor(st);
+      const colorTier = this._withTier(validationBacked, colorMeasured.applied);
+      const motionMeasuredApplied = measured.active && measured.knownMotionType;
+      const motionTier = this._withTier(validationBacked, motionMeasuredApplied);
       const power = !!st.power;
       const dimmer = Number(st.dimmer) || 0;
       const positionBlanked = !!(st.position && st.position.blanked);
@@ -390,11 +678,24 @@
       const vMove = this._moveOffset(st.movement && st.movement.v, "v", measured);
 
       const warnings = [];
-      const cl = st.captureLookup || null;
       const quality = cl && cl.quality ? cl.quality : null;
       if (st.layerKind === "second_pattern") warnings.push("second_pattern_decoder_driven_with_warning");
-      if (st.waves && st.waves.axis !== "off") warnings.push("CH19_wave_deformation_approximate_unverified");
-      if ((hMove.mode === "speed" || vMove.mode === "speed") && !measured.active) {
+      if (st.waves && st.waves.axis !== "off") {
+        const qMode = this._ch19QuarantineMode();
+        if (qMode === "off") warnings.push("CH19_wave_quarantined_off");
+        else if (qMode === "legacy") warnings.push("CH19_wave_quarantined_legacy_spaghetti");
+        else if (qMode === "fixed") warnings.push("CH19_wave_quarantine_fixed_experimental");
+      }
+      if (this._fanMotionChannelsActive(st)) {
+        const fmMode = this._fanMotionQuarantineMode();
+        if (fmMode === "off") warnings.push("fan_motion_quarantined_rigid_off");
+        else if (fmMode === "legacy_rigid") warnings.push("fan_motion_quarantined_legacy_rigid");
+        else if (fmMode === "scan_phase") warnings.push("fan_motion_quarantine_scan_phase_experimental");
+        else if (fmMode === "sweep_triangle") warnings.push("fan_motion_quarantine_sweep_triangle_experimental");
+      }
+      const usedDecoderSine = (hMove.mode === "speed" && hMove.source === "FALLBACK_MOTIONSTATE")
+        || (vMove.mode === "speed" && vMove.source === "FALLBACK_MOTIONSTATE");
+      if (usedDecoderSine) {
         warnings.push("CH15_CH16_sine_waveform_approximate_unverified");
       }
       if (st.modelStatus !== "measured") warnings.push("model_not_measured_status");
@@ -409,7 +710,31 @@
       if (measured.active && measured.directionConfidence !== null && measured.directionConfidence < 0.6) {
         warnings.push("measured_motion_direction_low_confidence");
       }
+      if (measured.active && !measured.knownMotionType) warnings.push("measured_motion_type_unknown_fallback");
+      if (!colorMeasured.applied && colorMeasured.reason === "unknown_dominant_color_name") {
+        warnings.push("measured_color_unknown_name_fallback");
+      }
       if (!measured.active) warnings.push("fallback_motionstate_active");
+
+      const layoutMeasured = this._extractMeasuredLayout(st);
+      const positionMeasured = this._positionFromCaptureGeometry(idx, total);
+      if (layoutMeasured.applied && layoutMeasured.densityEvidence === "inferred") {
+        warnings.push("density_evidence_inferred");
+      }
+
+      const paramTiers = {
+        color: colorTier,
+        motion: motionTier,
+        spread: this._withTier(validationBacked, layoutMeasured.applied && layoutMeasured.spreadAngRad !== null),
+        count: layoutMeasured.applied && layoutMeasured.count !== null
+          ? this._withTier(validationBacked, true) : "DECODER_FALLBACK",
+        position: this._withTier(validationBacked, positionMeasured),
+        strobe: this._withTier(validationBacked, measured.active && measured.strobeHz !== null),
+        dots: "DECODER_FALLBACK",
+      };
+      const headlineTier = Object.keys(paramTiers).reduce((best, key) => {
+        return AUTHORITY_TIER[paramTiers[key]] < AUTHORITY_TIER[best] ? paramTiers[key] : best;
+      }, "EXACT_CAPTURE_RENDER_AUTHORITY");
 
       return {
         epochMs: performance.now(),
@@ -423,6 +748,9 @@
           modelConfidence: st.modelConfidence || "unknown",
           captureProvenance: st.provenanceLabel || "MEASURED_FIXTURE_MODEL",
           motionProvenance: measured.active ? "MEASURED_MOTION_ANALYSIS" : "FALLBACK_MOTIONSTATE",
+          headlineTier,
+          parameterTiers: paramTiers,
+          validationBacked,
           layerKind: st.layerKind || "primary",
         },
         visibility: {
@@ -460,6 +788,7 @@
           waveform: "square",
         },
         measured: measured.active ? measured : null,
+        colorMeasured: colorMeasured.applied ? colorMeasured : null,
         warnings,
       };
     }
@@ -513,6 +842,11 @@
       ctx.fillStyle = grad; ctx.fill();
     }
     _beamColor(st, i) {
+      const measured = this._extractMeasuredColor(st);
+      if (measured.applied) {
+        if (measured.colors.length === 1) return measured.colors[0];
+        return measured.colors[i % measured.colors.length];
+      }
       const c = st.color;
       if (st.dynamic) {
         // CH3>=128 macros can still obey fixed CH8 colours. Fall back to the
@@ -558,37 +892,55 @@
       if (!motion.visibility.visibleAfterStrobe) return false;
       const mirror = motion.fixture.mirror;
 
-      // ---- FIXED apertures: 2 fixtures on a T-bar near top-centre, each a
-      // dual-aperture box. Origins are BOLTED DOWN — only beam DIRECTIONS change.
-      // Pure 2D screen-space fan (no perspective) so beams never spaghetti. ----
-      const fixGap = dims.scale * CAL.geometry.fixGapFrac;   // half-gap between the 2 fixtures (clearly separated)
-      const apGap = dims.scale * CAL.geometry.apGapFrac;     // gap between a fixture's 2 apertures (4 distinct points)
-      const ox0 = dims.cx + (total > 1 ? (idx / (total - 1) * 2 - 1) * fixGap : 0);
-      const oy = dims.cy;                           // fixed, near the top
+      const layout = this._extractMeasuredLayout(st);
+      const geo = this._captureGeometry;
+      const measuredOrigin = geo ? this._fixtureGeometryOrigin(geo, idx, total, dims) : null;
 
-      // ---- pattern density / size / scan / waves (calibrated, unchanged) ----
-      let spread, count;
+      let ox0, oy, apGap;
+      if (measuredOrigin) {
+        ox0 = measuredOrigin.ox0;
+        oy = measuredOrigin.oy;
+        apGap = measuredOrigin.apGap;
+      } else {
+        const fixGap = dims.scale * CAL.geometry.fixGapFrac;
+        apGap = dims.scale * CAL.geometry.apGapFrac;
+        ox0 = dims.cx + (total > 1 ? (idx / (total - 1) * 2 - 1) * fixGap : 0);
+        oy = dims.cy;
+      }
+
+      let spreadAng, count;
       if (st.dynamic) {
-        spread = CAL.dynamic.spread; count = CAL.dynamic.count;  // self-contained; CH5 size + zoom ignored
+        spreadAng = Math.min(CAL.geometry.spreadAngMax, CAL.geometry.spreadAngGain * CAL.dynamic.spread);
+        count = CAL.dynamic.count;
       } else {
         const zf = st.zoom.mode === "size" ? CAL.zoom.min + (st.zoom.val / 127) * CAL.zoom.range : 1;
-        const pat = this._patternShape(st.patternGroup, st.patternIndex);  // CH3/CH4 density
-        spread = pat.spread * (0.7 + (1 - st.size / 255) * 0.9) * zf;
-        // 4 apertures each draw the fan, so keep per-aperture count modest.
-        count = Math.max(2, Math.round(pat.n * (0.32 + (1 - st.size / 255) * 0.45)));
+        const sizeScale = (0.7 + (1 - st.size / 255) * 0.9) * zf;
+        const countScale = (0.32 + (1 - st.size / 255) * 0.45);
+        if (layout.applied && layout.spreadAngRad !== null) {
+          spreadAng = Math.min(CAL.geometry.spreadAngMax, layout.spreadAngRad * sizeScale);
+        } else {
+          const pat = this._patternShape(st.patternGroup, st.patternIndex);
+          spreadAng = Math.min(CAL.geometry.spreadAngMax, CAL.geometry.spreadAngGain * pat.spread * sizeScale);
+        }
+        if (layout.applied && layout.count !== null) {
+          count = Math.max(2, Math.round(layout.count * countScale));
+        } else {
+          const pat = this._patternShape(st.patternGroup, st.patternIndex);
+          count = Math.max(2, Math.round(pat.n * countScale));
+        }
       }
       const drawMode = motion.scan.drawMode;
       const scanN = drawMode === "bright_line" ? 1.2 : (drawMode === "dot" ? 0.55 : 0.9);
       const dim = st.dimmer * (drawMode === "bright_line" ? 1.0 : (drawMode === "dot" ? 0.6 : 0.85));
       count = Math.max(2, Math.round(count * scanN));
       const wscale = Math.max(0.5, Math.min(2.6, 12 / count));
-      const wave = (!st.dynamic && st.waves && st.waves.axis !== "off") ? st.waves : null;
+      const waveRaw = this._ch19WaveActive(st) ? st.waves : null;
+      const waveMetrics = (st.captureLookup && st.captureLookup.metrics) ? st.captureLookup.metrics : null;
       const colMid = this._beamColor(st, count >> 1);
 
       // ---- 2D fan geometry from the FIXED origin ----
-      const UP = -Math.PI / 2;                       // screen -y points up (beams fan UP)
-      const spreadAng = Math.min(CAL.geometry.spreadAngMax, CAL.geometry.spreadAngGain * spread); // fan angular width (rad)
-      const L = Math.hypot(dims.W, dims.H);          // beams run off-frame
+      const UP = -Math.PI / 2;
+      const L = Math.hypot(dims.W, dims.H);
       // both fans point UP & spread symmetrically; a SLIGHT inward lean makes the
       // two (separated) sources cross into the X. Big leans skew it — keep small.
       const inward = (idx === 0 ? 1 : -1) * CAL.geometry.inwardLean;  // left leans slightly right, right slightly left
@@ -610,39 +962,36 @@
         aimX = Math.sin(this.clock * CAL.dynamic.aimXRate) * CAL.dynamic.aimXAmp * m;
         aimY = 0;
       }
-      const shiftY = -aimY * dims.scale * CAL.geometry.vShiftGain;        // vertical re-aim = screen shift
-      const baseAng = UP + inward + spinZ + aimX * CAL.geometry.panGain;  // horizontal re-aim = pan
+      const shiftY = -aimY * dims.scale * CAL.geometry.vShiftGain;
+      const fmMode = this._fanMotionQuarantineMode();
+      const FM = (typeof VLNQuarantineFanMotion !== "undefined") ? VLNQuarantineFanMotion : null;
 
       let drew = false;
-      for (let ap = 0; ap < 2; ap++) {               // two apertures per box
+      for (let ap = 0; ap < 2; ap++) {
         const ox = ox0 + (ap === 0 ? -apGap : apGap);
         const p0 = [ox, oy];
         const ends = [];
         for (let i = 0; i < count; i++) {
           const fr = count > 1 ? i / (count - 1) : 0.5;
-          const ang = baseAng + (fr - 0.5) * spreadAng;
-          const ex = ox + Math.cos(ang) * L * sqX;
-          const ey = oy + Math.sin(ang) * L * sqY + shiftY;
-          const rgb = this._beamColor(st, i);
-          if (wave) {
-            const dx = ex - ox, dy = ey - oy, beamLen = Math.hypot(dx, dy);
-            const spd = Math.max(0, Math.min(127, wave.speed || 0)) / 127;
-            const amp = beamLen * (0.015 + spd * 0.065), rate = 0.5 + spd * 2.5;
-            const pts = [p0];
-            for (let j = 1; j < 10; j++) {
-              const along = j / 10;
-              const disp = amp * Math.sin(Math.PI * along) *
-                           Math.sin(TAU * (2.5 * along - this.clock * rate));
-              pts.push([ox + dx * along + (wave.axis === "x" ? disp : 0),
-                        oy + dy * along + (wave.axis === "y" ? disp : 0)]);
-            }
-            pts.push([ex, ey]);
-            this._beam(ctx, pts, rgb, dim, wscale);
-          } else {
-            this._beam(ctx, ox, oy, ex, ey, rgb, dim, wscale);
+          let bAimX = aimX;
+          let bAimY = aimY;
+          let angDelta = 0;
+          if (fmMode === "scan_phase" && FM && FM.beamAimDelta) {
+            const d = FM.beamAimDelta(fr, i, count, st.scan, this.clock);
+            bAimX += d.aimXDelta;
+            bAimY += d.aimYDelta;
+            angDelta = d.angDelta;
           }
-          if (drawMode === "dot") this._dotBurst(ctx, ex, ey, rgb, dim, wscale);
-          ends.push([ex, ey]);
+          const ang = UP + inward + spinZ + bAimX * CAL.geometry.panGain
+            + angDelta + (fr - 0.5) * spreadAng;
+          const bShiftY = -bAimY * dims.scale * CAL.geometry.vShiftGain;
+          const ex = ox + Math.cos(ang) * L * sqX;
+          const ey = oy + Math.sin(ang) * L * sqY + bShiftY;
+          const rgb = this._beamColor(st, i);
+          const drawnEnd = this._drawCh19Beam(
+            ctx, ox, oy, ex, ey, fr, waveRaw, rgb, dim, wscale, spreadAng, waveMetrics);
+          if (drawMode === "dot") this._dotBurst(ctx, drawnEnd.ex, drawnEnd.ey, rgb, dim, wscale);
+          ends.push([drawnEnd.ex, drawnEnd.ey]);
           drew = true;
         }
         if (ends.length > 1) this._hazeWedgePts(ctx, p0, ends, colMid, dim);

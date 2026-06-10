@@ -2,16 +2,28 @@
 
 This guide lets Brandon use short commands instead of repeatedly pasting full implementation and review prompts. Agents should read this file, `AGENTS.md`, and the active PR status file before renderer work.
 
-Primary plan:
+Primary implementation plan:
 
 ```text
-docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
+docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md
+```
+
+Documentation map (historical vs present):
+
+```text
+docs/RENDERER_DOCS_INDEX.md
 ```
 
 Active status file:
 
 ```text
 docs/RENDERER_PR_STATUS.md
+```
+
+Capture corpus policy (tiers, boundaries):
+
+```text
+docs/RENDERER_CAPTURE_BACKED_PLAN_V1.md
 ```
 
 ## 0. Operating Model
@@ -456,6 +468,77 @@ Do not request future-PR features as current blockers.
 Cite file paths and line numbers where possible.
 If implementation report conflicts with code, code wins.
 ```
+
+## 12a. MANDATORY Capture-Grounded Opus Review (policy update 2026-06-09)
+
+Reason: PR1-PR5 reached a "ready for PR6" state while the renderer was still materially
+inaccurate, because review was self-certified with no committed Opus artifact and no
+capture grounding. See `artifacts/renderer/renderer-forensic-review-pr1-pr5/opus_capture_grounded_review.md`.
+
+From now on, every renderer PR requires a committed capture-grounded Opus review BEFORE
+acceptance. The review must:
+
+```text
+- live at artifacts/renderer/<pr-name>/opus_review.md (committed; no self-certification in status file)
+- be grounded against committed capture evidence, not generic architecture:
+  captures/fixture_model/manifest.jsonl
+  captures/fixture_model/analysis_geometry.json
+  captures/fixture_model/setup_geometry.json
+  captures/fixture_model/checkpoint.json
+  captures/fixture_model/**/analysis.json
+  captures/fixture_model/**/metadata.json
+  data/soundswitch_laser_cues.json
+  data/fixture_model.json
+  data/fixture_model_schema.json
+  artifacts/renderer/**/*
+- answer the relevant subset of the 12 forensic questions:
+  1.  cue match / display name / duplicate-state / cue-identity correctness
+  2.  is exact CH1-19 lookup renderer authority or only metadata/provenance
+  3.  is measured motion driving visible scan, or only aim/fallback labels
+  4.  is dot scanning capture-derived or decoder/manual approximation
+  5.  is beam animation from measured per-capture analysis or synthetic
+  6.  is beam count/density grounded in captured analysis or guessed from decoded shape
+  7.  is analysis_geometry.json used correctly (ROI, aperture boxes, px_per_inch, wall conversion)
+  8.  are manifest rows joined to FRESH per-capture analysis.json, not stale inline manifest analysis
+  9.  are duplicate test_ids and duplicate CH1-19 vectors handled correctly
+  10. are higher-order/channel-interaction failures hidden behind EXACT_CAPTURE labels
+  11. does the renderer overclaim accuracy when dense/higher-order validation is missing
+  12. what concrete renderer changes are needed before physical calibration
+- classify every finding as one of:
+  BLOCKER (must fix before next PR)
+  ACCURACY_DEBT (acceptable only if clearly labeled)
+  DIAGNOSTIC_GAP (needs better visibility)
+  HUMAN_VALIDATION (requires Brandon's eyes or the physical fixture)
+- forbid EXACT_CAPTURE / "validated" labels whenever fixture_model.json validation.pass
+  does not back the claim for that vector.
+```
+
+If no committed capture-grounded opus_review.md exists, the correct verdict is BLOCK_MERGE.
+
+## 12b. PR-D Composer 2.5 exception — mandatory strict review (2026-06-09)
+
+PR-D (`renderer-accuracy-pr-d`) was implemented by **Composer 2.5** after Codex (gpt-5.3-codex)
+hit an API usage limit. This is a documented fallback, not a change to the default model policy.
+
+**Composer 2.5 PR-D output must be treated as unreviewed and merge-blocked.**
+
+Required before acceptance:
+
+```text
+Reviewer:        Opus (Claude 4.8) or equivalent high-capability checkpoint subagent
+Review depth:    EXTENSIVE STRICT — stricter than routine gpt-5.5 review
+Artifact:        artifacts/renderer/renderer-accuracy-pr-d/opus_review.md (committed)
+Grounding:       actual diff + capture corpus (§12a file list) + headless render evidence
+Focus areas:     geometry box→canvas mapping, angle_range_deg spread, derived density
+                 labeling/tier honesty, Phase 1 regression, forensic Q6/Q7/Q10/Q11
+Verdict:         explicit APPROVE or BLOCK_MERGE — no self-certification in status docs
+Gate:            do NOT merge, commit as approved, or start PR-E until review completes
+Report:          artifacts/renderer/renderer-accuracy-pr-d/implementation_report.md
+Status tracker:  docs/RENDERER_PR_STATUS.md (PR-D checklist)
+```
+
+Routine gpt-5.5 review alone is **insufficient** for PR-D acceptance.
+Passing unit tests and smoke screenshots do **not** clear this gate.
 
 ## 13. Failure and Recovery Policy
 
