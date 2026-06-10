@@ -102,8 +102,12 @@ def infer_polyline_geometry_kind(
             return "segment_anchor_points", True
         if n == 1:
             return "dot_anchor_points", True
+        if n >= 4 and source in SOURCE_ORDERED:
+            return "centerline_polyline", _polyline_points_are_ordered(pts)
 
-    if source in SOURCE_ORDERED or vectorizer in VECTORIZER_DEFAULT_KIND:
+    if source in SOURCE_ORDERED:
+        return VECTORIZER_DEFAULT_KIND.get(vectorizer, "centerline_polyline"), True
+    if vectorizer in VECTORIZER_DEFAULT_KIND:
         return VECTORIZER_DEFAULT_KIND.get(vectorizer, "centerline_polyline"), True
 
     if n >= 2:
@@ -157,6 +161,64 @@ def shape_geometry_kind(polylines: list[dict[str, Any]], vectorizer: str, shape_
     if kinds <= {"dot_anchor_points", "segment_anchor_points"}:
         return "dot_anchor_points"
     return VECTORIZER_DEFAULT_KIND.get(vectorizer, "centerline_polyline")
+
+
+def _sample_polyline_pixels_local(
+    polylines: list[dict[str, Any]], box: FixtureBox
+) -> list[tuple[float, float]]:
+    samples: list[tuple[float, float]] = []
+    for poly in polylines:
+        pts = poly.get("points") or []
+        for i, p in enumerate(pts):
+            if len(p) < 2:
+                continue
+            samples.append(_wall_to_crop_px(p[0], p[1], box))
+            if i + 1 < len(pts) and len(pts[i + 1]) >= 2:
+                a = samples[-1]
+                b = _wall_to_crop_px(pts[i + 1][0], pts[i + 1][1], box)
+                steps = max(2, int(math.hypot(b[0] - a[0], b[1] - a[1])))
+                for t in range(1, steps):
+                    f = t / steps
+                    samples.append((a[0] + f * (b[0] - a[0]), a[1] + f * (b[1] - a[1])))
+    return samples
+
+
+def _detect_dense_branch_scribble(
+    annotated: list[dict[str, Any]],
+    box: FixtureBox,
+) -> list[str]:
+    """Reject branch paths that visually recreate a filled mask/scribble."""
+    branches = [p for p in annotated if p.get("geometry_kind") == "branch_polyline"]
+    if not branches:
+        return []
+
+    reasons: list[str] = []
+    total_pts = sum(polyline_point_count(p) for p in branches)
+    samples = _sample_polyline_pixels_local(branches, box)
+    if not samples:
+        return reasons
+
+    xs = [s[0] for s in samples]
+    ys = [s[1] for s in samples]
+    span_x = max(xs) - min(xs)
+    span_y = max(ys) - min(ys)
+    long_side = max(span_x, span_y)
+    if long_side > 0 and min(span_x, span_y) / long_side >= 0.28 and total_pts >= 24:
+        reasons.append("branch_mask_fill_like")
+
+    path_len = 0.0
+    for poly in branches:
+        pts = poly.get("points") or []
+        pix = [_wall_to_crop_px(p[0], p[1], box) for p in pts if len(p) >= 2]
+        for a, b in zip(pix, pix[1:]):
+            path_len += math.hypot(b[0] - a[0], b[1] - a[1])
+    density = len(samples) / max(1.0, path_len)
+    if len(branches) >= 4 and total_pts >= 40 and density > 1.2:
+        reasons.append("dense_branch_scribble")
+    if len(branches) >= 6 and total_pts >= 55:
+        reasons.append("dense_branch_scribble")
+
+    return reasons
 
 
 def _polyline_is_dense_mask_cloud(poly: dict[str, Any], box: FixtureBox) -> bool:
@@ -229,7 +291,7 @@ def validate_geometry_candidate(
             for p in annotated
             if p.get("geometry_kind") == "centerline_polyline"
             and polyline_point_count(p) >= 4
-            and poly.get("source") != "segment_anchor"
+            and p.get("source") != "segment_anchor"
         ]
         if long_lines and shape_type == "dotted_pattern":
             reasons.append("dotted_pattern_smear")
@@ -242,6 +304,9 @@ def validate_geometry_candidate(
 
     if vectorizer == "closed_loop_contour" and routed_shape_type != "closed_loop":
         reasons.append("contour_not_applicable")
+
+    branch_reasons = _detect_dense_branch_scribble(annotated, box)
+    reasons.extend(branch_reasons)
 
     # Deduplicate while preserving order.
     seen: set[str] = set()
@@ -276,6 +341,8 @@ def finalize_vector_result_metadata(
         "dot_cluster_collapsed",
         "closed_loop_not_applicable",
         "contour_not_applicable",
+        "dense_branch_scribble",
+        "branch_mask_fill_like",
     }
     if any(
         r in hard_reject or r.startswith("rejected_geometry_kind:")

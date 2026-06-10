@@ -139,33 +139,44 @@ def _high_core_components(support: SupportMasks) -> list[list[tuple[int, int]]]:
     return [c for c in core if len(c) >= DEFAULT_MIN_CORE_AREA_PX]
 
 
-def _dotted_or_cluster_from_core(support: SupportMasks) -> str | None:
+def _dotted_or_cluster_from_core(support: SupportMasks, maps: LaserMaps) -> str | None:
     """Detect dotted arc / dot cluster from separated high-core blobs."""
     core = _high_core_components(support)
-    compact = [c for c in core if len(c) <= 200 and _component_aspect(c) < 3.2]
+    compact = [c for c in core if len(c) <= 220 and _component_aspect(c) < 3.5]
     if len(compact) < 3:
         return None
+
+    if len(support.support_components) == 1:
+        comp = support.support_components[0]
+        w, h = _component_span(comp)
+        aspect = max(w, h) / max(1.0, min(w, h))
+        if _is_line_like(comp) or aspect >= 2.0:
+            return None
+
+    if len(_active_color_components(maps, support)) >= 2:
+        all_pts = [p for c in compact for p in c]
+        w, h = _component_span(all_pts)
+        if max(w, h) / max(1.0, min(w, h)) >= 2.0:
+            return None
+
+    if _components_along_arc(compact):
+        return "dotted_pattern"
 
     all_pts = [p for c in compact for p in c]
     w, h = _component_span(all_pts)
     aspect = max(w, h) / max(1.0, min(w, h))
-    elongated_stroke = aspect >= 2.1 and len(compact) <= 12
-    stroke_like = sum(1 for c in compact if _is_line_like(c) or len(c) <= 40) >= max(2, len(compact) // 2)
-    if elongated_stroke and stroke_like:
-        return None
-
-    if _components_along_arc(compact):
+    # Segmented laser dashes along a line/arc remain dotted even when elongated.
+    compact_marks = sum(1 for c in compact if len(c) <= 80)
+    if compact_marks >= 4 or (compact_marks >= 3 and aspect >= 1.4):
         return "dotted_pattern"
-    if len(compact) >= 5 and not elongated_stroke:
-        return "dotted_pattern"
-    if len(compact) >= 3 and max(len(c) for c in compact) <= 80:
+    if len(compact) >= 3 and max(len(c) for c in compact) <= 100:
         return "dot_cluster"
     return None
 
 
 def _components_for_dotted_vectorizer(support: SupportMasks) -> list[list[tuple[int, int]]]:
     core = _high_core_components(support)
-    if len(core) >= 3 and len(support.support_components) <= 2:
+    if len(core) >= 2:
         return sorted(core, key=len)
     return support.support_components
 
@@ -182,7 +193,7 @@ def classify_shape_type(support: SupportMasks, maps: LaserMaps) -> str:
         return "unknown"
 
     major = sorted(comps, key=len, reverse=True)
-    core_route = _dotted_or_cluster_from_core(support)
+    core_route = _dotted_or_cluster_from_core(support, maps)
     if core_route:
         return core_route
     if _forms_rectangular_frame(major):
@@ -555,7 +566,9 @@ def vectorize_branched_complex(
     box: FixtureBox,
     maps: LaserMaps,
 ) -> VectorResult:
-    paths = split_skeleton_paths(build_skeleton_graph(skeletonize_support_mask(support.support_mask)))
+    paths = split_skeleton_paths(
+        build_skeleton_graph(skeletonize_support_mask(_skeleton_source_mask(support)))
+    )
     polylines: list[dict[str, Any]] = []
     for i, path in enumerate(paths):
         poly = _polyline_from_path(path, box, f"branch{i}", source="skeleton_branch")
@@ -619,6 +632,56 @@ def _near_sample(px: float, py: float, samples: list[tuple[float, float]], radiu
     return False
 
 
+def _skeleton_pixels(support: SupportMasks) -> list[tuple[int, int]]:
+    skel = skeletonize_support_mask(_skeleton_source_mask(support))
+    return [(x, y) for y in range(len(skel)) for x in range(len(skel[0])) if skel[y][x]]
+
+
+def _fit_target_pixels(
+    support: SupportMasks,
+    maps: LaserMaps,
+) -> list[tuple[int, int]]:
+    """Thin high-confidence pixels used for stroke coverage scoring (not broad glow)."""
+    targets: set[tuple[int, int]] = set(support.high_core_pixels)
+    for _name, cmap in maps.color_maps.items():
+        thr = max(maps.med + 2.0 * maps.mad, maps.med + 1.5 * maps.mad)
+        for y in range(maps.h):
+            for x in range(maps.w):
+                if support.high_core_mask[y][x] and cmap[y][x] >= thr:
+                    targets.add((x, y))
+    for px in _skeleton_pixels(support):
+        targets.add(px)
+    if len(targets) >= 4:
+        return list(targets)
+    return list(support.high_core_pixels or support.support_pixels)
+
+
+def _centerline_alignment_score(
+    polylines: list[dict[str, Any]],
+    fit_target: list[tuple[int, int]],
+    box: FixtureBox,
+) -> float:
+    centerlines = [p for p in polylines if p.get("geometry_kind") == "centerline_polyline"]
+    if not centerlines or not fit_target:
+        return 0.0
+    samples = _sample_polyline_pixels(centerlines, box)
+    if not samples:
+        return 0.0
+
+    near_core = sum(1 for x, y in fit_target if _near_sample(x, y, samples, 3.5))
+    core_align = near_core / len(fit_target)
+
+    tgt_xs = [p[0] for p in fit_target]
+    tgt_ys = [p[1] for p in fit_target]
+    samp_xs = [s[0] for s in samples]
+    samp_ys = [s[1] for s in samples]
+    tgt_span = max(max(tgt_xs) - min(tgt_xs), max(tgt_ys) - min(tgt_ys))
+    samp_span = max(max(samp_xs) - min(samp_xs), max(samp_ys) - min(samp_ys))
+    span_ratio = samp_span / max(1.0, tgt_span) if tgt_span > 0 else 0.0
+
+    return min(1.0, core_align * 0.65 + min(1.0, span_ratio) * 0.35)
+
+
 def _active_color_components(maps: LaserMaps, support: SupportMasks) -> list[tuple[str, list[tuple[int, int]]]]:
     active: list[tuple[str, list[tuple[int, int]]]] = []
     for name, cmap in maps.color_maps.items():
@@ -673,28 +736,38 @@ def score_geometry_fit(
     samples = _sample_polyline_pixels(result.polylines, box)
     support_set = set(support.support_pixels)
     core_set = set(support.high_core_pixels)
+    fit_target = _fit_target_pixels(support, maps)
+    fit_set = set(fit_target)
 
-    stroke_pts = support.support_pixels or support.high_core_pixels
-    covered = sum(1 for px in stroke_pts if _near_sample(px[0], px[1], samples, 3.5))
-    stroke_cov = covered / max(1, len(stroke_pts))
+    fit_covered = sum(1 for px in fit_target if _near_sample(px[0], px[1], samples, 3.5))
+    stroke_cov = fit_covered / max(1, len(fit_target))
     scores["stroke_coverage_score"] = stroke_cov
+
+    broad_pts = support.support_pixels or support.high_core_pixels
+    broad_covered = sum(1 for px in broad_pts if _near_sample(px[0], px[1], samples, 3.5))
+    scores["broad_support_coverage_score"] = broad_covered / max(1, len(broad_pts))
 
     if samples:
         precise = sum(
             1
             for sx, sy in samples
-            if any((int(sx + dx), int(sy + dy)) in support_set for dx in range(-2, 3) for dy in range(-2, 3))
+            if any((int(sx + dx), int(sy + dy)) in fit_set for dx in range(-2, 3) for dy in range(-2, 3))
         )
         geom_prec = precise / len(samples)
     else:
         geom_prec = 0.0
     scores["geometry_precision_score"] = geom_prec
 
+    centerline_align = _centerline_alignment_score(result.polylines, fit_target, box)
+    scores["centerline_alignment_score"] = centerline_align
+
     color_components = _active_color_components(maps, support)
     if color_components:
         color_hits = 0
         for _name, pts in color_components:
-            if any(_near_sample(x, y, samples, 5.0) for x, y in pts[:: max(1, len(pts) // 8)]):
+            core_pts = [p for p in pts if p in core_set or p in fit_set]
+            sample_pts = core_pts[:: max(1, len(core_pts) // 8)] if core_pts else pts[:: max(1, len(pts) // 8)]
+            if any(_near_sample(x, y, samples, 5.0) for x, y in sample_pts):
                 color_hits += 1
         color_span = color_hits / len(color_components)
     else:
@@ -730,17 +803,21 @@ def score_geometry_fit(
     scores["topology_match_score"] = topology_match
 
     halo = 0.0
-    if samples and stroke_pts:
-        boundary = [p for p in stroke_pts if _neighbor_boundary(support.support_mask, p[0], p[1])]
+    if samples and broad_pts:
+        boundary = [p for p in broad_pts if _neighbor_boundary(support.support_mask, p[0], p[1])]
         if boundary:
             halo = sum(1 for x, y in boundary if _near_sample(x, y, samples, 2.0)) / len(boundary)
     scores["halo_leakage_score"] = 1.0 - halo
 
+    fragment_cov = stroke_cov
+    if result.geometry_kind == "centerline_polyline" and centerline_align > stroke_cov:
+        fragment_cov = max(stroke_cov, centerline_align * 0.85)
+
     fragment = 0.0
-    if stroke_cov < 0.22:
+    if fragment_cov < 0.22:
         fragment = 1.0
         reasons.append("fragment_only")
-    elif stroke_cov < 0.38:
+    elif fragment_cov < 0.38:
         fragment = 0.5
         reasons.append("partial_fragment")
     if color_span < 0.34 and len(color_components) >= 2:
@@ -760,6 +837,7 @@ def score_geometry_fit(
         + topology_match * 8.0
         + scores["halo_leakage_score"] * 7.0
         + scores["fragment_score"] * 10.0
+        + centerline_align * 12.0
     )
     if "fragment_only" in reasons:
         total -= 40
@@ -771,6 +849,10 @@ def score_geometry_fit(
         total -= 60
     if "dotted_pattern_smear" in result.reject_reasons:
         total -= 45
+    if "dense_branch_scribble" in result.reject_reasons:
+        total -= 50
+    if "branch_mask_fill_like" in result.reject_reasons:
+        total -= 55
     if "mask_geometry_rejected" in result.quality_flags:
         total -= 35
 
@@ -881,6 +963,7 @@ def classify_visual_status(shape: dict[str, Any]) -> tuple[str, bool, str]:
     geom_prec = float(geom.get("geometry_precision_score", 0.0))
     color_span = float(geom.get("color_span_score", 1.0))
     fragment = float(geom.get("fragment_score", 0.0))
+    centerline_align = float(geom.get("centerline_alignment_score", 0.0))
     total = float(geom.get("total", shape.get("candidate_scores", {}).get(shape.get("selected_extractor", ""), 0)))
 
     flags = set(shape.get("quality_flags") or [])
@@ -892,18 +975,26 @@ def classify_visual_status(shape: dict[str, Any]) -> tuple[str, bool, str]:
         return "fail", False, "broad glow band detected"
     if "filled_band_geometry" in rejected:
         return "fail", False, "filled band geometry rejected"
+    if "dense_branch_scribble" in rejected or "branch_mask_fill_like" in rejected:
+        return "fail", False, "dense branch scribble rejected"
+
+    effective_cov = stroke_cov
+    if geom_kind == "centerline_polyline" and centerline_align > stroke_cov:
+        effective_cov = max(stroke_cov, centerline_align * 0.9)
 
     if (
-        stroke_cov >= 0.52
+        effective_cov >= 0.52
         and geom_prec >= 0.55
         and fragment >= 0.55
         and color_span >= 0.5
         and total >= 55.0
         and shape.get("ordered", True)
     ):
-        return "pass", True, "automated pixel-fit pass; geometry aligns with support mask"
+        return "pass", True, "automated pixel-fit pass; geometry aligns with fit target"
 
     if stroke_cov < 0.18 or fragment < 0.25:
+        if geom_kind == "centerline_polyline" and centerline_align >= 0.35:
+            return "weak", False, "thin centerline aligns with core; below pass threshold"
         return "fail", False, "fragment-only or insufficient stroke coverage"
 
     if "missing_color_span" in (shape.get("rejected_candidate_reasons", {}).get(shape.get("selected_extractor", ""), [])):

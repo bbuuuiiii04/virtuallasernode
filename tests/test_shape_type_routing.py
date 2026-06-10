@@ -94,3 +94,6 @@ def test_shape_type_routing_matrix() -> None:
                 "unordered_pixel_cloud",
                 "rejected_mask_area",
             )
+        if name == "dots":
+            assert out.get("shape_type") in ("dotted_pattern", "dot_cluster")
+            assert out.get("geometry_kind") in ("dot_anchor_points", "segment_anchor_points")

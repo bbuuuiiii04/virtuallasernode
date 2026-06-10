@@ -1,180 +1,146 @@
-# PR-G1 Static Shape Authority — Implementation Report (v6 geometry_kind repair)
+# PR-G1 v6 Narrow Follow-Up — Scorer False-Negative + Branch Scribble Fix
 
 ## Summary
 
-PR-G1 v6 repair separates **geometry representation** from **mask representation**. Yellow contact-sheet overlays now draw typed authority geometry (thin centerlines, branch paths, dot/segment anchors) and reject mask fills, unordered pixel clouds, and filled glow bands.
+Narrow patch after ChatGPT/Brandon review of geometry_kind repair. Focuses on scorer false negatives, stale validation bug, dense branch rejection, and dotted routing — without dashboards, PR-G1b, PR-G3, or visible renderer changes.
 
-Visible aerial geometry remains `DECODER_FALLBACK_DRAWFAN` until PR-G3.
+**Authority remains conservative:** only automated `pass` sets `usable_as_shape_authority=true`. Runtime continues respecting `bucket["shape_authority"]`.
 
-## Visual contact-sheet diagnosis (Brandon / ChatGPT)
+Visible geometry remains `DECODER_FALLBACK_DRAWFAN` until PR-G3.
 
-| shape_ref | Prior verdict | v6 repair focus | Post-repair automated status |
-|---|---|---|---|
-| `sh1_e9743d87837d24ad` horizontal dotted/line | weak/noisy | centerline + segment anchors; high-core skeleton | **fail** (fragment coverage) |
-| `sh1_2bae89cc023a3c52` angled line | pass/weak baseline | thin ordered centerline | **fail** (fragment; geometry kind correct) |
-| `sh1_2e3da0a4330792c3` U-shape | weak/fail | bridged high-core skeleton, ordered centerline | **fail** (fragment coverage) |
-| `sh1_ca3a93cf551f850e` multicolor curve | weak | per-color skeleton merge, span scoring | **weak** |
-| `sh1_d9c0e1383b952508` diagonal stroke | fail (yellow smear) | reject filled bands; thin centerline only | **fail** (branch paths, no smear) |
-| `sh1_542fc5442a80e0dc` blue dot cluster | fail/weak | dot anchors (not blob) | **fail** (still routed branched_complex on real capture) |
-| `sh1_6fb79ee6e90df590` three blue strokes | weak/pass baseline | separate component anchors | **weak** |
-| `sh1_39cde94194e37010` dotted arc | weak | dot/segment anchors, no smear | **weak** (branch paths; high-core dots merged on still) |
-| `sh1_91ebda39c0075cac` compact swirl | weak/fail mask-like | branch polylines, not filled contour | **fail** |
+## Review context
 
-**Honest outcome:** 0 pass / 4 weak / 15 fail / **0 usable authority**. Architecture is improved; real-capture pixel-fit coverage remains below pass threshold.
+Prior build (geometry_kind repair): pass 0 / weak 4 / fail 15 / usable 0.
 
-## geometry_kind contract
+Brandon findings driving this patch:
+- `sh1_2bae89cc023a3c52` diagonal follows stroke but was hard-fail due to broad glow denominator
+- `sh1_d9c0e1383b952508` / `sh1_91ebda39c0075cac` dense branch scribble / filled yellow mass
+- `sh1_39cde94194e37010` dotted arc should be dot/segment anchors not branch scribble
+- Scorer used `support.support_pixels` (broad glow) as stroke coverage denominator
 
-New module: `tools/shape_geometry_kind.py`
+## Fixes applied
 
-Authority kinds:
+### 1. Stale `poly`/`p` bug in `validate_geometry_candidate`
 
-| geometry_kind | Meaning | Overlay draw |
-|---|---|---|
-| `centerline_polyline` | Ordered thin stroke centerline | 1px yellow line |
-| `branch_polyline` | Ordered skeleton branch paths | 1px yellow line per branch |
-| `dot_anchor_points` | Individual dot centers | small yellow circles |
-| `segment_anchor_points` | Short dash/segment anchors | short yellow marks |
-| `closed_loop_contour` | True thin ring contour | 1px closed contour |
+**File:** `tools/shape_geometry_kind.py`
 
-Rejected kinds (never authority):
+`long_lines` comprehension used `poly.get("source")` (stale outer variable) instead of `p.get("source")`. Fixed.
 
-- `rejected_mask_area`
-- `mask_area`
-- `unordered_pixel_cloud`
+Also fixed `infer_polyline_geometry_kind` so dotted vectorizer polylines with `n >= 4` and skeleton source classify as `centerline_polyline` (smear detection), not `dot_anchor_points`.
 
-Every selected shape and polyline now carries:
+**Regression test:** `tests/test_validate_geometry_candidate_uses_current_polyline_source.py`
 
-- `geometry_kind`
-- `ordered` (bool)
-- `vectorizer`
-- `rejection_reasons` / `reject_reasons`
-- `quality_flags`
+### 2. Scorer false-negative fix — fit target vs broad support
 
-`shape_point_count` now counts **geometry points only** (not raw support-mask pixels).
+**File:** `tools/shape_stroke_vectorization.py`
 
-## How v6 prevents mask/unordered pixels becoming authority
+Added `_fit_target_pixels()` combining:
+- `high_core_pixels`
+- per-color high-confidence core pixels (on high-core mask)
+- skeleton/ridge pixels from high-core-biased skeletonization
 
-1. **Annotate + validate** every vectorizer output before scoring (`validate_geometry_candidate`).
-2. **Reject** dense mask pixel clouds, unordered sources (`mask_pixels`), filled closed bands on strokes, dotted-pattern smears, collapsed dot clusters.
-3. **Hard-fail extraction** when `filled_band_geometry`, `unordered_pixel_cloud`, `dense_mask_pixels_as_polyline`, or `dotted_pattern_smear` — polylines cleared instead of serializing smear.
-4. **Ring classification tightened** — `_is_ring_topology` requires thin core ring only (not interior glow gaps on diagonal bands).
-5. **Removed** closed-loop support-mask contour fallback that produced filled bands.
-6. **Contact-sheet overlay** (`render_overlay_image`) draws by `geometry_kind`; skips rejected kinds entirely.
+**`stroke_coverage_score`** now uses `fit_target_pixels` as denominator.
 
-## Dotted arc handling
+**`broad_support_coverage_score`** retained as diagnostic only (computed from `support.support_pixels`).
 
-- `dotted_component_vectorizer` outputs per-component **dot centroids** or **segment anchors** (line-like dashes).
-- High-core component analysis for separated dots when hysteresis merges glow.
-- Validation rejects long continuous centerlines on `dotted_pattern` (`dotted_pattern_smear`).
-- Real capture `sh1_39cde94194e37010` still merges dots in support mask → routes `branched_complex` (weak, honest).
+**`geometry_precision_score`** samples checked against fit-target set, not full support.
 
-## Diagonal line filled-band fix
+Continuity and halo diagnostics still reference broad support mask.
 
-- Diagonal yellow smear was caused by `closed_loop_contour` on glow bands with interior holes.
-- Ring detection now requires `_is_thin_core_ring` only.
-- Continuous strokes skeletonize **high-core** when glow dominates support.
-- Synthetic diagonal test: thin ordered `centerline_polyline`, no fat closed band.
+### 3. Centerline alignment score
 
-## U-shape centerline fix
+New `centerline_alignment_score` for `centerline_polyline`:
+- geometry samples near fit-target pixels
+- span ratio vs fit-target extent
+- contributes to total score (+12 weight)
+- used in `classify_visual_status` to avoid hard-fail when thin centerline aligns with core but broad glow coverage is low
 
-- Morphological bridge on high-core mask before skeletonization.
-- Per-color skeleton path merge for multicolor U legs.
-- Ordered path validation rejects unordered skeleton fallbacks.
-- Real U capture still **fail** on fragment coverage (honest; geometry kind is centerline).
+Centerline with `centerline_alignment >= 0.35` and low fit-target coverage → **weak** (not fail).
 
-## Multicolor span coverage fix
+### 4. Dense branch scribble rejection
 
-- Per-color skeleton paths merged left-to-right when support is elongated.
-- Multicolor routing prefers `continuous_stroke` over dot_cluster/branched when hue spans are stroke-like.
-- `color_span_score` still gates pass/weak.
-- `sh1_ca3a93cf551f850e`: **weak** (partial fragment).
+**File:** `tools/shape_geometry_kind.py`
 
-## Dot cluster anchor fix
+New reject reasons:
+- `dense_branch_scribble` — many branch paths with high sample density
+- `branch_mask_fill_like` — branches span both axes like a filled band
 
-- `dot_cluster_vectorizer` preserves separate dot/segment anchors.
-- High-core component routing for separated dots.
-- `polylines_are_real_geometry` accepts multi-anchor dot layouts.
-- Real `sh1_542fc5442a80e0dc` still routes `branched_complex` when cores do not separate cleanly.
+Penalties in scorer (-50 / -55). Hard reject in extraction and `classify_visual_status`.
 
-## Runtime authority fix
+`skeleton_branch_vectorizer` now skeletonizes high-core-biased mask (not full support).
 
-`capture_index_runtime.py`:
+**Effect:** `skeleton_graph_stroke` wins over branch vectorizer on most phase6 captures (18 vs 1). Eliminates dense yellow scribble mass on diagonal/swirl cases.
 
-```python
-shape_authority = (
-    bucket.get("shape_authority") is True
-    and bool(shape_ref)
-    and shape_point_count > 0
-)
-```
+**Test:** `tests/test_dense_branch_scribble_rejected.py`
 
-Weak/fail shapes with `shape_authority=false` in capture index do not expose authoritative `shape_ref` at runtime.
+### 5. Dotted routing correction
 
-## Pass / weak / fail counts
+**File:** `tools/shape_stroke_vectorization.py`
 
-| Status | Count |
-|---|---:|
-| pass | 0 |
-| weak | 4 |
-| fail | 15 |
-| **usable_as_shape_authority** | **0** |
+`_dotted_or_cluster_from_core()` changes:
+- Removed elongated-stroke early `return None` that blocked segmented dashes
+- Segmented laser dashes along arc/line route to `dotted_pattern` even when elongated
+- Guard: single connected support component or multicolor elongated path → continuous stroke (not dotted)
+- `_components_for_dotted_vectorizer` uses high-core components when `>= 2` separated
 
-## geometry_kind distribution
+**Tests:**
+- `tests/test_dotted_segmented_marks_route_to_dotted_pattern.py`
+- `tests/test_dot_cluster_routes_to_dot_anchors_when_core_separated.py`
 
-| geometry_kind | Count |
-|---|---:|
-| centerline_polyline | 9 |
-| branch_polyline | 9 |
-| dot_anchor_points | 1 |
+Real capture `sh1_39cde94194e37010` still routes `branched_complex` when hysteresis merges cores on still — honest weak, not dotted anchors yet.
 
-## Tests run
-
-```bash
-python3 -m pytest tests/test_shape*.py tests/test_geometry*.py tests/test_dotted*.py tests/test_capture_index*.py tests/test_weak*.py -q
-# 85 passed
-
-# New v6 geometry_kind contract tests (10):
-# test_geometry_kind_contract.py
-# test_no_unordered_mask_pixels_as_polyline.py
-# test_contact_sheet_draws_geometry_kind.py
-# test_dotted_arc_outputs_dot_anchors.py
-# test_diagonal_line_rejects_filled_band.py
-# test_u_shape_ordered_centerline.py
-# test_multicolor_curve_geometry_covers_color_spans.py
-# test_dot_cluster_outputs_separate_anchors.py
-# test_capture_index_runtime_respects_shape_authority_flag.py
-# + updated test_shape_type_routing, test_geometry_pixel_fit_scoring,
-#   test_shape_polylines_not_bbox, test_shape_dot_cluster_preserves_components,
-#   test_dotted_arc_vectorizer, test_shape_schema_required_fields
-```
-
-## Files changed (v6 geometry_kind repair)
-
-| File | Role |
-|---|---|
-| `tools/shape_geometry_kind.py` | **New** — geometry kinds, validation, annotation |
-| `tools/shape_stroke_vectorization.py` | geometry metadata, high-core skeleton, dotted/ring fixes |
-| `tools/shape_extraction.py` | geometry_point_count, kind-aware overlay, hard reject |
-| `tools/shape_polyline_utils.py` | dot-anchor real-geometry acceptance |
-| `capture_index_runtime.py` | respect `bucket.shape_authority` |
-| `tools/shape_library_builder.py` | schema fields: geometry_kind, ordered, rejection_reasons |
-| 10 new/updated tests under `tests/` |
-
-## Artifacts regenerated
+## Post-patch artifact result
 
 ```bash
 python3 tools/shape_library_builder.py --phase6-limit 12
 ```
 
-| Artifact | Path |
-|---|---|
-| Shape library | `artifacts/renderer/shape_library_v1.json` |
-| Schema | `artifacts/renderer/shape_library_v1.schema.json` |
-| Selection | `artifacts/renderer/pr-g1-shape-authority/shape_selection.json` |
-| Contact sheets | `artifacts/renderer/pr-g1-shape-authority/contact_sheets/` |
-| Overlay index | `artifacts/renderer/pr-g1-shape-authority/overlay_review_index.json` |
-| Visual review summary | `artifacts/renderer/pr-g1-shape-authority/visual_review_summary.md` |
-| Capture index join | `artifacts/renderer/renderer-capture-index-pr1/capture_index_v1.json` |
+| Status | Count |
+|---|---:|
+| pass | 0 |
+| weak | 11 |
+| fail | 8 |
+| **usable_as_shape_authority** | **0** |
+
+Prior build: pass 0 / weak 4 / fail 15. Weak count improved 4 → 11; fail reduced 15 → 8. Still 0 automated pass (authority conservative).
+
+### Target shape outcomes
+
+| shape_ref | Status | geometry_kind | vectorizer |
+|---|---|---|---|
+| `sh1_2bae89cc023a3c52` | **weak** | centerline_polyline | skeleton_graph_stroke |
+| `sh1_2e3da0a4330792c3` | fail | centerline_polyline | skeleton_graph_stroke |
+| `sh1_d9c0e1383b952508` | **weak** | centerline_polyline | skeleton_graph_stroke |
+| `sh1_ca3a93cf551f850e` | **weak** | centerline_polyline | skeleton_graph_stroke |
+| `sh1_542fc5442a80e0dc` | fail | centerline_polyline | skeleton_graph_stroke |
+| `sh1_39cde94194e37010` | **weak** | centerline_polyline | skeleton_graph_stroke |
+| `sh1_91ebda39c0075cac` | **weak** | centerline_polyline | skeleton_graph_stroke |
+
+Key improvements:
+- Branch scribble eliminated — `skeleton_graph_stroke` wins (18/19 shapes)
+- Diagonal baseline no longer hard-fail
+- Dense yellow mass replaced by thin centerline overlay on diagonal/swirl cases
+- Still no automated pass; dotted arc on real still not yet dot anchors
+
+## Tests run
+
+```bash
+python3 -m pytest tests/test_shape*.py tests/test_geometry*.py tests/test_dotted*.py \
+  tests/test_capture_index*.py tests/test_weak*.py tests/test_validate*.py \
+  tests/test_centerline*.py tests/test_good*.py tests/test_dense*.py \
+  tests/test_dot_cluster*.py -q
+# 94 passed
+```
+
+New tests (6):
+- `test_validate_geometry_candidate_uses_current_polyline_source.py`
+- `test_centerline_scoring_uses_fit_target_not_broad_glow.py`
+- `test_good_diagonal_centerline_not_failed_by_broad_support.py`
+- `test_dense_branch_scribble_rejected.py`
+- `test_dotted_segmented_marks_route_to_dotted_pattern.py`
+- `test_dot_cluster_routes_to_dot_anchors_when_core_separated.py`
+
+Updated: `test_geometry_pixel_fit_scoring.py`, `test_shape_type_routing.py`
 
 ## Explicit non-mutations
 
@@ -183,4 +149,10 @@ python3 tools/shape_library_builder.py --phase6-limit 12
 
 ## Visible geometry policy
 
-Visible geometry remains **`DECODER_FALLBACK_DRAWFAN`** until PR-G3. Shape refs are internal authority plumbing only.
+Visible geometry remains **`DECODER_FALLBACK_DRAWFAN`** until PR-G3.
+
+## Stop line / next step
+
+This patch improves scorer honesty and eliminates branch-scribble authority geometry. **Pass count did not meaningfully improve (still 0).** Further handcrafted CV on real phase6 stills has diminishing returns.
+
+**Recommended pivot:** optional offline AI extraction prototype (out of PR-G1 scope) if Brandon wants higher pass rate on complex macros, dotted arcs, and multicolor curves.

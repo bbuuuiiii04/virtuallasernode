@@ -77,3 +77,5 @@ def test_geometry_pixel_fit_prefers_centerline() -> None:
     assert good.score > fragment.score
     assert good.geometry_kind in ("centerline_polyline", "branch_polyline")
     assert good.ordered is True
+    assert good.geometry_scores.get("centerline_alignment_score", 0.0) >= 0.25
+    assert "broad_support_coverage_score" in good.geometry_scores

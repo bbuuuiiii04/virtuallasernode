@@ -794,6 +794,8 @@ def extract_shape_from_image(
         "unordered_pixel_cloud",
         "dense_mask_pixels_as_polyline",
         "dotted_pattern_smear",
+        "dense_branch_scribble",
+        "branch_mask_fill_like",
     }
     if any(r in hard_geom_fail for r in (best.reject_reasons or [])):
         best.polylines = []
