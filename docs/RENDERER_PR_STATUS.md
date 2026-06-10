@@ -31,7 +31,7 @@ human_action_needed: visual overlay yes/no after PR-G1 extraction harness
 phase1_status: committed (PR-A/B/C) @ f5ad9212 — APPROVE as honesty foundation only
 repo_refactor: committed @ 45c5734d — archive pre-corpus calib + doc reorganize
 chatgpt_review_verdict: BLOCK capture-driven geometry claim until PR-G; APPROVE Phase 1
-pr_d_status: SUPERSEDED — do not merge; salvage geometry SSE wiring in PR-G3 only
+pr_d_status: REMOVED — fan-geometry-from-scalars never merged; use PR-G only
 pr_f_status: SUSPENDED (was PR6 physical calibration)
 review_branch: review/plan-pr1-5-phase1 (sync after push — not renderer policy on main)
 ```
@@ -40,7 +40,7 @@ review_branch: review/plan-pr1-5-phase1 (sync after push — not renderer policy
 
 ```text
 Codex (gpt-5.3-codex)      = implementation agent for every renderer PR
-Composer 2.5               = fallback only when Codex unavailable (historical: PR-D)
+Composer 2.5               = fallback only when Codex unavailable (historical)
 gpt-5.5-high               = routine reviewer (PR-A, PR-B, PR-C, PR-G1, PR-G4, PR-E)
 Opus (Claude 4.8)          = orchestrator + checkpoint reviewer
                              (PR-G1b motion tracks, PR-G2, PR-G3, final integration)
@@ -74,7 +74,7 @@ PR-F    Physical calibration (was PR6)                               [SUSPENDED 
 PR-A provenance honesty     committed
 PR-B cue aliases            committed
 PR-C motion truth + color   committed
-PR-D fan geometry/density   SUPERSEDED — see RENDERER_WALL_TO_AERIAL_PLAN_V1.md §8
+PR-D fan geometry/density   REMOVED — never merged; use PR-G1–G3
 ```
 
 Phase 1 remains valid and should land before or alongside PR-G1; it does not depend on fan geometry.
@@ -102,7 +102,6 @@ Checkpoint PRs require committed review at `artifacts/renderer/<pr-name>/opus_re
 | PR 5 | renderer-visual-polish-pr5 | complete | Visual polish |
 | PR 6 / PR-F | renderer-physical-hardening-pr6 | **SUSPENDED** | After PR-G + H1–H4 |
 | PR-A/B/C | renderer-accuracy-phase1 | **committed** @ f5ad9212 | Provenance + motion + color |
-| PR-D | renderer-accuracy-phase1 | **SUPERSEDED — do not merge** | Salvage SSE geometry in PR-G3 |
 | PR-G1–G4 | TBD | **not started** | Spec rev 4 ready; G1 = local stills + calibration boxes |
 | PR-H1–H4 | TBD | **not started** | Timing, combos, direction, track storage — after G4 (see plan §14) |
 
@@ -131,23 +130,13 @@ Not evidence: calib/captures/, /tmp atlas PNGs, WALL_CH3 legacy still column
 Report: artifacts/renderer/pr-g1-plan-cleanup/implementation_report.md
 ```
 
-## PR-D Checklist — SUPERSEDED
-
-```text
-PR: PR-D — capture-driven fan geometry + density
-Status: SUPERSEDED by RENDERER_WALL_TO_AERIAL_PLAN_V1.md
-Opus review: CANCELLED — review PR-G2/G3 instead
-Action: do not merge; cherry-pick analysis_geometry SSE wiring into PR-G3
-Report: artifacts/renderer/renderer-accuracy-pr-d/implementation_report.md (historical)
-```
-
 ## Latest Decisions (2026-06-10)
 
 - **Primary plan rev 4:** PR-G1 uses **local** `captures/fixture_model/**` stills; normalization in **per-fixture calibration projection boxes** from `analysis_geometry.json`.
 - **WALL_CH3_LOOK_ATLAS.md** is a **family checklist only** — not extraction evidence.
 - **Dual selection lanes:** CH3 family coverage (alphabet) + phase6 cue captures (SoundSwitch words).
 - **Topology labels** are diagnostic (`line`, `two_clusters`, …); Brandon validates overlays visually (yes/no).
-- PR-D fan spread/count/density is deprecated; not merge-ready.
+- Fan-geometry-from-scalars path removed; no unmerged draft on branch.
 - PR-A/B/C committed; PR-G1 implementation not started.
 - Doc index: `docs/RENDERER_DOCS_INDEX.md` categorizes historical vs present docs.
 
@@ -156,7 +145,6 @@ Report: artifacts/renderer/renderer-accuracy-pr-d/implementation_report.md (hist
 - Shape extraction quality on macros and low-contrast stills.
 - Projection math without full homography — label error honestly.
 - PR-H blocked until PR-G4 exit (timing, combos, direction, lazy load — plan §14).
-- PR-D unmerged code on branch may confuse agents — treat as salvage-only.
 - Composer quarantine experiments — default off (`COMPOSER_QUARANTINE_LEDGER.md`).
 - `second_pattern` regression during `_drawFan` replacement.
 - Do not mutate fixture_model or capture data during PR-G.

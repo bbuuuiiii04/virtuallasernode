@@ -28,7 +28,7 @@ Plans and guides that govern **current and near-term** renderer work.
 | [RENDERER_WALL_TO_AERIAL_PLAN_V1.md](RENDERER_WALL_TO_AERIAL_PLAN_V1.md) | **Active primary (rev 4 — PR-G1 spec)** | G1–G4 core; §6.0 local corpus + calibration boxes; H1–H4 hardening |
 | [RENDERER_PR_STATUS.md](RENDERER_PR_STATUS.md) | **Active** | Living status; update each PR checkpoint |
 | [RENDERER_AGENT_ORCHESTRATION.md](RENDERER_AGENT_ORCHESTRATION.md) | **Active** | Orchestration + Opus forensic checklist |
-| [RENDERER_ACCURACY_PLAN_V1.md](RENDERER_ACCURACY_PLAN_V1.md) | **Partially active** | PR-A/B/C/E policy still valid; **PR-D section superseded** by wall→aerial plan |
+| [RENDERER_ACCURACY_PLAN_V1.md](RENDERER_ACCURACY_PLAN_V1.md) | **Partially active** | PR-A/B/C/E policy valid; fan-geometry section is historical stub only |
 | [RENDERER_CAPTURE_BACKED_PLAN_V1.md](RENDERER_CAPTURE_BACKED_PLAN_V1.md) | **Policy reference** | Authority tiers, corpus boundaries; update "aerial renderer" wording — shape authority now wall-driven |
 
 ---
@@ -73,7 +73,7 @@ Kept for audit trail. **Do not implement from these.**
 | [_archive/historical_renderer/RENDERER_REVIEW.md](_archive/historical_renderer/RENDERER_REVIEW.md) | Forensic review artifact |
 | [PLANNING.md](PLANNING.md) §Renderer | RENDERER_WALL_TO_AERIAL_PLAN_V1.md |
 
-**PR-D (fan geometry):** superseded — reports in `archive/experiments/pr_d/` (local).
+**Deprecated fan-geometry path:** never merged — see plan §8 (historical one paragraph).
 
 ---
 
@@ -110,7 +110,6 @@ Merged or completed work from the capture-backed **metadata + fan overlay** era.
 |---|---|
 | [../archive/README.md](../archive/README.md) | Pre-corpus stills + legacy scripts + quarantine |
 | `archive/experiments/quarantine/` | Superseded CH19/fan motion experiments |
-| `archive/experiments/pr_d/` | Superseded PR-D reports |
 
 ---
 

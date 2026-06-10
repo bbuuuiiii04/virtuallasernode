@@ -29,7 +29,7 @@ data/fixture_model.json                # composed model (do not mutate without a
 
 ```text
 archive/pre_corpus_2026-06-05/         # old calib stills + legacy scripts
-archive/experiments/                   # quarantine + PR-D experiments
+archive/experiments/                   # quarantine experiments (local)
 docs/_archive/                         # historical markdown
 ```
 

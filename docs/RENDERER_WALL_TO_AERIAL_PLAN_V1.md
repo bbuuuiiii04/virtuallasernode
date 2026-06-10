@@ -1,7 +1,7 @@
 # Renderer Wall → Aerial Plan V1 — Capture-Driven Beam Simulation
 
 **Date:** 2026-06-10 (rev 4 — PR-G1 static-shape spec: local corpus, calibration boxes, dual selection lanes)  
-**Status:** Active primary renderer implementation plan (supersedes fan-geometry PR-D)  
+**Status:** Active primary renderer implementation plan (supersedes abandoned fan-geometry-from-scalars approach)  
 **Owner (orchestrator + checkpoint reviewer):** Opus  
 **Implementer:** Codex (gpt-5.3-codex)  
 **Routine reviewer:** gpt-5.5-high  
@@ -31,7 +31,7 @@ DMX CH1-19 vector
     → canvas (crowd view)
 ```
 
-This plan **supersedes PR-D** as a merge target (§9). PR-A / PR-B / PR-C remain valid and attach to the new draw path. PR-E runs after PR-G. PR-F stays **SUSPENDED** until PR-G + H1–H4.
+This plan **supersedes** the abandoned “smarter `_drawFan()` from analysis scalars” path. PR-A / PR-B / PR-C remain valid and attach to the new draw path. PR-E runs after PR-G. PR-F stays **SUSPENDED** until PR-G + H1–H4.
 
 ---
 
@@ -77,7 +77,7 @@ TARGET (this plan):
 | `_drawFan()` | Rigid ray fan; ignores 8k motion clips |
 | Capture index | Scalars only (strobe, color, motion_type); **no shape, no frame track** |
 | PR-C motion_type | Gates sweep vs strobe correctly but **does not drive wall figure animation** |
-| PR-D (unmerged) | Fan spread/count from scalars — wrong abstraction |
+| Abandoned fan-geometry path | Fan spread/count from scalars — wrong abstraction |
 
 Brandon has **both** evidence types the simulator needs. The failure is **consumption**, not collection.
 
@@ -167,7 +167,7 @@ The quarantined CH19 `fixed` fan-endpoint hack is **not** the target model. Targ
 4. Do NOT convert to WebGL. Canvas 2D.
 5. Do NOT remove `second_pattern` rendering.
 6. Do NOT display wall figure as primary view (aerial only; `?wallDebug=1` dev overlay OK).
-7. Do NOT merge PR-D fan geometry as-is (§9).
+7. Do NOT merge fan-geometry-from-scalars work (deprecated; see §8).
 8. Do NOT treat `analysis.json` scalars as a substitute for frame tracks when tracks exist for that vector.
 9. Every PR: implementation report, tests/smoke, review artifact.
 10. No visual polish before shape + motion playback + projection correctness.
@@ -529,7 +529,7 @@ Acceptance depends on **locally generated artifacts**, not historical PNGs or vi
 
 **Goal:** Crowd view from time-varying wall figure + rig geometry.
 
-- Reuse PR-D salvage: `analysis_geometry` SSE, aperture box origins (§9).
+- Wire `analysis_geometry` for rig projection (PR-G3): aperture box origins from committed geometry file.
 - For each wall hit point on figure: ray from aperture → point → aerial beam segment.
 - Replace `_drawFan` when shape+motion hit; keep `_drawFan` as `DECODER_FALLBACK`.
 - Deprecate on hit path: `density_beam_count_derived`, fan spread from `angle_range_deg`.
@@ -552,7 +552,7 @@ Acceptance depends on **locally generated artifacts**, not historical PNGs or vi
 - Diagnostics: tiers for `shape_static`, `shape_motion_track`, `projection`, `motion_playback`, color, strobe.
 - Warnings: `motion_track_missing`, `motion_track_bypassed`, `scalar_fallback`, `fast_motion_timing_inferred`.
 - `calib/render_grid_capture.py`: load shape + motion refs; atlas + phase6 cue grid.
-- Document deprecated PR-D fan fields.
+- Document deprecated fan-density index fields if still present.
 
 **Accept:** Headline never `EXACT_CAPTURE_RENDER_AUTHORITY` while `validation.pass=0`. Per-parameter table shows still vs track vs fallback sources.
 
@@ -570,7 +570,7 @@ Acceptance depends on **locally generated artifacts**, not historical PNGs or vi
 
 ```text
 DONE (merge target):    PR-A, PR-B, PR-C — honesty/motion-labeling foundation only
-SUPERSEDED:             PR-D
+DEPRECATED:             fan-geometry-from-scalars (never merged)
 ACTIVE:                 PR-G1 → PR-G1b → PR-G2 → PR-G3 → PR-G4
 THEN:                   PR-E
 SUSPENDED:              PR-F
@@ -582,14 +582,16 @@ Recommended: atlas families first in G1/G1b (12 CH3 families), then full corpus 
 
 ---
 
-## 8. PR-D supersession
+## 8. Deprecated fan-geometry approach (historical)
 
-| PR-D artifact | Disposition |
+The “capture-driven fan spread + derived beam count from scalars” approach was **never merged** and is **not** a valid implementation path. Use PR-G instead.
+
+| Former idea | Disposition |
 |---|---|
-| `analysis_geometry` SSE | **Keep** → PR-G3 |
-| `x_range_norm_aperture` | **Keep** → extent labels only |
-| `derive_beam_count()` / fan spread | **Deprecate** on hit path |
-| Opus PR-D review | **Cancelled** → review G1b, G2, G3 |
+| `analysis_geometry` in SSE / runtime | **Keep for PR-G3** — rig projection only |
+| `x_range_norm_aperture` in index | **Keep** — extent labels only |
+| `derive_beam_count()` / fan spread from scalars | **Do not implement** |
+| Composer draft + local experiments | **Discarded** — not in git |
 
 ---
 
@@ -911,4 +913,4 @@ External review asked five product questions. Defaults below are **locked for ag
 | 4 | G1/G1b starting with 12 atlas families before 8,324 captures? | **Yes.** Atlas-first smoke matrix (`WALL_CH3_LOOK_ATLAS.md`); expand to full corpus after atlas exit gate. |
 | 5 | H2 direction: manual contact sheets vs unsigned motion? | **Unsigned until G3 is visibly close** on atlas + phase6 subset; then manual H2/H3 on a small matrix. Do not block G1–G3 on direction authority. |
 
-**Merge policy (same review):** **APPROVE** Phase 1 (PR-A/B/C) as foundation. **BLOCK** any claim that Phase 1 or PR1–PR5 is capture-driven geometry/motion. **BLOCK** PR-D as merge target. Next implementation PR: **PR-G1** (atlas-first static shapes).
+**Merge policy (same review):** **APPROVE** Phase 1 (PR-A/B/C) as foundation. **BLOCK** any claim that Phase 1 or PR1–PR5 is capture-driven geometry/motion. **Next implementation:** PR-G1 (local still shapes per §6.0).

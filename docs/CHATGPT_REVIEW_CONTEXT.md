@@ -28,10 +28,10 @@
 
 ## Explicitly excluded (local-only or superseded)
 
-- Index regen / PR-D builder changes (uncommitted WIP)
 - Quarantine experiments → `archive/experiments/quarantine/`
 - Raw capture media (~37 GB, **local only** — not in git)
 - **Pre-corpus stills** → `archive/pre_corpus_2026-06-05/calib_captures/`
+- Abandoned fan-geometry draft (never committed)
 
 ## Prior review verdict (2026-06-09)
 

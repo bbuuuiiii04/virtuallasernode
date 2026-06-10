@@ -515,30 +515,9 @@ acceptance. The review must:
 
 If no committed capture-grounded opus_review.md exists, the correct verdict is BLOCK_MERGE.
 
-## 12b. PR-D Composer 2.5 exception — mandatory strict review (2026-06-09)
+## 12b. Deprecated fan-geometry draft (historical)
 
-PR-D (`renderer-accuracy-pr-d`) was implemented by **Composer 2.5** after Codex (gpt-5.3-codex)
-hit an API usage limit. This is a documented fallback, not a change to the default model policy.
-
-**Composer 2.5 PR-D output must be treated as unreviewed and merge-blocked.**
-
-Required before acceptance:
-
-```text
-Reviewer:        Opus (Claude 4.8) or equivalent high-capability checkpoint subagent
-Review depth:    EXTENSIVE STRICT — stricter than routine gpt-5.5 review
-Artifact:        artifacts/renderer/renderer-accuracy-pr-d/opus_review.md (committed)
-Grounding:       actual diff + capture corpus (§12a file list) + headless render evidence
-Focus areas:     geometry box→canvas mapping, angle_range_deg spread, derived density
-                 labeling/tier honesty, Phase 1 regression, forensic Q6/Q7/Q10/Q11
-Verdict:         explicit APPROVE or BLOCK_MERGE — no self-certification in status docs
-Gate:            do NOT merge, commit as approved, or start PR-E until review completes
-Report:          artifacts/renderer/renderer-accuracy-pr-d/implementation_report.md
-Status tracker:  docs/RENDERER_PR_STATUS.md (PR-D checklist)
-```
-
-Routine gpt-5.5 review alone is **insufficient** for PR-D acceptance.
-Passing unit tests and smoke screenshots do **not** clear this gate.
+A local Composer draft attempted “smarter `_drawFan()` from analysis scalars.” It was **never merged or pushed**, WIP was discarded 2026-06-10, and agents must not revive it. Shape authority is **PR-G1** per `RENDERER_WALL_TO_AERIAL_PLAN_V1.md` §6.0.
 
 ## 13. Failure and Recovery Policy
 

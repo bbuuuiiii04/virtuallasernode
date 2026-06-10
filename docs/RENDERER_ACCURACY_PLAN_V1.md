@@ -1,7 +1,7 @@
 # Renderer Accuracy Plan V1 — Capture-Driven Authority (PR-A → PR-E)
 
 > **Status (2026-06-09):** PR-A / PR-B / PR-C / PR-E sections remain active.  
-> **PR-D is superseded** by `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md` (do not merge fan geometry PR-D).  
+> **Fan-geometry-from-scalars (formerly “PR-D”) is removed.** Use `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md` PR-G1–G3 instead.  
 > **Primary plan:** wall figure → rig projection → aerial beams.  
 > **Doc index:** `docs/RENDERER_DOCS_INDEX.md`
 
@@ -28,7 +28,7 @@ Make committed capture evidence the **render authority** for visible laser behav
 2. Do NOT mutate `data/fixture_model.json` or any capture data under `captures/`.
 3. Do NOT convert to WebGL. Keep the 2D canvas renderer.
 4. Do NOT remove `second_pattern` rendering; keep it decoder-driven + warning-labeled (CH20-36 is out of capture scope).
-5. Do NOT move fixture/aperture source origins arbitrarily; in PR-D origins move ONLY to measured `analysis_geometry.json` box positions, documented.
+5. Do NOT move fixture/aperture source origins arbitrarily; PR-G3 may use measured `analysis_geometry.json` box positions only when documented in the wall→aerial plan.
 6. Do NOT visual-polish; correctness before polish. No new glow/tint passes.
 7. Never emit a "render authority"/"validated" tier unless `data/fixture_model.json.validation` backs that vector (today `validation.pass = 0`, so the strongest currently truthful tier is "measured, unvalidated").
 8. Every PR ships: an implementation report, tests/smoke, and a committed review (gpt-5.5 routine; Opus for checkpoints). No self-certification.
@@ -80,10 +80,9 @@ Geometry (`analysis_geometry.json`): `scale.px_per_inch=10.5185`, `analysis_roi`
 | **Motion model** | `motion_type` | pick model (see 3.4); NOT from CH15/16 alone | MEASURED_PARAM | decoder sine |
 | **Motion rate** | `loop_duration_estimate`+`periodic_motion`+`loop_confidence` | rateHz=1/loop only if periodic & loop_confidence≥0.5 | MEASURED_PARAM | `_sweepHz(CH)` |
 | **Direction** | `motion_direction`+`motion_direction_confidence` | apply sign ONLY if confidence≥0.6 AND concrete label | MEASURED_PARAM | unsigned (no default sign) |
-| **Sweep extent** | `x_range`,`y_range`,`px_per_inch`,per-aperture box width | px→inch→normalize by aperture box width/height (PR-D) | MEASURED_PARAM | clamp 1.0 |
-| **Fan angular spread** | `angle_range_deg` | radians = deg·π/180 (PR-D) | MEASURED_PARAM | `CAL.geometry.spreadAng*` |
-| **Beam count/density** | `area_range_frac`+`angle_range_deg`(+analyzer count, PR-D) | DERIVED bins; label DERIVED not MEASURED until analyzer count exists | DERIVED (sub-tier of MEASURED_PARAM, flagged) | `_patternShape` |
-| **Aperture origins** | `boxes[].bbox` centroids + gap | map measured box centers→canvas (PR-D) | MEASURED_PARAM | `CAL.geometry.*Frac` |
+| **Sweep extent** | `x_range`,`y_range`,`px_per_inch`,per-aperture box width | PR-G: normalize in calibration projection box | MEASURED_PARAM (PR-G) | clamp 1.0 |
+| **Shape topology** | still.jpg in calibration box | PR-G1 extraction | MEASURED_PARAM (PR-G) | `_patternShape` |
+| **Aperture origins** | `boxes[].bbox` in `analysis_geometry.json` | PR-G3 projection | MEASURED_PARAM (PR-G) | `CAL.geometry.*Frac` |
 | **Dot vs line scan** | (none in numeric corpus) | keep decoder CH10; label DECODER_FALLBACK; do NOT badge measured | DECODER_FALLBACK | decoder `_scan` |
 | **Position/aim centroid** | (extent only, no centroid in corpus) | keep decoder CH6/CH7; label DECODER_FALLBACK | DECODER_FALLBACK | decoder `_position` |
 
@@ -139,24 +138,11 @@ Each PR: own scope, tests, report, committed review. Branch per phase.
 - Tests: `tests/test_renderer_motionstate.js` — strobe_gate cue with CH15>127 produces zero translational offset; low-confidence direction → unsigned; color from dominant_colors applied; headline tier reflects measured color+strobe but decoder count.
 - Accept: the `cue_001_off` "OFF" case renders blue/cyan, strobing, NO horizontal sweep.
 
-### PR-D — Capture-driven geometry + density  [SUPERSEDED — do not merge]
+### Deprecated — fan geometry from scalars (historical stub)
 
-> **Superseded 2026-06-09** by `docs/RENDERER_WALL_TO_AERIAL_PLAN_V1.md` PR-G3.  
-> Fan spread/count/density from scalars is the wrong model. Salvage: `analysis_geometry` SSE wiring, aperture box helpers, `x_range_norm_aperture` for motion extents.  
-> Opus review of PR-D is cancelled; review PR-G2/G3 instead.
-
-**Implementation note (2026-06-09):** PR-D was implemented by **Composer 2.5** (Codex API limit
-fallback). It is **NOT merge-ready**. Requires **extensive strict review** by Opus or an
-equivalent high-capability subagent before acceptance. Routine gpt-5.5 review is insufficient.
-See `artifacts/renderer/renderer-accuracy-pr-d/implementation_report.md` and
-`docs/RENDERER_AGENT_ORCHESTRATION.md` §12b.
-
-- Renderer consumes `analysis_geometry.json`: aperture origins from `boxes[].bbox` centroids; per-aperture extent normalization (replace full-ROI/screen-fraction math).
-- Fan angular spread from `angle_range_deg`.
-- Density: derive beam-count bins from `area_range_frac`+`angle_range_deg`, labeled DERIVED (not MEASURED) until an analyzer count field exists. Add `area_range_frac`→occupancy mapping.
-- Add (if local raw video available) an analyzer pass emitting `beam_blob_count`/`contour_count` into a NEW index field (do NOT mutate existing capture data; write to the index artifact only). If raw media absent, mark `density_evidence: inferred` and flag HUMAN_VALIDATION.
-- Tests: geometry-conversion unit tests; smoke grid before/after.
-- Accept: aperture placement matches measured box geometry; spread reflects `angle_range_deg`; density labeled honestly.
+> **Never merged.** Replaced by PR-G1–G3 in `RENDERER_WALL_TO_AERIAL_PLAN_V1.md`.  
+> Do not implement `_drawFan()` tuning from `angle_range_deg`, `derive_beam_count()`, or fan spread.  
+> `analysis_geometry.json` remains valid **rig input for PR-G3 projection only**.
 
 ### PR-E — Diagnostics completeness + provenance UX + harness  [routine: gpt-5.5]
 
@@ -169,19 +155,19 @@ See `artifacts/renderer/renderer-accuracy-pr-d/implementation_report.md` and
 
 ## 5. THIS DEPLOYMENT — Phase 1 = PR-A + PR-B + PR-C (+ capture-aware harness)
 
-Codex implements PR-A, PR-B, PR-C together as one cohesive "runtime honesty + motion truth" phase (they share the authority/label/MotionState core and contain no beam-geometry rewrite). PR-D and PR-E are deferred to the next checkpoint (PR-D is the Opus-reviewed massive change).
+Codex implements PR-A, PR-B, PR-C together as one cohesive "runtime honesty + motion truth" phase (they share the authority/label/MotionState core and contain no beam-geometry rewrite). Geometry work is **PR-G**, not a fan-tuning pass on this branch.
 
 Files Codex may touch in Phase 1:
 - `capture_index_runtime.py` (tiers, validation_backed, aliases)
 - `fixture_model_adapter.py` (per-param authority summary; do NOT change composed values)
 - `webserver.py` (pass validation state + aliases through; no behavior change to SSE shape beyond additive fields)
-- `static/renderer.js` (MotionState: motion_type model, color, direction gate, headline tier; NO `_drawFan` origin/geometry rewrite — that is PR-D)
+- `static/renderer.js` (MotionState: motion_type model, color, direction gate, headline tier; NO `_drawFan` geometry rewrite — that is PR-G)
 - `static/app.js` (diagnostics: headline authority, per-param tiers, aliases)
 - `calib/render_grid_capture.py` (NEW capture-aware harness)
 - `tests/test_capture_index_runtime.py`, `tests/test_renderer_motionstate.js`
 - `artifacts/renderer/renderer-accuracy-phase1/implementation_report.md`
 
-Explicit Phase-1 non-goals (defer to PR-D/E): aperture origin remap, per-aperture extent normalization, angular-spread-from-angle_range_deg, analyzer count field, density rewrite.
+Explicit Phase-1 non-goals (defer to PR-G / PR-E): shape extraction, calibration-box normalization, aerial projection, analyzer count fields, fan density rewrite.
 
 ### Phase 1 acceptance (Codex must verify)
 1. `node tests/test_renderer_motionstate.js` passes incl. new motion-type/color/direction tests.
@@ -208,4 +194,4 @@ Opus then reads the PNG and confirms color/motion correctness vs the cue's `anal
 ## 7. Review model
 - Codex (gpt-5.3-codex): implements each PR.
 - gpt-5.5-high: reviews PR-A, PR-B, PR-C, PR-E (routine), against this plan + diff + tests.
-- Opus (Claude 4.8): reviews PR-D (massive geometry/density checkpoint) and the final integration, capture-grounded; intervenes earlier only if a phase review escalates a blocker.
+- Opus (Claude 4.8): reviews PR-G1b, PR-G2, PR-G3 checkpoints and final integration, capture-grounded.
