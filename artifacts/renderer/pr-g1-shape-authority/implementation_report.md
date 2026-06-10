@@ -1,38 +1,62 @@
-# PR-G1 Static Shape Authority — Implementation Report (fix pass)
+# PR-G1 Static Shape Authority — Implementation Report (merge-ready)
 
 ## Summary
 
-Fix pass for PR #1: replaced bbox-corner polylines with real extracted geometry (contour trace + Douglas-Peucker simplify, centerline/skeleton for lines, per-cluster polylines for multi-cluster shapes). Lane A selection now scores distance to `rep_ch3`. Out-of-box detection ignores sibling fixture calibration boxes.
+PR-G1 builds internal wall-space static shape authority from local `captures/fixture_model/**` stills. Extraction v2 produces real contour/centerline polylines (not bbox corners). Runtime capture index shape joins were regenerated after v2 extraction. Visible aerial geometry remains `_drawFan()` decoder fallback until PR-G3.
 
-## Files changed
+## Files changed (implementation)
 
-| File | Change |
+| File | Role |
 |---|---|
-| `tools/shape_extraction.py` | v2 extraction: contours, centerlines, out-of-box fix |
-| `tools/shape_polyline_utils.py` | New — bbox-only polyline detection helpers |
-| `tools/shape_library_builder.py` | rep_ch3 scoring, selection_reason, schema, fallback_reason |
-| `test-requirements.txt` | New — requires `jsonschema` |
-| `tests/test_shape_library_schema.py` | jsonschema mandatory |
-| `tests/test_shape_schema_required_fields.py` | New |
-| `tests/test_shape_polylines_not_bbox.py` | New |
-| `tests/test_shape_selection_rep_distance.py` | New |
-| `tests/test_shape_out_of_box_ignores_other_fixture.py` | New |
-| `tests/test_shape_extraction_colored_synthetic.py` | New |
-| `tests/test_shape_extraction_synthetic.py` | closed_loop + out-of-box fixes |
+| `tools/shape_extraction.py` | v2 contour/centerline extraction |
+| `tools/shape_polyline_utils.py` | bbox-only polyline detection |
+| `tools/shape_library_builder.py` | Lane A/B selection, library emit, index merge |
+| `capture_index_runtime.py` | shape_ref lookup + shape_authority semantics |
+| `static/renderer.js` | diagnostics-only shape block |
+| `static/app.js` | diagnostics panel fields |
+| `test-requirements.txt` | jsonschema for strict schema tests |
+| `tests/test_shape_*.py` | selection, schema, geometry, runtime tests |
+| `tests/test_renderer_motionstate.js` | shape_ref vs visible fallback |
 
-## Exact fixes
+## Artifacts regenerated
 
-1. **Polylines:** Removed bbox-corner-only `_trace_border_polyline`. Now uses Moore-neighbor contour tracing, Douglas-Peucker simplification, centerline extraction for elongated components, and one polyline per cluster when needed.
-2. **Schema:** All PR-G1 shape fields required; `jsonschema` required in tests (no silent fallback).
-3. **Lane A selection:** Scores `exact` match to `rep_ch3`, then `-abs(ch3 - rep_ch3)` (not distance to zero). Horizontal line family now selects **CH3=32** exact representative.
-4. **Out-of-box:** Full-image scan skips pixels inside other fixture boxes; edge-touch detection within selected crop retained.
-5. **Shape records:** Every library shape includes `fallback_reason: null` on success.
+Final build command:
 
-## Shape extraction method (v2)
+```bash
+python3 tools/shape_library_builder.py --phase6-limit 12
+```
+
+| Artifact | Path |
+|---|---|
+| Selection | `artifacts/renderer/pr-g1-shape-authority/shape_selection.json` |
+| Shape library | `artifacts/renderer/shape_library_v1.json` |
+| Schema | `artifacts/renderer/shape_library_v1.schema.json` |
+| Contact sheets | `artifacts/renderer/pr-g1-shape-authority/contact_sheets/` (18 PNGs) |
+| Overlay index | `artifacts/renderer/pr-g1-shape-authority/overlay_review_index.json` |
+| Capture index join | `artifacts/renderer/renderer-capture-index-pr1/capture_index_v1.json` |
+
+## Build stats
+
+| Metric | Count |
+|---|---:|
+| Lane A (ch3_family) | 12 |
+| Lane B (phase6_cue) | 12 |
+| Skipped/excluded | 6 |
+| Shapes in library | 18 |
+| Vectors with shape_ref (index merge) | 18 |
+
+## Capture index regeneration
+
+- Builder run **with index merge** (no `--no-merge-index`)
+- `merge_stats.vectors_with_shape_ref`: **18**
+- Runtime index shape joins verified after v2 extraction polylines
+- `capture_index_v1.json` updated (+56 / −21 lines in shape join fields)
+
+## Extraction method (v2)
 
 | Topology | Polyline source |
 |---|---|
-| `line` | Centerline (`skeleton`) along dominant axis |
+| `line` | Centerline (`skeleton`) |
 | `two_clusters` | Per-cluster contour or centerline |
 | `closed_loop` | Closed contour trace |
 | `multi_cluster` / `complex_shape` | Contour or sampled component points |
@@ -41,21 +65,14 @@ Fix pass for PR #1: replaced bbox-corner polylines with real extracted geometry 
 
 ## Proof polylines are not bbox-only
 
-- `tests/test_shape_polylines_not_bbox.py` passes on synthetic and built library (18/18 shapes).
-- Built library polyline sources include `contour`, `skeleton`, `simplified_component` — no bbox-corner-only entries.
-- Example: horizontal line family shape uses centerline points along the laser stroke, not a 4-corner rectangle.
+- Automated check: **0 bbox-only polylines** across 18 library shapes
+- `tests/test_shape_polylines_not_bbox.py` passes on synthetic + built library
+- Horizontal line (CH3=32): contour/centerline geometry, not 5-point rectangle
 
-## Build stats (subset)
+## Lane A verification
 
-Builder: `python3 tools/shape_library_builder.py --phase6-limit 12 --no-merge-index`
-
-| Metric | Count |
-|---|---:|
-| Lane A (ch3_family) | 12 |
-| Lane B (phase6_cue) | 12 |
-| Skipped/excluded | 6 |
-| Shapes in library | 18 |
-| Contact sheets | 18 |
+- **horizontal line static** → CH3=32, tier `exact_family`
+- Selection reason: `exact CH3=32 representative in range 16-40`
 
 ## Schema validation
 
@@ -64,11 +81,11 @@ pip install -r test-requirements.txt
 python3 -m pytest tests/test_shape_schema_required_fields.py tests/test_shape_library_schema.py
 ```
 
-Result: **PASS** (jsonschema validates `shape_library_v1.json` against strengthened schema)
+Result: **PASS** (jsonschema validates strengthened schema)
 
 ## Tests run
 
-```text
+```bash
 python3 -m pytest tests/test_shape_selection.py                     → 6 passed
 python3 -m pytest tests/test_shape_library_schema.py                → 2 passed
 python3 -m pytest tests/test_shape_schema_required_fields.py        → 3 passed
@@ -88,7 +105,17 @@ node tests/test_renderer_motionstate.js                             → 26 passe
 
 ## Contact sheets
 
-`artifacts/renderer/pr-g1-shape-authority/contact_sheets/` — 18 PNGs (regenerated with contour overlays)
+`artifacts/renderer/pr-g1-shape-authority/contact_sheets/` — 18 PNGs (still + contour overlay)
+
+## Diagnostics honesty (unchanged)
+
+When internal `shape_ref` exists:
+
+- `visible_geometry_source = DECODER_FALLBACK_DRAWFAN`
+- `projection_source = NOT_WIRED_PR_G3`
+- Warning: `shape_ref_internal_only_visible_geometry_decoder_fallback_until_PR_G3`
+
+Exact vector match alone does **not** imply shape authority without non-empty `shape_ref` and `shape_point_count > 0`.
 
 ## Explicit non-mutations
 
@@ -97,16 +124,12 @@ node tests/test_renderer_motionstate.js                             → 26 passe
 
 ## Visible geometry policy
 
-Visible aerial geometry remains **`DECODER_FALLBACK_DRAWFAN`** until PR-G3. Diagnostics unchanged:
-
-- `visible_geometry_source = DECODER_FALLBACK_DRAWFAN`
-- `projection_source = NOT_WIRED_PR_G3`
-- Warning: `shape_ref_internal_only_visible_geometry_decoder_fallback_until_PR_G3`
+Visible aerial geometry remains **`DECODER_FALLBACK_DRAWFAN`** until PR-G3. No `_drawFan()` changes in this PR.
 
 ## Known limitations
 
-1. Five CH3 families still have no local isolated representative (`no_ch3_family_representative`).
-2. Phase6 Lane B limited to 12 cues in subset build.
-3. Contour tracing is v1 heuristic; overlay human review still required (`brandon_verdict: pending`).
-4. Topology labels remain diagnostic hints, not ground truth.
-5. Index merge skipped in this rebuild (`--no-merge-index`); re-run builder without flag to refresh `capture_index_v1.json` shape joins.
+1. Subset build (`--phase6-limit 12`), not full ~8K corpus
+2. Five CH3 families have `no_ch3_family_representative`
+3. Contour extraction is heuristic; overlay review verdicts remain `pending`
+4. Topology labels are diagnostic hints only
+5. Local stills not in git — full extraction verification requires local media

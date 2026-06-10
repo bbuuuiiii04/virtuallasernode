@@ -1,6 +1,6 @@
 {
   "artifact_version": "shape-library-v1",
-  "generated_at": "2026-06-10T04:57:28+00:00",
+  "generated_at": "2026-06-10T05:05:44+00:00",
   "capture_root": "captures/fixture_model",
   "coordinate_space": "wall_norm_per_fixture_calibration_box",
   "geometry_source": {
@@ -2705,8 +2705,8 @@
         "luma_source": "rec709"
       },
       "quality_flags": [
-        "noisy_components",
         "phase6_derived_substitute",
+        "noisy_components",
         "out_of_box"
       ],
       "fallback_reason": null
