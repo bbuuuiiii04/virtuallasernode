@@ -35,11 +35,31 @@ _numpy = pytest.importorskip("numpy", reason="numpy required")
 _geom_path = CAPTURE_ROOT / "captures/fixture_model/analysis_geometry.json"
 _selection_path = CAPTURE_ROOT / "artifacts/renderer/pr-g1-shape-authority/shape_selection.json"
 
-media_available = (
-    _geom_path.exists()
-    and _selection_path.exists()
-    and (CAPTURE_ROOT / "captures/fixture_model/phase1_5_base_dependence").exists()
-)
+media_available = False
+if _geom_path.exists() and _selection_path.exists():
+    import json
+    try:
+        with open(_selection_path) as f:
+            data = json.load(f)
+        
+        # Check if the three specific stills exist
+        from tools.shape_extract_v7 import compute_shape_ref
+        
+        found_stills = 0
+        expected_refs = set(SMOKE_REFS.keys())
+        for e in data.get("entries", []):
+            vk = e.get("vector_key", "")
+            cp = e.get("capture_path", "")
+            box = e.get("selected_fixture_box", "image_left")
+            ref = compute_shape_ref(vk, cp, box)
+            if ref in expected_refs:
+                still_path = CAPTURE_ROOT / e.get("still_path", "")
+                if still_path.exists() or (still_path.parent / "still_color.jpg").exists():
+                    found_stills += 1
+        
+        media_available = found_stills == len(expected_refs)
+    except Exception:
+        pass
 
 pytestmark = pytest.mark.skipif(not media_available, reason="Local media not available")
 
@@ -113,6 +133,15 @@ def test_cue_002_arcs_detected_no_fragment_only():
         assert "low_contrast" not in r["status_reasons"], (
             "cue_002 quarantined for low_contrast despite detecting components"
         )
+        
+    # Sibling aperture accounting must be present since both arcs are visible
+    assert len(r["sibling_aperture_component_ids"]) > 0, "cue_002: sibling aperture evidence not accounted for"
+    assert r["fixture_output_accounting_complete"] is False, "cue_002: fixture_output_accounting_complete must be false due to sibling aperture"
+    assert "sibling_aperture_unaccounted" in r["status_reasons"]
+    
+    # cue_002 cannot pass as full fixture authority
+    assert r["status"] != "authority" or r.get("authority_scope") == "aperture", "cue_002: cannot be full fixture authority"
+
 
 
 def test_cue_002_out_of_box_geometry_preserved():
@@ -138,6 +167,10 @@ def test_cue_002_out_of_box_geometry_preserved():
 def test_all_smoke_records_have_valid_schema():
     """All 3 smoke records have required fields."""
     required = ["record_version", "shape_ref", "vector_key", "fixture_box_label",
+                "authority_scope", "selected_aperture", "source_frame_accounting_complete",
+                "fixture_output_accounting_complete", "geometry_layers", "source_core_components",
+                "included_component_ids", "sibling_aperture_component_ids",
+                "unaccounted_component_ids",
                 "extraction", "core_mask", "components", "polylines",
                 "topology_summary", "metrics", "status", "authority_eligible",
                 "status_reasons", "quality_flags"]

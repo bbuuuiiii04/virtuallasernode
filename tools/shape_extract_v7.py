@@ -137,9 +137,16 @@ def extract_record(
             bg_median, bg_mad, elapsed_ms,
             status="quarantined",
             reasons=["blank_still"],
+            target_box_label=target_box_label,
+            fixture_boxes=fixture_boxes,
         )
 
     # Process components
+    source_core_components: list[dict[str, Any]] = []
+    included_component_ids: list[str] = []
+    sibling_aperture_component_ids: list[str] = []
+    unaccounted_component_ids: list[str] = []
+    
     components: list[dict[str, Any]] = []
     polylines: list[dict[str, Any]] = []
     quality_flags: list[str] = []
@@ -152,40 +159,54 @@ def extract_record(
         bbox_px = [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())]
 
         a_type, a_label, out_of_box = assign_fixture(comp_mask, fixture_boxes)
-
-        # Only include components assigned to the target fixture box
-        if a_label != target_box_label:
-            continue
-
-        target_core_mask |= comp_mask
-
-        if a_type == "ambiguous":
-            quality_flags.append("fixture_assignment_ambiguous")
-
-        comp_class = classify_component(comp_mask)
-        comp_id = f"c{len(components)}"
-
-        wnorm = bbox_wall_norm(
-            float(bbox_px[0]), float(bbox_px[1]),
-            float(bbox_px[2]), float(bbox_px[3]),
-            target_box,
-        ) if target_box else [0.0, 0.0, 0.0, 0.0]
-
-        if out_of_box:
-            quality_flags.append("out_of_box_geometry")
-
-        components.append({
-            "component_id": comp_id,
-            "class": comp_class,
-            "area_px": area,
+        
+        comp_id = f"s{len(source_core_components)}"
+        source_core_components.append({
+            "source_component_id": comp_id,
+            "aperture_assignment": a_label,
+            "significant": True,
             "bbox_px": bbox_px,
-            "bbox_wall_norm": wnorm,
-            "out_of_box_geometry": out_of_box,
-            "fixture_assignment": a_type,
+            "area_px": area,
+            "out_of_box_geometry": out_of_box
         })
 
-        comp_polys = vectorize_component(comp_mask, comp_class, score_map, comp_id)
-        polylines.extend(comp_polys)
+        if a_label == target_box_label:
+            included_component_ids.append(comp_id)
+            target_core_mask |= comp_mask
+
+            if a_type == "ambiguous":
+                quality_flags.append("fixture_assignment_ambiguous")
+
+            comp_class = classify_component(comp_mask)
+
+            wnorm = bbox_wall_norm(
+                float(bbox_px[0]), float(bbox_px[1]),
+                float(bbox_px[2]), float(bbox_px[3]),
+                target_box,
+            ) if target_box else [0.0, 0.0, 0.0, 0.0]
+
+            if out_of_box:
+                quality_flags.append("out_of_box_geometry")
+
+            components.append({
+                "component_id": comp_id,
+                "class": comp_class,
+                "area_px": area,
+                "bbox_px": bbox_px,
+                "bbox_wall_norm": wnorm,
+                "out_of_box_geometry": out_of_box,
+                "fixture_assignment": a_type,
+            })
+
+            comp_polys = vectorize_component(comp_mask, comp_class, score_map, comp_id)
+            polylines.extend(comp_polys)
+        elif a_label is not None:
+            sibling_aperture_component_ids.append(comp_id)
+        else:
+            unaccounted_component_ids.append(comp_id)
+
+    fixture_output_accounting_complete = (len(sibling_aperture_component_ids) == 0 and len(unaccounted_component_ids) == 0)
+    source_frame_accounting_complete = fixture_output_accounting_complete
 
     n_detected = len(components)
     n_vectorized = len(set(pl["component_id"] for pl in polylines))
@@ -197,6 +218,8 @@ def extract_record(
             bg_median, bg_mad, elapsed_ms,
             status="quarantined",
             reasons=["low_contrast"],
+            target_box_label=target_box_label,
+            fixture_boxes=fixture_boxes,
         )
 
     # Add wall_norm coords to polylines
@@ -249,7 +272,7 @@ def extract_record(
     metrics["components_vectorized"] = n_vectorized
 
     auth_eligible, status, reasons = compute_authority_gate(
-        metrics, n_detected, n_vectorized, quality_flags
+        metrics, n_detected, n_vectorized, quality_flags, fixture_output_accounting_complete
     )
 
     elapsed_ms = int((time.perf_counter() - t0) * 1000)
@@ -266,6 +289,15 @@ def extract_record(
         "exposure_track": entry.get("exposure_track", ""),
         "fixture_box_label": target_box_label,
         "detection_domain_px": roi,
+        "authority_scope": "aperture",
+        "selected_aperture": target_box_label,
+        "aperture_boxes": {k: [v.x0, v.y0, v.x1, v.y1] for k, v in fixture_boxes.items() if v},
+        "source_core_components": source_core_components,
+        "included_component_ids": included_component_ids,
+        "sibling_aperture_component_ids": sibling_aperture_component_ids,
+        "unaccounted_component_ids": unaccounted_component_ids,
+        "source_frame_accounting_complete": source_frame_accounting_complete,
+        "fixture_output_accounting_complete": fixture_output_accounting_complete,
         "geometry_source": {
             "path": GEOMETRY_FILE,
             "sha256": geometry_source_sha(geom_path),
@@ -296,9 +328,16 @@ def extract_record(
         "topology_summary": topo,
         "metrics": metrics,
         "status": status,
+        "selected_aperture_authority_eligible": auth_eligible,
         "authority_eligible": auth_eligible,
         "status_reasons": reasons,
         "quality_flags": list(set(quality_flags)),
+        "geometry_layers": {
+            "core_mask": "primary_evidence_authority",
+            "raw_debug_vectors": "diagnostic_only",
+            "render_vectors": "derived_validated" if auth_eligible else None,
+            "render_fallback": "core_mask" if not auth_eligible else "none"
+        },
         "human_review": {"verdict": "pending", "date": None},
         "_rle_data": rle_data,  # ephemeral; written separately, then removed
     }
@@ -316,6 +355,8 @@ def _empty_record(
     elapsed_ms: int,
     status: str,
     reasons: list[str],
+    target_box_label: str = "image_left",
+    fixture_boxes: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     from tools.shape_core_mask import geometry_source_sha
     return {
@@ -328,8 +369,17 @@ def _empty_record(
         "test_id": entry.get("family_or_checkpoint", ""),
         "phase": entry.get("phase", ""),
         "exposure_track": entry.get("exposure_track", ""),
-        "fixture_box_label": entry.get("selected_fixture_box", "image_left"),
+        "fixture_box_label": target_box_label,
         "detection_domain_px": geom.get("analysis_roi", []),
+        "authority_scope": "aperture",
+        "selected_aperture": target_box_label,
+        "aperture_boxes": {k: [v.x0, v.y0, v.x1, v.y1] for k, v in fixture_boxes.items() if v} if fixture_boxes else {},
+        "source_core_components": [],
+        "included_component_ids": [],
+        "sibling_aperture_component_ids": [],
+        "unaccounted_component_ids": [],
+        "source_frame_accounting_complete": False,
+        "fixture_output_accounting_complete": False,
         "geometry_source": {
             "path": GEOMETRY_FILE,
             "sha256": geometry_source_sha(geom_path),
@@ -350,9 +400,16 @@ def _empty_record(
             "components_detected": 0, "components_vectorized": 0,
         },
         "status": status,
+        "selected_aperture_authority_eligible": False,
         "authority_eligible": False,
         "status_reasons": reasons,
         "quality_flags": [],
+        "geometry_layers": {
+            "core_mask": "primary_evidence_authority",
+            "raw_debug_vectors": "diagnostic_only",
+            "render_vectors": None,
+            "render_fallback": "none" if status == "quarantined" else "core_mask"
+        },
         "human_review": {"verdict": "pending", "date": None},
         "_rle_data": None,
     }

@@ -161,6 +161,7 @@ def compute_authority_gate(
     components_detected: int,
     components_vectorized: int,
     quality_flags: list[str],
+    fixture_output_accounting_complete: bool,
 ) -> tuple[bool, str, list[str]]:
     """
     Apply §15 authority gate.
@@ -174,24 +175,38 @@ def compute_authority_gate(
         reasons.append(f"core_precision_below_threshold:{metrics['core_precision']:.3f}<{PREC_GATE}")
     if metrics["core_recall"] < RECALL_GATE:
         reasons.append(f"core_recall_below_threshold:{metrics['core_recall']:.3f}<{RECALL_GATE}")
+        reasons.append("component_reconstruction_incomplete")
     if metrics["halo_spill"] > HALO_GATE:
         reasons.append(f"halo_spill_above_threshold:{metrics['halo_spill']:.3f}>{HALO_GATE}")
+    
     if components_detected > 0 and components_vectorized < components_detected:
         reasons.append("vectorization_incomplete")
+        
     if "fixture_assignment_ambiguous" in quality_flags:
         reasons.append("fixture_assignment_ambiguous")
 
     if metrics.get("is_dot_only", False):
         reasons.extend(metrics.get("dot_reasons", []))
 
-    authority_eligible = len(reasons) == 0
+    if not fixture_output_accounting_complete:
+        reasons.append("sibling_aperture_unaccounted")
+
+    # The actual gate MUST measure reconstruction coverage against the full significant selected-aperture CORE evidence.
+    authority_eligible = (
+        metrics["core_precision"] >= PREC_GATE and
+        metrics["core_recall"] >= RECALL_GATE and
+        metrics["halo_spill"] <= HALO_GATE and
+        "fixture_assignment_ambiguous" not in quality_flags
+        and not metrics.get("dot_reasons", [])
+        and fixture_output_accounting_complete
+    )
 
     if authority_eligible:
         status = "authority"
     elif "fixture_assignment_ambiguous" in quality_flags:
         status = "quarantined"
-    elif "vectorization_incomplete" in [r.split(":")[0] for r in reasons]:
-        # Mask may still hold authority even if vectorization is incomplete
+    elif "vectorization_incomplete" in [r.split(":")[0] for r in reasons] or "component_reconstruction_incomplete" in reasons or "sibling_aperture_unaccounted" in reasons:
+        # Mask may still hold authority even if vectorization is incomplete or recall is low
         status = "provisional"
     else:
         status = "quarantined"

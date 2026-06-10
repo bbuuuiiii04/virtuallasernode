@@ -1,12 +1,12 @@
 {
   "policy_version": "v7",
   "record_version": "shape-authority-v2",
-  "generated_at": "2026-06-10T21:48:51.827600Z",
+  "generated_at": "2026-06-10T22:45:11.250456Z",
   "geometry_sha": "72d99c676ebfacc2f0cdcf88e5b6b13dcd51bd677d8de67d9aeb52f340cce699",
   "counts": {
     "total": 3,
-    "authority": 3,
-    "provisional": 0,
+    "authority": 0,
+    "provisional": 3,
     "quarantined": 0
   },
   "shape_refs": [
