@@ -789,6 +789,15 @@ def extract_shape_from_image(
     if _detect_out_of_box_leak(glow_mask, box, glow_thr, full, other_boxes, _laser_brightness):
         quality_flags.append("out_of_box")
 
+    hard_geom_fail = {
+        "filled_band_geometry",
+        "unordered_pixel_cloud",
+        "dense_mask_pixels_as_polyline",
+        "dotted_pattern_smear",
+    }
+    if any(r in hard_geom_fail for r in (best.reject_reasons or [])):
+        best.polylines = []
+
     if not best.polylines:
         quality_flags.append("blank_still" if max(maps.values) < glow_thr else "low_contrast")
         quality_flags.append("low_shape_confidence")
@@ -827,9 +836,7 @@ def extract_shape_from_image(
         if flag in ("fragment_only", "missing_color_span", "geometry_off_support"):
             quality_flags.append("visual_review_required")
 
-    all_points: list[tuple[float, float]] = []
-    for px, py in [p for c in best.support_components for p in c]:
-        all_points.append(pixel_to_wall_norm(px + box.x0, py + box.y0, box))
+    from tools.shape_geometry_kind import compute_geometry_point_count
 
     if best.clusters:
         xs = [c["source_pixel_bbox"][0] for c in best.clusters] + [c["source_pixel_bbox"][2] for c in best.clusters]
@@ -853,7 +860,10 @@ def extract_shape_from_image(
         "bbox_wall_norm": bbox_norm,
         "centroid_wall_norm": centroid,
         "topology_class": best.topology,
-        "shape_point_count": len(all_points) if all_points else sum(p.get("point_count", 0) for p in best.polylines),
+        "shape_point_count": compute_geometry_point_count(best.polylines),
+        "geometry_kind": best.geometry_kind,
+        "ordered": best.ordered,
+        "rejection_reasons": list(best.rejection_reasons or best.reject_reasons or []),
         "quality_flags": quality_flags,
         **cand_meta,
         "extraction_params": {
@@ -902,6 +912,13 @@ def _empty_extraction(box: FixtureBox, threshold_k: float, min_area_px: int) -> 
     }
 
 
+def _wall_norm_to_pixel(x: float, y: float, box: FixtureBox) -> tuple[float, float]:
+    return (
+        box.x0 + ((x + 1.0) / 2.0) * box.width,
+        box.y0 + ((1.0 - y) / 2.0) * box.height,
+    )
+
+
 def render_overlay_image(image: Image.Image, extraction: dict[str, Any], box: FixtureBox) -> Image.Image:
     base = image.copy().convert("RGB")
     draw = ImageDraw.Draw(base)
@@ -910,17 +927,34 @@ def render_overlay_image(image: Image.Image, extraction: dict[str, Any], box: Fi
     if len(bb) == 4:
         draw.rectangle(bb, outline=(255, 64, 64), width=1)
     for poly in extraction.get("polylines") or []:
-        pts = poly.get("points") or []
-        if len(pts) < 2:
+        kind = poly.get("geometry_kind") or extraction.get("geometry_kind") or "centerline_polyline"
+        if kind in ("rejected_mask_area", "mask_area", "unordered_pixel_cloud"):
             continue
-        pix_pts = [
-            (
-                box.x0 + ((x + 1.0) / 2.0) * box.width,
-                box.y0 + ((1.0 - y) / 2.0) * box.height,
-            )
-            for x, y in pts
-        ]
-        draw.line(pix_pts, fill=(255, 255, 0), width=1)
+        pts = poly.get("points") or []
+        if not pts:
+            continue
+        if kind in ("dot_anchor_points",):
+            for p in pts:
+                if len(p) < 2:
+                    continue
+                cx, cy = _wall_norm_to_pixel(p[0], p[1], box)
+                r = 2
+                draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(255, 255, 0), outline=(255, 255, 0))
+            continue
+        if kind == "segment_anchor_points" and len(pts) == 1:
+            cx, cy = _wall_norm_to_pixel(pts[0][0], pts[0][1], box)
+            draw.line([cx - 2, cy, cx + 2, cy], fill=(255, 255, 0), width=1)
+            continue
+        if len(pts) < 2:
+            cx, cy = _wall_norm_to_pixel(pts[0][0], pts[0][1], box)
+            draw.ellipse([cx - 2, cy - 2, cx + 2, cy + 2], fill=(255, 255, 0))
+            continue
+        pix_pts = [_wall_norm_to_pixel(p[0], p[1], box) for p in pts if len(p) >= 2]
+        if kind == "closed_loop_contour" or poly.get("closed"):
+            if len(pix_pts) >= 3:
+                draw.line(pix_pts + [pix_pts[0]], fill=(255, 255, 0), width=1)
+        else:
+            draw.line(pix_pts, fill=(255, 255, 0), width=1)
     return base
 
 

@@ -49,3 +49,5 @@ def test_dotted_arc_preserves_dot_anchors() -> None:
     for poly in out["polylines"]:
         assert len(poly.get("points") or []) >= 1
         assert not poly.get("closed")
+        assert poly.get("geometry_kind") in ("dot_anchor_points", "segment_anchor_points")
+    assert out.get("geometry_kind") in ("dot_anchor_points", "segment_anchor_points")

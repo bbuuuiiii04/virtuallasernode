@@ -44,6 +44,7 @@ def test_line_polyline_not_bbox_rectangle() -> None:
     line_poly = out["polylines"][0]["points"]
     assert polyline_span_ratio(line_poly) >= 3.0
     assert out["polylines"][0].get("closed") is False
+    assert out["polylines"][0].get("geometry_kind") == "centerline_polyline"
 
 
 def test_two_clusters_have_separate_polylines() -> None:
@@ -59,6 +60,7 @@ def test_two_clusters_have_separate_polylines() -> None:
     assert len(out["polylines"]) >= 2
     for poly in out["polylines"]:
         assert not polyline_is_only_bbox_corners(poly["points"], poly.get("source_pixel_bbox", out["source_pixel_bbox"]), BOX)
+        assert poly.get("geometry_kind") in ("dot_anchor_points", "segment_anchor_points", "centerline_polyline")
 
 
 def test_closed_loop_polyline_is_contour_not_bbox() -> None:

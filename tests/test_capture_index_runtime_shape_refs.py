@@ -45,6 +45,7 @@ def test_exact_lookup_exposes_shape_ref_when_index_has_it() -> None:
             "shape_evidence": "still",
             "shape_quality_flags": [],
             "shape_source_capture_path": "phase1/ch3_032",
+            "shape_authority": True,
         }
     )
     runtime = CaptureIndexRuntime(index_data=index)

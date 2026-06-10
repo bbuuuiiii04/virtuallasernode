@@ -427,6 +427,9 @@ def _extract_shapes(
             "geometry_scores": extraction.get("geometry_scores")
             or extraction.get("extraction_params", {}).get("geometry_scores")
             or {},
+            "geometry_kind": extraction.get("geometry_kind"),
+            "ordered": extraction.get("ordered", True),
+            "rejection_reasons": extraction.get("rejection_reasons") or [],
         }
         visual_status, usable, review_reason = classify_visual_status(shape)
         shape["visual_status"] = visual_status
@@ -715,6 +718,9 @@ def _default_schema() -> str:
         "visual_status",
         "usable_as_shape_authority",
         "visual_review_reason",
+        "geometry_kind",
+        "ordered",
+        "rejection_reasons",
     ]
     return json.dumps(
         {
@@ -802,6 +808,12 @@ def _default_schema() -> str:
                             "visual_status": {"type": "string", "enum": ["pass", "weak", "fail"]},
                             "usable_as_shape_authority": {"type": "boolean"},
                             "visual_review_reason": {"type": "string"},
+                            "geometry_kind": {"type": "string"},
+                            "ordered": {"type": "boolean"},
+                            "rejection_reasons": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                            },
                         },
                     },
                 },

@@ -86,3 +86,11 @@ def test_shape_type_routing_matrix() -> None:
             assert out["selected_extractor"] in expected_vec
         else:
             assert out["selected_extractor"] == expected_vec
+        assert out.get("geometry_kind"), f"{name}: missing geometry_kind"
+        assert "ordered" in out
+        for poly in out.get("polylines") or []:
+            assert poly.get("geometry_kind") not in (
+                "mask_area",
+                "unordered_pixel_cloud",
+                "rejected_mask_area",
+            )

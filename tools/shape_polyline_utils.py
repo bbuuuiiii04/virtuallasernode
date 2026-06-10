@@ -50,6 +50,9 @@ def polylines_are_real_geometry(
 ) -> bool:
     if not polylines:
         return False
+    anchor_kinds = {"dot_anchor_points", "segment_anchor_points"}
+    if all((poly.get("geometry_kind") in anchor_kinds or len(poly.get("points") or []) == 1) for poly in polylines):
+        return len(polylines) >= 2
     for poly in polylines:
         pts = poly.get("points") or []
         if len(pts) < 2:

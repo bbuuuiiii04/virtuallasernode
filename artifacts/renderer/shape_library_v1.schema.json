@@ -85,7 +85,10 @@
           "rejected_candidate_reasons",
           "visual_status",
           "usable_as_shape_authority",
-          "visual_review_reason"
+          "visual_review_reason",
+          "geometry_kind",
+          "ordered",
+          "rejection_reasons"
         ],
         "properties": {
           "shape_ref": {
@@ -199,6 +202,18 @@
           },
           "visual_review_reason": {
             "type": "string"
+          },
+          "geometry_kind": {
+            "type": "string"
+          },
+          "ordered": {
+            "type": "boolean"
+          },
+          "rejection_reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }

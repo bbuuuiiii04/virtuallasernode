@@ -42,6 +42,9 @@ SHAPE_REQUIRED = [
     "visual_status",
     "usable_as_shape_authority",
     "visual_review_reason",
+    "geometry_kind",
+    "ordered",
+    "rejection_reasons",
 ]
 
 

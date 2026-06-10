@@ -194,7 +194,12 @@ class CaptureIndexRuntime:
 
         shape_ref = bucket.get("shape_ref")
         shape_point_count = int(bucket.get("shape_point_count") or 0)
-        shape_authority = bool(shape_ref) and shape_point_count > 0
+        bucket_authority = bucket.get("shape_authority")
+        shape_authority = (
+            bucket_authority is True
+            and bool(shape_ref)
+            and shape_point_count > 0
+        )
         shape_fallback_reason = bucket.get("shape_fallback_reason")
         if not shape_authority and shape_fallback_reason is None:
             shape_fallback_reason = "no_static_shape_for_vector"

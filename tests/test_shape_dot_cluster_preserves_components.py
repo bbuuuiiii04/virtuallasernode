@@ -50,3 +50,6 @@ def test_red_blue_dot_cluster_preserves_components() -> None:
     assert len(out["polylines"]) >= 3
     assert len(out["clusters"]) >= 3
     assert out.get("topology_class") in ("multi_cluster", "two_clusters")
+    assert out.get("geometry_kind") in ("dot_anchor_points", "segment_anchor_points")
+    for poly in out["polylines"]:
+        assert poly.get("geometry_kind") in ("dot_anchor_points", "segment_anchor_points")
