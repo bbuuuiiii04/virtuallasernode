@@ -17,7 +17,7 @@ from tools.ai_shape_geometry_convert import (  # noqa: E402
     convert_ai_px_to_wall_norm,
     validate_ai_extraction_result,
 )
-from tools.shape_extraction import FixtureBox  # noqa: E402
+from tools.shape_extraction import ARTIFACT_VERSION, FixtureBox, compute_shape_ref  # noqa: E402
 
 IMAGE_LEFT = FixtureBox(label="image_left", x0=60, y0=156, x1=554, y1=578)
 CROP_W = IMAGE_LEFT.width
@@ -98,3 +98,22 @@ def test_ai_result_to_shape_entry_produces_wall_norm_polylines() -> None:
     assert all(len(p) == 2 for p in pts)
     assert entry["usable_as_shape_authority"] is True
     assert len(pts) >= 2
+
+
+def test_ai_result_to_shape_entry_uses_repo_shape_ref_not_ai_value() -> None:
+    wrong_ref = "sh1_ai_hallucinated0001"
+    vector_key = "v1:0,0,32,0,90,128,128,0,0,0,0,0,0,0,0,0,0,0,0"
+    capture_path = "phase1/test"
+    fixture_box_label = "image_left"
+    expected = compute_shape_ref(ARTIFACT_VERSION, vector_key, capture_path, fixture_box_label)
+    entry = ai_result_to_shape_entry(
+        _base_result(shape_ref=wrong_ref),
+        box=IMAGE_LEFT,
+        vector_key=vector_key,
+        capture_path=capture_path,
+        source_still="captures/fixture_model/phase1/test/still.jpg",
+        fixture_box_label=fixture_box_label,
+    )
+    assert entry["shape_ref"] == expected
+    assert entry["shape_ref"] != wrong_ref
+    assert entry["ai_extraction"]["ai_returned_shape_ref"] == wrong_ref

@@ -322,17 +322,22 @@ def ai_result_to_shape_entry(
     py1 = max(y for _, y in px_coords)
 
     meta = entry_meta or {}
-    shape_ref = validated["shape_ref"]
-    if shape_ref != compute_shape_ref(ARTIFACT_VERSION, vector_key, capture_path, fixture_box_label):
-        # Allow caller-provided shape_ref when it matches computed ref; recompute if missing prefix.
-        expected = compute_shape_ref(ARTIFACT_VERSION, vector_key, capture_path, fixture_box_label)
-        if shape_ref.startswith("sh1_"):
-            pass
-        else:
-            shape_ref = expected
+    expected_shape_ref = compute_shape_ref(ARTIFACT_VERSION, vector_key, capture_path, fixture_box_label)
+    ai_returned_shape_ref = None
+    if validated["shape_ref"] != expected_shape_ref:
+        ai_returned_shape_ref = validated["shape_ref"]
+
+    ai_extraction_diag: dict[str, Any] = {
+        "confidence": validated["confidence"],
+        "color_coverage": validated["color_coverage"],
+        "failure_modes": validated["failure_modes"],
+        "provider": "gemini",
+    }
+    if ai_returned_shape_ref is not None:
+        ai_extraction_diag["ai_returned_shape_ref"] = ai_returned_shape_ref
 
     return {
-        "shape_ref": shape_ref,
+        "shape_ref": expected_shape_ref,
         "vector_key": vector_key,
         "capture_path": capture_path,
         "source_still": source_still,
@@ -356,12 +361,7 @@ def ai_result_to_shape_entry(
         "visual_status": "pass",
         "usable_as_shape_authority": True,
         "visual_review_reason": "ai_extracted_high_confidence",
-        "ai_extraction": {
-            "confidence": validated["confidence"],
-            "color_coverage": validated["color_coverage"],
-            "failure_modes": validated["failure_modes"],
-            "provider": "gemini",
-        },
+        "ai_extraction": ai_extraction_diag,
     }
 
 

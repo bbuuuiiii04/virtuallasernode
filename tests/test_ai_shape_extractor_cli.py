@@ -13,7 +13,24 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from capture_index_runtime import CaptureIndexRuntime, vector_key_from_ch1_19  # noqa: E402
-from tools.ai_shape_extractor import run_extraction  # noqa: E402
+from tools.ai_shape_extractor import (  # noqa: E402
+    AUTHORITY_OVERLAY_YELLOW,
+    _encode_crop_png,
+    _render_ai_overlay,
+    run_extraction,
+)
+from tools.ai_shape_extractor_adapter import ExtractionRequest, MockShapeExtractorAdapter  # noqa: E402
+from tools.shape_extraction import load_fixture_boxes  # noqa: E402
+
+try:
+    from PIL import Image
+except ImportError:  # pragma: no cover
+    Image = None  # type: ignore
+
+SELECTION = ROOT / "artifacts/renderer/pr-g1-shape-authority/shape_selection.json"
+GEOMETRY = ROOT / "captures/fixture_model/analysis_geometry.json"
+PROMPT = ROOT / "artifacts/renderer/pr-g1-ai-extraction/ai_extraction_prompt.md"
+GITIGNORE = ROOT / ".gitignore"
 
 SELECTION = ROOT / "artifacts/renderer/pr-g1-shape-authority/shape_selection.json"
 GEOMETRY = ROOT / "captures/fixture_model/analysis_geometry.json"
@@ -41,6 +58,101 @@ def test_mock_cli_smoke_limit_one(tmp_path: Path) -> None:
     doc = json.loads(out.read_text(encoding="utf-8"))
     assert len(doc["entries"]) == 1
     assert doc["entries"][0]["provider"] == "mock"
+
+
+@pytest.mark.skipif(Image is None, reason="Pillow required")
+@pytest.mark.skipif(not GEOMETRY.is_file(), reason="analysis geometry missing")
+def test_run_extraction_uses_entry_fixture_box(tmp_path: Path) -> None:
+    boxes = load_fixture_boxes(json.loads(GEOMETRY.read_text(encoding="utf-8")))
+    image_right = boxes["image_right"]
+
+    img = Image.new("RGB", (1280, 600), (0, 0, 0))
+    img.putpixel(
+        ((boxes["image_left"].x0 + boxes["image_left"].x1) // 2, (boxes["image_left"].y0 + boxes["image_left"].y1) // 2),
+        (0, 255, 0),
+    )
+    img.putpixel(
+        ((image_right.x0 + image_right.x1) // 2, (image_right.y0 + image_right.y1) // 2),
+        (255, 0, 0),
+    )
+
+    work = tmp_path / "work"
+    work.mkdir()
+    still = work / "still.jpg"
+    img.save(still)
+    prompt_copy = work / "ai_extraction_prompt.md"
+    prompt_copy.write_text(PROMPT.read_text(encoding="utf-8"), encoding="utf-8")
+    selection = work / "selection.json"
+    selection.write_text(
+        json.dumps(
+            {
+                "entries": [
+                    {
+                        "local_media_exists": True,
+                        "still_path": "still.jpg",
+                        "capture_path": "phase1/test_right_fixture_box",
+                        "vector_key": "v1:0,0,32,0,90,128,128,0,0,0,0,0,0,0,0,0,0,0,0",
+                        "selected_fixture_box": "image_right",
+                    }
+                ]
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    captured: list[ExtractionRequest] = []
+
+    class CaptureMock(MockShapeExtractorAdapter):
+        def extract(self, request: ExtractionRequest):
+            captured.append(request)
+            return super().extract(request)
+
+    out = work / "ai_extractions.json"
+    with patch("tools.ai_shape_extractor.get_adapter", lambda _name: CaptureMock()):
+        run_extraction(
+            root=work,
+            selection_path=selection,
+            geometry_path=GEOMETRY,
+            prompt_path=prompt_copy,
+            output_path=out,
+            adapter_name="mock",
+            enable_gemini=False,
+            limit=1,
+            write_contact_sheets=False,
+        )
+
+    assert len(captured) == 1
+    assert captured[0].image_width == image_right.width
+    assert captured[0].image_height == image_right.height
+    assert captured[0].mime_type == "image/png"
+    assert captured[0].image_bytes.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+@pytest.mark.skipif(Image is None, reason="Pillow required")
+def test_encode_crop_png_uses_png_mime_type() -> None:
+    crop = Image.new("RGB", (8, 6), (10, 20, 30))
+    data, mime_type = _encode_crop_png(crop)
+    assert mime_type == "image/png"
+    assert data.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+@pytest.mark.skipif(Image is None, reason="Pillow required")
+def test_render_overlay_yellow_only_when_authority_eligible() -> None:
+    crop = Image.new("RGB", (40, 20), (0, 0, 0))
+    result = {
+        "paths_px": [[[0, 10], [39, 10]]],
+        "dot_anchors_px": [[20, 5]],
+        "segment_anchors_px": [[[5, 15], [15, 15]]],
+    }
+    rejected = _render_ai_overlay(crop, result, authority_eligible=False)
+    assert rejected.getpixel((10, 10)) == (0, 0, 0)
+    assert rejected.getpixel((20, 5)) == (0, 0, 0)
+
+    approved = _render_ai_overlay(crop, result, authority_eligible=True)
+    assert approved.getpixel((10, 10)) == AUTHORITY_OVERLAY_YELLOW
+    assert approved.getpixel((20, 5)) == AUTHORITY_OVERLAY_YELLOW
+    assert approved.getpixel((10, 15)) == AUTHORITY_OVERLAY_YELLOW
 
 
 def test_generated_ai_artifact_paths_are_gitignored() -> None:

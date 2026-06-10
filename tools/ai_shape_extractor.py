@@ -46,6 +46,16 @@ CONTACT_DIR = ARTIFACT_ROOT / "contact_sheets"
 MASKS_DIR = ARTIFACT_ROOT / "masks"
 DEFAULT_OUTPUT = GENERATED_DIR / "ai_extractions.json"
 DEFAULT_FIXTURE_BOX = "image_left"
+AUTHORITY_OVERLAY_YELLOW = (255, 255, 0)
+PATH_LINE_WIDTH = 1
+DOT_RADIUS = 3
+SEGMENT_LINE_WIDTH = 1
+
+
+def _encode_crop_png(crop: Image.Image) -> tuple[bytes, str]:
+    buf = io.BytesIO()
+    crop.save(buf, format="PNG")
+    return buf.getvalue(), "image/png"
 
 
 def _iso_now() -> str:
@@ -73,20 +83,32 @@ def _crop_to_fixture_box(image: Image.Image, box: Any) -> Image.Image:
     return image.crop((box.x0, box.y0, box.x1, box.y1)).convert("RGB")
 
 
-def _render_ai_overlay(crop: Image.Image, result: dict[str, Any]) -> Image.Image:
+def _render_ai_overlay(crop: Image.Image, result: dict[str, Any], *, authority_eligible: bool) -> Image.Image:
     overlay = crop.copy()
+    if not authority_eligible:
+        return overlay
     draw = ImageDraw.Draw(overlay)
     for path in result.get("paths_px") or []:
         if len(path) >= 2:
-            draw.line([(x, y) for x, y in path], fill=(255, 255, 0), width=2)
+            draw.line([(x, y) for x, y in path], fill=AUTHORITY_OVERLAY_YELLOW, width=PATH_LINE_WIDTH)
         elif len(path) == 1:
             x, y = path[0]
-            draw.ellipse((x - 2, y - 2, x + 2, y + 2), fill=(255, 255, 0))
+            draw.ellipse(
+                (x - DOT_RADIUS, y - DOT_RADIUS, x + DOT_RADIUS, y + DOT_RADIUS),
+                fill=AUTHORITY_OVERLAY_YELLOW,
+            )
     for x, y in result.get("dot_anchors_px") or []:
-        draw.ellipse((x - 3, y - 3, x + 3, y + 3), fill=(0, 255, 255))
+        draw.ellipse(
+            (x - DOT_RADIUS, y - DOT_RADIUS, x + DOT_RADIUS, y + DOT_RADIUS),
+            fill=AUTHORITY_OVERLAY_YELLOW,
+        )
     for seg in result.get("segment_anchors_px") or []:
         if len(seg) == 2:
-            draw.line([(seg[0][0], seg[0][1]), (seg[1][0], seg[1][1])], fill=(255, 128, 0), width=2)
+            draw.line(
+                [(seg[0][0], seg[0][1]), (seg[1][0], seg[1][1])],
+                fill=AUTHORITY_OVERLAY_YELLOW,
+                width=SEGMENT_LINE_WIDTH,
+            )
     return overlay
 
 
@@ -113,9 +135,15 @@ def _finalize_result(
             "reason": "model returned non-json payload",
         }
     parsed = dict(parsed)
-    parsed.setdefault("shape_ref", shape_ref)
+    ai_returned_shape_ref = None
+    returned_ref = parsed.get("shape_ref")
+    if isinstance(returned_ref, str) and returned_ref.strip() and returned_ref != shape_ref:
+        ai_returned_shape_ref = returned_ref
+    parsed["shape_ref"] = shape_ref
     parsed.setdefault("image_width", crop_width)
     parsed.setdefault("image_height", crop_height)
+    if ai_returned_shape_ref is not None:
+        parsed["ai_returned_shape_ref"] = ai_returned_shape_ref
     return parsed
 
 
@@ -159,8 +187,7 @@ def run_extraction(
 
     prompt = prompt_path.read_text(encoding="utf-8")
     boxes = load_fixture_boxes(_load_json(geometry_path))
-    box = boxes.get(DEFAULT_FIXTURE_BOX)
-    if box is None:
+    if DEFAULT_FIXTURE_BOX not in boxes:
         raise ValueError(f"fixture box missing: {DEFAULT_FIXTURE_BOX}")
 
     adapter = get_adapter(adapter_name)
@@ -181,18 +208,20 @@ def run_extraction(
         capture_path = entry["capture_path"]
         vector_key = entry["vector_key"]
         box_label = entry.get("selected_fixture_box") or DEFAULT_FIXTURE_BOX
+        box = boxes.get(box_label)
+        if box is None:
+            continue
         shape_ref = compute_shape_ref("shape-library-v1", vector_key, capture_path, box_label)
 
         image = Image.open(still_path)
         crop = _crop_to_fixture_box(image, box)
         crop_width, crop_height = crop.size
 
-        buf = io.BytesIO()
-        crop.save(buf, format="JPEG", quality=92)
+        image_bytes, mime_type = _encode_crop_png(crop)
         request = ExtractionRequest(
             shape_ref=shape_ref,
-            image_bytes=buf.getvalue(),
-            mime_type="image/jpeg",
+            image_bytes=image_bytes,
+            mime_type=mime_type,
             prompt=prompt,
             image_width=crop_width,
             image_height=crop_height,
@@ -221,7 +250,7 @@ def run_extraction(
             stats["authority_eligible"] += 1
 
         if write_contact_sheets:
-            overlay = _render_ai_overlay(crop, result)
+            overlay = _render_ai_overlay(crop, result, authority_eligible=eligible)
             sheet = make_contact_sheet(crop, overlay)
             sheet_path = CONTACT_DIR / f"{shape_ref}.png"
             sheet.save(sheet_path)
