@@ -1,0 +1,224 @@
+{
+  "record_version": "shape-authority-v2",
+  "shape_ref": "sh1_adb58093da473f3e",
+  "vector_key": "v1:28,0,31,255,41,31,134,9,176,190,0,0,0,0,255,0,0,0,88",
+  "ch1_19": {
+    "CH1": 28,
+    "CH2": 0,
+    "CH3": 31,
+    "CH4": 255,
+    "CH5": 41,
+    "CH6": 31,
+    "CH7": 134,
+    "CH8": 9,
+    "CH9": 176,
+    "CH10": 190,
+    "CH11": 0,
+    "CH12": 0,
+    "CH13": 0,
+    "CH14": 0,
+    "CH15": 255,
+    "CH16": 0,
+    "CH17": 0,
+    "CH18": 0,
+    "CH19": 88
+  },
+  "capture_path": "phase6_cue_validation/cue_relevant/cue_002_green",
+  "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_002_green/still.jpg",
+  "test_id": "cue_002_green",
+  "phase": "phase6_cue_validation",
+  "exposure_track": "geometry_motion",
+  "fixture_box_label": "image_left",
+  "detection_domain_px": [
+    0,
+    129,
+    1280,
+    589
+  ],
+  "geometry_source": {
+    "path": "captures/fixture_model/analysis_geometry.json",
+    "sha256": "72d99c676ebfacc2f0cdcf88e5b6b13dcd51bd677d8de67d9aeb52f340cce699"
+  },
+  "extraction": {
+    "policy_version": "v7",
+    "params": {
+      "k_core": 8.0,
+      "k_glow": 3.5,
+      "sat_floor": 200.0,
+      "min_core_area_px": 20
+    },
+    "background": {
+      "median_score": 90.96,
+      "mad_score": 7.4
+    },
+    "timing_ms": 620
+  },
+  "core_mask": {
+    "rle_path": "masks/sh1_adb58093da473f3e.rle.json",
+    "pixel_count": 1314,
+    "bbox_px": [
+      521,
+      316,
+      564,
+      354
+    ],
+    "bbox_wall_norm": [
+      0.8664,
+      0.0616,
+      1.0405,
+      0.2417
+    ],
+    "centroid_wall_norm": [
+      0.9512,
+      0.1501
+    ]
+  },
+  "components": [
+    {
+      "component_id": "c0",
+      "class": "closed_stroke",
+      "area_px": 1314,
+      "bbox_px": [
+        521,
+        316,
+        564,
+        354
+      ],
+      "bbox_wall_norm": [
+        0.8663967611336032,
+        0.06161137440758291,
+        1.0404858299595143,
+        0.2417061611374408
+      ],
+      "out_of_box_geometry": true,
+      "fixture_assignment": "contained"
+    }
+  ],
+  "polylines": [
+    {
+      "component_id": "c0",
+      "geometry_kind": "closed_centerline",
+      "closed": true,
+      "ordered": true,
+      "points_px": [
+        [
+          539.0,
+          329.0
+        ],
+        [
+          544.0,
+          329.0
+        ],
+        [
+          555.0,
+          332.0
+        ],
+        [
+          558.0,
+          336.0
+        ],
+        [
+          557.0,
+          337.0
+        ],
+        [
+          557.0,
+          344.0
+        ],
+        [
+          548.0,
+          347.0
+        ],
+        [
+          544.0,
+          347.0
+        ],
+        [
+          540.0,
+          342.0
+        ],
+        [
+          537.0,
+          334.0
+        ],
+        [
+          539.0,
+          329.0
+        ]
+      ],
+      "points_wall_norm": [
+        [
+          0.9393,
+          0.1801
+        ],
+        [
+          0.9595,
+          0.1801
+        ],
+        [
+          1.004,
+          0.1659
+        ],
+        [
+          1.0162,
+          0.1469
+        ],
+        [
+          1.0121,
+          0.1422
+        ],
+        [
+          1.0121,
+          0.109
+        ],
+        [
+          0.9757,
+          0.0948
+        ],
+        [
+          0.9595,
+          0.0948
+        ],
+        [
+          0.9433,
+          0.1185
+        ],
+        [
+          0.9312,
+          0.1564
+        ],
+        [
+          0.9393,
+          0.1801
+        ]
+      ],
+      "point_count": 11,
+      "polyline_id": "p0"
+    }
+  ],
+  "topology_summary": {
+    "dots": 0,
+    "closed_strokes": 1,
+    "open_strokes": 0
+  },
+  "metrics": {
+    "core_precision": 1.0,
+    "core_recall": 1.0,
+    "halo_spill": 0.0,
+    "vector_fit_residual_px_p95": 0.0,
+    "components_detected": 1,
+    "components_vectorized": 1,
+    "is_dot_only": false,
+    "dot_reasons": []
+  },
+  "status": "authority",
+  "authority_eligible": true,
+  "status_reasons": [],
+  "quality_flags": [
+    "out_of_box_geometry"
+  ],
+  "human_review": {
+    "verdict": "pending",
+    "date": null
+  }
+}
