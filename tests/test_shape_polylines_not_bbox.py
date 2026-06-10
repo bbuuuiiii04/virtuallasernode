@@ -17,7 +17,10 @@ from PIL import Image  # noqa: E402
 from tools.shape_extraction import FixtureBox, extract_shape_from_image  # noqa: E402
 from tools.shape_polyline_utils import (  # noqa: E402
     polylines_are_real_geometry,
+    polyline_is_broad_outer_contour,
+    polyline_is_fat_closed_band,
     polyline_is_only_bbox_corners,
+    polyline_is_thin_centerline,
     polyline_span_ratio,
 )
 
@@ -86,6 +89,47 @@ def test_ring_not_only_bbox_corners() -> None:
     out = extract_shape_from_image(img, BOX, min_area_px=20)
     for poly in out["polylines"]:
         assert not polyline_is_only_bbox_corners(poly["points"], out["source_pixel_bbox"], BOX)
+
+
+def test_line_with_glow_not_broad_closed_contour() -> None:
+    img = _blank()
+    px = img.load()
+    for x in range(30, 170):
+        for dy in range(-8, 9):
+            for dx in range(-8, 9):
+                d = (dx * dx + dy * dy) ** 0.5
+                if d > 8:
+                    continue
+                px[x + dx, 100 + dy] = BRIGHT if d <= 1 else (40, 40, 40)
+    out = extract_shape_from_image(img, BOX, min_area_px=8)
+    poly = out["polylines"][0]
+    assert poly.get("closed") is False
+    assert polyline_is_thin_centerline(poly)
+    assert not polyline_is_fat_closed_band(poly)
+    assert not polyline_is_broad_outer_contour(
+        poly,
+        core_span_x=10,
+        core_span_y=3,
+        soft_span_x=20,
+        soft_span_y=18,
+    )
+
+
+def test_straight_line_not_fat_closed_band() -> None:
+    img = _blank()
+    px = img.load()
+    for x in range(20, 180):
+        for dy in range(-10, 11):
+            for dx in range(-10, 11):
+                d = (dx * dx + dy * dy) ** 0.5
+                if d > 10:
+                    continue
+                px[x + dx, 100 + dy] = BRIGHT if d <= 1.5 else (30, 30, 30)
+    out = extract_shape_from_image(img, BOX, min_area_px=8)
+    assert out["topology_class"] == "line"
+    poly = out["polylines"][0]
+    assert not polyline_is_fat_closed_band(poly)
+    assert polyline_is_thin_centerline(poly)
 
 
 @pytest.mark.skipif(

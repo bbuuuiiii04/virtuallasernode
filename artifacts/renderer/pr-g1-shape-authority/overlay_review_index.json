@@ -41,6 +41,14 @@
       "brandon_verdict": "pending"
     },
     {
+      "shape_ref": "sh1_3e98be8e27ea1c58",
+      "lane": "ch3_family",
+      "family_or_checkpoint": "three-star dynamic macro",
+      "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_097_red_box_sway_drop_149bpm_copy/still.jpg",
+      "contact_sheet_path": "artifacts/renderer/pr-g1-shape-authority/contact_sheets/sh1_3e98be8e27ea1c58.png",
+      "brandon_verdict": "pending"
+    },
+    {
       "shape_ref": "sh1_91ebda39c0075cac",
       "lane": "ch3_family",
       "family_or_checkpoint": "compact swirl dynamic macro",

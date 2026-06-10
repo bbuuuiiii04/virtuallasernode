@@ -1,6 +1,6 @@
 {
   "artifact_version": "pr-g1-shape-selection-v1",
-  "generated_at": "2026-06-10T05:05:44+00:00",
+  "generated_at": "2026-06-10T05:40:04+00:00",
   "capture_root": "captures/fixture_model",
   "plan_revision": "RENDERER_WALL_TO_AERIAL_PLAN_V1 rev 4",
   "selection_policy_version": "v1",
@@ -229,9 +229,7 @@
       "selected_fixture_box": "image_left",
       "selection_reason": "phase6-derived local substitute for missing isolated atlas family",
       "selection_tier": "fallback_candidate",
-      "local_media_exists": true,
-      "excluded_reason": "low_contrast",
-      "fallback_reason": "low_contrast"
+      "local_media_exists": true
     },
     {
       "selection_lane": "ch3_family",

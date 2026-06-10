@@ -34,6 +34,14 @@ SHAPE_REQUIRED = [
     "extraction_params",
     "quality_flags",
     "fallback_reason",
+    "extraction_candidates_tried",
+    "selected_extractor",
+    "selected_extractor_reason",
+    "candidate_scores",
+    "rejected_candidate_reasons",
+    "visual_status",
+    "usable_as_shape_authority",
+    "visual_review_reason",
 ]
 
 

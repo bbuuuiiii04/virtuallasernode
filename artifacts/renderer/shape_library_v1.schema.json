@@ -77,7 +77,15 @@
           "polylines",
           "extraction_params",
           "quality_flags",
-          "fallback_reason"
+          "fallback_reason",
+          "extraction_candidates_tried",
+          "selected_extractor",
+          "selected_extractor_reason",
+          "candidate_scores",
+          "rejected_candidate_reasons",
+          "visual_status",
+          "usable_as_shape_authority",
+          "visual_review_reason"
         ],
         "properties": {
           "shape_ref": {
@@ -159,6 +167,38 @@
               "string",
               "null"
             ]
+          },
+          "extraction_candidates_tried": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "selected_extractor": {
+            "type": "string"
+          },
+          "selected_extractor_reason": {
+            "type": "string"
+          },
+          "candidate_scores": {
+            "type": "object"
+          },
+          "rejected_candidate_reasons": {
+            "type": "object"
+          },
+          "visual_status": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "weak",
+              "fail"
+            ]
+          },
+          "usable_as_shape_authority": {
+            "type": "boolean"
+          },
+          "visual_review_reason": {
+            "type": "string"
           }
         }
       }

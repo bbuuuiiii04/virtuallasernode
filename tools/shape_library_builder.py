@@ -16,6 +16,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from capture_index_runtime import vector_key_from_ch1_19  # noqa: E402
+from tools.shape_candidate_extraction import classify_visual_status  # noqa: E402
 from tools.shape_extraction import (  # noqa: E402
     ARTIFACT_VERSION,
     COORDINATE_SPACE,
@@ -399,6 +400,7 @@ def _extract_shapes(
             "capture_path": capture_path,
             "source_still": entry["still_path"],
             "test_id": meta.get("test_id") or entry.get("family_or_checkpoint"),
+            "family_or_checkpoint": entry.get("family_or_checkpoint") or "",
             "phase": entry.get("phase") or "",
             "exposure_track": entry.get("exposure_track") or "",
             "ch1_19": entry.get("ch1_19") or {},
@@ -413,7 +415,16 @@ def _extract_shapes(
             "extraction_params": extraction["extraction_params"],
             "quality_flags": list(set((entry.get("quality_flags") or []) + extraction["quality_flags"])),
             "fallback_reason": None,
+            "extraction_candidates_tried": extraction.get("extraction_candidates_tried") or [],
+            "selected_extractor": extraction.get("selected_extractor"),
+            "selected_extractor_reason": extraction.get("selected_extractor_reason"),
+            "candidate_scores": extraction.get("candidate_scores") or {},
+            "rejected_candidate_reasons": extraction.get("rejected_candidate_reasons") or {},
         }
+        visual_status, usable, review_reason = classify_visual_status(shape)
+        shape["visual_status"] = visual_status
+        shape["usable_as_shape_authority"] = usable
+        shape["visual_review_reason"] = review_reason
         shapes.append(shape)
         updated_entries.append(entry)
 
@@ -461,7 +472,9 @@ def merge_shape_refs_into_index(index_path: Path, shapes: list[dict[str, Any]]) 
             bucket["shape_fallback_reason"] = None
             bucket["shape_quality_flags"] = shape.get("quality_flags") or []
             bucket["shape_source_capture_path"] = shape["capture_path"]
-            bucket["shape_authority"] = True
+            bucket["shape_authority"] = bool(shape.get("usable_as_shape_authority"))
+            bucket["shape_selected_extractor"] = shape.get("selected_extractor")
+            bucket["shape_visual_status"] = shape.get("visual_status")
             merged += 1
         else:
             bucket["shape_authority"] = False
@@ -470,6 +483,75 @@ def merge_shape_refs_into_index(index_path: Path, shapes: list[dict[str, Any]]) 
         json.dump(index, fh, indent=2)
         fh.write("\n")
     return {"vectors_with_shape_ref": merged}
+
+
+def _visual_review_status(shape: dict[str, Any]) -> tuple[str, str, bool]:
+    if shape.get("visual_status"):
+        return (
+            shape["visual_status"],
+            shape.get("visual_review_reason") or "",
+            bool(shape.get("usable_as_shape_authority")),
+        )
+    return classify_visual_status(shape)
+
+
+def _write_visual_review_summary(
+    root: Path,
+    shapes: list[dict[str, Any]],
+    overlay_index: list[dict[str, Any]],
+    out_path: Path,
+) -> None:
+    by_ref = {e["shape_ref"]: e for e in overlay_index}
+    lines = [
+        "# PR-G1 Visual Review Summary",
+        "",
+        "**Brandon instruction:** Pass only if the yellow overlay roughly follows the actual bright laser drawing, not just the glow around it.",
+        "",
+        "v5 uses multi-candidate extraction; the selected candidate is scored for coverage vs fragments vs broad glow.",
+        "",
+        "| shape_ref | lane | family/checkpoint | source path | selected_extractor | visual_status | usable_as_shape_authority | reason | quality_flags | rejected_candidate_reasons | contact_sheet |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for shape in shapes:
+        ref = shape["shape_ref"]
+        entry = by_ref.get(ref, {})
+        status, reason, usable = _visual_review_status(shape)
+        sheet = entry.get("contact_sheet_path", "")
+        family = shape.get("family_or_checkpoint") or entry.get("family_or_checkpoint") or ""
+        source = shape.get("capture_path") or entry.get("still_path") or ""
+        lane = entry.get("lane") or ""
+        qflags = ", ".join(shape.get("quality_flags") or [])
+        rejected = shape.get("rejected_candidate_reasons") or {}
+        if isinstance(rejected, dict):
+            rej_txt = "; ".join(
+                f"{k}: {', '.join(v) if isinstance(v, list) else v}" for k, v in rejected.items() if v
+            )
+        else:
+            rej_txt = str(rejected)
+        lines.append(
+            f"| `{ref}` | {lane} | {family} | `{source}` | {shape.get('selected_extractor', '')} | {status} | {str(usable).lower()} | {reason} | {qflags} | {rej_txt} | `{sheet}` |"
+        )
+    lines.extend(["", "## Status counts", ""])
+    counts: dict[str, int] = {}
+    usable_count = 0
+    for shape in shapes:
+        st, _, usable = _visual_review_status(shape)
+        counts[st] = counts.get(st, 0) + 1
+        if usable:
+            usable_count += 1
+    for key in ("pass", "weak", "fail"):
+        lines.append(f"- {key}: {counts.get(key, 0)}")
+    lines.append(f"- usable_as_shape_authority: {usable_count}")
+    lines.append("")
+    sel_counts: dict[str, int] = {}
+    for shape in shapes:
+        ext = shape.get("selected_extractor") or "unknown"
+        sel_counts[ext] = sel_counts.get(ext, 0) + 1
+    lines.extend(["## Selected extractor counts", ""])
+    for name, count in sorted(sel_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        lines.append(f"- {name}: {count}")
+    lines.append("")
+    out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def build_pr_g1_artifacts(
@@ -567,6 +649,9 @@ def build_pr_g1_artifacts(
     overlay_path = out_dir / "overlay_review_index.json"
     overlay_path.write_text(json.dumps({"entries": overlay_index}, indent=2) + "\n", encoding="utf-8")
 
+    visual_summary_path = out_dir / "visual_review_summary.md"
+    _write_visual_review_summary(root, shapes, overlay_index, visual_summary_path)
+
     merge_stats = {}
     if merge_index and index_path.is_file():
         merge_stats = merge_shape_refs_into_index(index_path, shapes)
@@ -576,6 +661,7 @@ def build_pr_g1_artifacts(
         "library_path": str(library_path),
         "schema_path": str(schema_path),
         "overlay_index_path": str(overlay_path),
+        "visual_summary_path": str(visual_summary_path),
         "lane_a_count": len(lane_a),
         "lane_b_count": len(lane_b),
         "shape_count": len(shapes),
@@ -607,6 +693,14 @@ def _default_schema() -> str:
         "extraction_params",
         "quality_flags",
         "fallback_reason",
+        "extraction_candidates_tried",
+        "selected_extractor",
+        "selected_extractor_reason",
+        "candidate_scores",
+        "rejected_candidate_reasons",
+        "visual_status",
+        "usable_as_shape_authority",
+        "visual_review_reason",
     ]
     return json.dumps(
         {
@@ -683,6 +777,17 @@ def _default_schema() -> str:
                             "extraction_params": {"type": "object"},
                             "quality_flags": {"type": "array", "items": {"type": "string"}},
                             "fallback_reason": {"type": ["string", "null"]},
+                            "extraction_candidates_tried": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                            },
+                            "selected_extractor": {"type": "string"},
+                            "selected_extractor_reason": {"type": "string"},
+                            "candidate_scores": {"type": "object"},
+                            "rejected_candidate_reasons": {"type": "object"},
+                            "visual_status": {"type": "string", "enum": ["pass", "weak", "fail"]},
+                            "usable_as_shape_authority": {"type": "boolean"},
+                            "visual_review_reason": {"type": "string"},
                         },
                     },
                 },
