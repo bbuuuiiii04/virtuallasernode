@@ -51,7 +51,7 @@
       "median_score": 90.96,
       "mad_score": 7.4
     },
-    "timing_ms": 620
+    "timing_ms": 654
   },
   "core_mask": {
     "rle_path": "masks/sh1_adb58093da473f3e.rle.json",
