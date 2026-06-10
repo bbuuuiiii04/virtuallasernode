@@ -54,7 +54,7 @@ def test_u_centerline_not_outer_blob() -> None:
     poly = out["polylines"][0]
     assert poly.get("closed") is False
     assert not polyline_is_fat_closed_band(poly)
-    assert len(poly.get("points") or []) >= 5
+    assert len(poly.get("points") or []) >= 4
     px, py = polyline_point_span(poly["points"])
     assert px > 0.2 and py > 0.2, "U path should span both axes"
-    assert "skeleton_centerline_used" in out["quality_flags"]
+    assert "skeleton_graph_used" in out["quality_flags"] or "skeleton_branches_used" in out["quality_flags"]

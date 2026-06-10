@@ -420,6 +420,13 @@ def _extract_shapes(
             "selected_extractor_reason": extraction.get("selected_extractor_reason"),
             "candidate_scores": extraction.get("candidate_scores") or {},
             "rejected_candidate_reasons": extraction.get("rejected_candidate_reasons") or {},
+            "shape_type": extraction.get("shape_type") or extraction.get("extraction_params", {}).get("shape_type"),
+            "selected_vectorizer": extraction.get("selected_vectorizer")
+            or extraction.get("extraction_params", {}).get("selected_vectorizer")
+            or extraction.get("selected_extractor"),
+            "geometry_scores": extraction.get("geometry_scores")
+            or extraction.get("extraction_params", {}).get("geometry_scores")
+            or {},
         }
         visual_status, usable, review_reason = classify_visual_status(shape)
         shape["visual_status"] = visual_status
@@ -507,10 +514,10 @@ def _write_visual_review_summary(
         "",
         "**Brandon instruction:** Pass only if the yellow overlay roughly follows the actual bright laser drawing, not just the glow around it.",
         "",
-        "v5 uses multi-candidate extraction; the selected candidate is scored for coverage vs fragments vs broad glow.",
+        "v6 uses typed stroke-vectorization with hysteresis support, skeleton graph tracing, and pixel-to-geometry fit scoring.",
         "",
-        "| shape_ref | lane | family/checkpoint | source path | selected_extractor | visual_status | usable_as_shape_authority | reason | quality_flags | rejected_candidate_reasons | contact_sheet |",
-        "|---|---|---|---|---|---|---|---|---|---|---|",
+        "| shape_ref | lane | family/checkpoint | source path | shape_type | selected_vectorizer | visual_status | usable_as_shape_authority | reason | quality_flags | rejected_candidate_reasons | contact_sheet |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for shape in shapes:
         ref = shape["shape_ref"]
@@ -529,7 +536,7 @@ def _write_visual_review_summary(
         else:
             rej_txt = str(rejected)
         lines.append(
-            f"| `{ref}` | {lane} | {family} | `{source}` | {shape.get('selected_extractor', '')} | {status} | {str(usable).lower()} | {reason} | {qflags} | {rej_txt} | `{sheet}` |"
+            f"| `{ref}` | {lane} | {family} | `{source}` | {shape.get('shape_type', '')} | {shape.get('selected_vectorizer', shape.get('selected_extractor', ''))} | {status} | {str(usable).lower()} | {reason} | {qflags} | {rej_txt} | `{sheet}` |"
         )
     lines.extend(["", "## Status counts", ""])
     counts: dict[str, int] = {}
@@ -547,8 +554,15 @@ def _write_visual_review_summary(
     for shape in shapes:
         ext = shape.get("selected_extractor") or "unknown"
         sel_counts[ext] = sel_counts.get(ext, 0) + 1
-    lines.extend(["## Selected extractor counts", ""])
+    lines.extend(["## Selected vectorizer counts", ""])
     for name, count in sorted(sel_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        lines.append(f"- {name}: {count}")
+    type_counts: dict[str, int] = {}
+    for shape in shapes:
+        st = shape.get("shape_type") or "unknown"
+        type_counts[st] = type_counts.get(st, 0) + 1
+    lines.extend(["", "## Shape type counts", ""])
+    for name, count in sorted(type_counts.items(), key=lambda kv: (-kv[1], kv[0])):
         lines.append(f"- {name}: {count}")
     lines.append("")
     out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")

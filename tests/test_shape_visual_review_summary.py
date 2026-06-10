@@ -20,7 +20,7 @@ def test_visual_review_summary_has_required_fields() -> None:
     text = SUMMARY.read_text(encoding="utf-8")
     assert "visual_status" in text
     assert "usable_as_shape_authority" in text
-    assert "selected_extractor" in text
+    assert "selected_vectorizer" in text or "selected_extractor" in text
     assert "pass:" in text
     assert "weak:" in text
     assert "fail:" in text
@@ -35,5 +35,7 @@ def test_library_shapes_have_review_metadata() -> None:
         assert shape.get("selected_extractor")
         assert shape.get("visual_review_reason")
         assert shape.get("extraction_candidates_tried")
-        if shape["visual_status"] == "fail":
+        if shape["visual_status"] in ("fail", "weak"):
             assert shape["usable_as_shape_authority"] is False
+        if shape["visual_status"] == "pass":
+            assert shape["usable_as_shape_authority"] is True

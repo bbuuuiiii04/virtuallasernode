@@ -44,7 +44,8 @@ def test_candidate_selector_prefers_full_line_not_fragment_or_halo() -> None:
     out = extract_shape_from_image(img, BOX, min_area_px=8)
     assert out["shape_point_count"] > 0
     assert out.get("selected_extractor")
-    assert len(out.get("extraction_candidates_tried") or []) >= 4
+    assert len(out.get("extraction_candidates_tried") or []) >= 1
+    assert out.get("shape_type") == "continuous_stroke"
     assert out["topology_class"] == "line"
     poly = out["polylines"][0]
     assert not polyline_is_fat_closed_band(poly)

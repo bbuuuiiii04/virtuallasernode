@@ -47,7 +47,7 @@ def test_straight_blue_line_core_centerline_not_glow_band() -> None:
     out = extract_shape_from_image(img, BOX, min_area_px=8)
     assert out["shape_point_count"] > 0
     assert out["topology_class"] == "line"
-    assert "core_mask_used" in out["quality_flags"]
+    assert "skeleton_graph_used" in out["quality_flags"] or "hysteresis_support" in out["quality_flags"]
     poly = out["polylines"][0]
     assert poly.get("closed") is False
     assert not polyline_is_fat_closed_band(poly)

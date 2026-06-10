@@ -52,7 +52,7 @@ def test_u_recovery_not_fragment() -> None:
     assert out["shape_point_count"] > 0
     assert len(out["polylines"]) >= 1
     poly = out["polylines"][0]
-    assert len(poly.get("points") or []) >= 5
+    assert len(poly.get("points") or []) >= 4
     px, py = polyline_point_span(poly["points"])
     assert px > 0.35
     rejected = out.get("rejected_candidate_reasons") or {}

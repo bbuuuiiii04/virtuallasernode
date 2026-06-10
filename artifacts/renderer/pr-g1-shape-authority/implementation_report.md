@@ -1,81 +1,93 @@
-# PR-G1 Static Shape Authority — Implementation Report (v5 multi-candidate fix)
+# PR-G1 Static Shape Authority — Implementation Report (v6 typed stroke-vectorization)
 
 ## Summary
 
-PR-G1 builds internal wall-space static shape authority from local `captures/fixture_model/**` stills. Extraction **v5** replaces the single global threshold with **six candidate extractors per capture**, shape-sanity scoring, and best-candidate selection. Visible aerial geometry remains `_drawFan()` decoder fallback until PR-G3.
+PR-G1 builds internal wall-space static shape authority from local `captures/fixture_model/**` stills. Extraction **v6** replaces v5’s competing threshold-mask candidates with **typed stroke-vectorization**: per-channel laser maps, hysteresis support, shape-type routing, skeleton-graph tracing, and **pixel-to-geometry fit scoring**.
+
+Visible aerial geometry remains `_drawFan()` decoder fallback until PR-G3.
 
 **Brandon instruction:** Pass only if the yellow overlay roughly follows the actual bright laser drawing, not just the glow around it.
 
-## Why v4 over-tightened
+## Why v5 was the wrong abstraction
 
-The first visual-quality fix (v3→v4) tightened core thresholds to stop broad glow blobs. That single-threshold approach was unstable:
+v5 ran six variants of the same pipeline (score pixels → threshold mask → connected components → greedy/ridge polyline → bbox/span scoring) and picked the highest heuristic score. That could not reliably distinguish:
 
-- **Too loose** → broad glow halo traced as shape authority
-- **Too strict** → tiny stroke fragments, missing U-legs, dropped purple/cyan/green sections, dot clusters collapsed or clipped at fixture-box edges
+- thin centerline vs glow halo contour
+- continuous U/curve vs fragmented components
+- multicolor hue spans vs brightest endpoint only
+- dot/cluster layouts vs smeared continuous strokes
 
-v5 stops tuning one global gate and instead runs multiple extraction strategies, scores them for coverage vs fragments vs broad area, and selects the best viable candidate — or marks the shape weak/fail when none are plausible.
+v6 changes the abstraction to **recover support first, classify shape type, route to a typed vectorizer, score by pixel fit**.
 
-## Multi-candidate extraction strategy
+## v6 architecture
 
-New module: `tools/shape_candidate_extraction.py`
+### 1. Per-channel laser maps (`tools/shape_laser_maps.py`)
 
-| Candidate | Role |
+Inside fixture crop: `combined_laser_score`, `red_score`, `green_score`, `blue_score`, `cyan_score`, `magenta_score`, `yellow_score`, `white_score`. Color evidence is preserved until support union.
+
+### 2. Hysteresis support (`tools/shape_hysteresis_support.py`)
+
+- `high_core_mask` — confident laser pixels (seeds)
+- `low_support_mask` — possible laser pixels
+- `support_mask` — low-support pixels connected to high-core seeds + per-color union + gap bridging
+- Recovers dim U-legs and dim purple/cyan sections without accepting full glow halo
+
+### 3. Shape-type routing (`tools/shape_stroke_vectorization.py`)
+
+`shape_type` ∈ `continuous_stroke`, `dotted_pattern`, `dot_cluster`, `closed_loop`, `branched_complex`, `unknown`
+
+Routing rules include: ring topology, rectangular frame detection, compact dot arcs, separated dual blobs, broken-stroke component groups, branch-point density.
+
+### 4. Typed vectorizers (eligible per shape type only)
+
+| Vectorizer | Use |
 |---|---|
-| `bright_core_centerline` | High-confidence bright core; good for simple lines; penalized if fragment-only |
-| `color_saturation_centerline` | Color-aware mask (max RGB + saturation + channel bonuses); preserves blue/cyan/purple/magenta/red/green/yellow |
-| `adaptive_local_core` | Per-glow-region adaptive percentile threshold; recovers dim stroke without full halo |
-| `segmented_components` | Separate polylines per dot/segment/cluster; good for dotted lines and multi-dot patterns |
-| `thin_stroke_skeleton_from_soft_mask` | Softer mask + medial ridge / path trace; connects full visible stroke without outer halo contour |
-| `contour_only_closed_loop` | Thin closed rings only; not used for ordinary arcs/U-shapes unless centerline fails and is flagged weak |
+| `skeleton_graph_stroke` | Continuous lines, U, curves — Zhang-Suen skeleton + longest geodesic path |
+| `dotted_component_vectorizer` | Dotted arcs — per-dot centroids |
+| `dot_cluster_vectorizer` | Separated dot/cluster blobs |
+| `closed_loop_contour` | True rings — thin contour or union boundary |
+| `skeleton_branch_vectorizer` | Complex/branched shapes — skeleton branch paths |
 
-### Scoring (shape sanity, not pixel count)
+### 5. Pixel-to-geometry fit scoring
 
-Each candidate is scored on:
+Primary metrics (not bbox span):
 
-- Path coverage vs glow bbox (x/y span, path length vs diagonal)
-- Broad blob penalty (core area vs glow area ratio)
-- Fragment-only penalty (tiny span, endpoint-only capture)
-- Missing color span penalty (multicolor strokes)
-- Over-segmentation penalty (many tiny polylines on continuous strokes)
-- Fixture-edge clipping penalty (geometry stuck to box edge when laser is interior)
-- Conditional bonuses (e.g. segmented_components only when multiple small glow blobs are present)
+- `stroke_coverage_score` — support pixels near output geometry
+- `geometry_precision_score` — geometry samples on support
+- `color_span_score` — per-hue components covered
+- `dot_preservation_score` — dot count/layout for dotted shapes
+- `continuity_score` — continuous stroke path length vs support skeleton
+- `topology_match_score` — vectorizer matches routed shape type
+- `halo_leakage_score` — penalize geometry on glow boundary only
+- `fragment_score` — penalize endpoint-only paths
 
-### Debug fields on every shape entry
+### 6. Authority policy (strict)
 
-- `extraction_candidates_tried`
-- `selected_extractor`
-- `selected_extractor_reason`
-- `candidate_scores`
-- `rejected_candidate_reasons`
+- `pass` → `usable_as_shape_authority=true` (automated pixel-fit threshold)
+- `weak` → `usable_as_shape_authority=false`
+- `fail` → `usable_as_shape_authority=false`
 
-### Shape authority policy
+No weak shape is promoted to clean authority.
 
-If no candidate is visually plausible:
-
-- `visual_status = weak` or `fail`
-- `usable_as_shape_authority = false` for `fail`
-- Bad fragments are not silently promoted to clean authority
-- Metadata retained for Brandon review
-
-Automated visual classification defaults to **weak** pending human overlay check; only synthetic/unit tests assert pass. Real captures require Brandon eye review on contact sheets.
-
-## Files changed (v5 fix pass)
+## Files changed (v6)
 
 | File | Role |
 |---|---|
-| `tools/shape_candidate_extraction.py` | **New** — six candidates, scoring, selection, visual classification |
-| `tools/shape_extraction.py` | v5 entry point; delegates to candidate pipeline; `EXTRACTION_POLICY_VERSION = "v5"` |
-| `tools/shape_library_builder.py` | Candidate debug fields, visual review summary columns, schema extensions |
-| `tools/shape_polyline_utils.py` | `polyline_is_fat_closed_band`, `polyline_is_thin_centerline` helpers |
-| `tests/test_shape_candidate_selection.py` | Fragment vs halo vs thin-stroke selection |
-| `tests/test_shape_u_recovery_not_fragment.py` | U-shape with uneven brightness |
-| `tests/test_shape_multicolor_curve_full_recovery.py` | Cyan/green/yellow/purple curve |
-| `tests/test_shape_dot_cluster_preserves_components.py` | Red/blue dot cluster components |
-| `tests/test_shape_fixture_edge_clipping_detection.py` | Box-edge clipping detection |
-| `tests/test_shape_visual_review_summary.py` | Summary field honesty; fail → not usable |
-| `tests/test_shape_schema_required_fields.py` | New required shape fields |
-| `tests/test_shape_extraction_colored_synthetic.py` | Updated for v5 pipeline |
-| `tests/test_shape_polylines_not_bbox.py` | Fat-band rejection retained |
+| `tools/shape_laser_maps.py` | **New** — per-channel laser probability maps |
+| `tools/shape_hysteresis_support.py` | **New** — hysteresis support + per-color union |
+| `tools/shape_skeleton_graph.py` | **New** — skeleton thinning + graph path tracing |
+| `tools/shape_stroke_vectorization.py` | **New** — routing, vectorizers, pixel-fit scoring, visual classification |
+| `tools/shape_candidate_extraction.py` | v6 compatibility shim |
+| `tools/shape_extraction.py` | v6 entry point (`EXTRACTION_POLICY_VERSION = "v6"`) |
+| `tools/shape_library_builder.py` | shape_type / selected_vectorizer in review summary |
+| `tests/test_skeleton_graph_vectorization.py` | **New** |
+| `tests/test_hysteresis_support_recovers_dim_u.py` | **New** |
+| `tests/test_per_color_support_union.py` | **New** |
+| `tests/test_dotted_arc_vectorizer.py` | **New** |
+| `tests/test_shape_type_routing.py` | **New** |
+| `tests/test_geometry_pixel_fit_scoring.py` | **New** |
+| `tests/test_weak_shapes_not_authority.py` | **New** |
+| Updated existing shape extraction tests for v6 flags/routing |
 
 ## Artifacts regenerated
 
@@ -85,94 +97,64 @@ python3 tools/shape_library_builder.py --phase6-limit 12
 
 | Artifact | Path |
 |---|---|
-| Selection | `artifacts/renderer/pr-g1-shape-authority/shape_selection.json` |
-| Shape library | `artifacts/renderer/shape_library_v1.json` (19 shapes, policy **v5**) |
+| Shape library | `artifacts/renderer/shape_library_v1.json` (19 shapes, policy **v6**) |
 | Schema | `artifacts/renderer/shape_library_v1.schema.json` |
+| Selection | `artifacts/renderer/pr-g1-shape-authority/shape_selection.json` |
 | Contact sheets | `artifacts/renderer/pr-g1-shape-authority/contact_sheets/` (19 PNGs) |
 | Overlay index | `artifacts/renderer/pr-g1-shape-authority/overlay_review_index.json` |
 | Visual review summary | `artifacts/renderer/pr-g1-shape-authority/visual_review_summary.md` |
-| Capture index join | `artifacts/renderer/renderer-capture-index-pr1/capture_index_v1.json` (19 vectors) |
+| Capture index join | `artifacts/renderer/renderer-capture-index-pr1/capture_index_v1.json` |
 
 ## Build stats
 
 | Metric | Count |
 |---|---:|
-| Lane A (ch3_family) | 12 |
-| Lane B (phase6_cue) | 12 |
-| Skipped/excluded | 5 |
 | Shapes in library | 19 |
 | Vectors with shape_ref | 19 |
 
-## Selected extractor counts
+## Shape type counts (automated)
 
-| Extractor | Count |
+| shape_type | Count |
 |---|---:|
-| `color_saturation_centerline` | 7 |
-| `segmented_components` | 7 |
-| `adaptive_local_core` | 3 |
-| `contour_only_closed_loop` | 2 |
-| `bright_core_centerline` | 0 |
-| `thin_stroke_skeleton_from_soft_mask` | 0 |
+| continuous_stroke | 7 |
+| branched_complex | 7 |
+| closed_loop | 4 |
+| dot_cluster | 1 |
 
-Note: no real capture selected `bright_core_centerline` or `thin_stroke_skeleton_from_soft_mask` in this build — scoring rejected them (fragment_only, missing_color_span, missing_vertical_stroke_span) while other candidates scored higher. Synthetic tests confirm these candidates work when appropriate.
+## Selected vectorizer counts
+
+| Vectorizer | Count |
+|---|---:|
+| `skeleton_branch_vectorizer` | 7 |
+| `skeleton_graph_stroke` | 7 |
+| `closed_loop_contour` | 4 |
+| `dot_cluster_vectorizer` | 1 |
 
 ## Visual pre-review (automated, honest)
 
 | Status | Count |
 |---|---:|
 | pass | 0 |
-| weak | 19 |
-| fail | 0 |
-| usable_as_shape_authority | 17 |
-| **not usable / low-confidence** | **2** |
+| weak | 2 |
+| fail | 17 |
+| **usable_as_shape_authority** | **0** |
 
-Shapes marked **not usable** (`usable_as_shape_authority = false`):
-
-- `sh1_2e3da0a4330792c3` — U-wave dynamic macro (`segmented_components`, fragment risk)
-- `sh1_91ebda39c0075cac` — compact swirl dynamic macro (`segmented_components`, fragment risk)
-
-All 19 shapes require Brandon contact-sheet review before any pass claim. Automated summary intentionally reports **0 pass** until human overlay confirmation.
+Automated pixel-fit thresholds produce **0 pass** on real captures in this build. All 19 shapes require Brandon contact-sheet review. Weak/fail shapes are **not** usable authority.
 
 ## Tests run
 
 ```bash
-python3 -m pytest tests/test_shape_selection.py                     → 6 passed
-python3 -m pytest tests/test_shape_library_schema.py                → 2 passed
-python3 -m pytest tests/test_shape_schema_required_fields.py        → 3 passed
-python3 -m pytest tests/test_shape_coordinates.py                   → 5 passed
-python3 -m pytest tests/test_shape_extraction_synthetic.py          → 7 passed
-python3 -m pytest tests/test_shape_extraction_colored_synthetic.py  → 5 passed
-python3 -m pytest tests/test_shape_polylines_not_bbox.py            → 7 passed
-python3 -m pytest tests/test_shape_candidate_selection.py           → 1 passed
-python3 -m pytest tests/test_shape_u_recovery_not_fragment.py       → 1 passed
-python3 -m pytest tests/test_shape_multicolor_curve_full_recovery.py → 1 passed
-python3 -m pytest tests/test_shape_dot_cluster_preserves_components.py → 1 passed
-python3 -m pytest tests/test_shape_fixture_edge_clipping_detection.py → 1 passed
-python3 -m pytest tests/test_shape_visual_review_summary.py         → 2 passed
-python3 -m pytest tests/test_capture_index_runtime_shape_refs.py    → 3 passed
-python3 -m pytest tests/test_no_historical_pr_g1_inputs.py          → 3 passed
-python3 -m pytest tests/test_shape_ref_stability.py                 → 3 passed
-python3 -m pytest tests/test_shape_selection_rep_distance.py        → 3 passed
-python3 -m pytest tests/test_shape_out_of_box_ignores_other_fixture.py → 2 passed
-python3 -m pytest tests/test_shape_core_centerline_not_glow_band.py → 1 passed
-python3 -m pytest tests/test_shape_dotted_line_preserves_segments.py → 1 passed
-python3 -m pytest tests/test_shape_purple_blue_recovery.py          → 1 passed
-python3 -m pytest tests/test_shape_u_centerline_not_blob.py         → 1 passed
-python3 -m pytest tests/test_shape_complex_internal_strokes_not_outer_blob.py → 1 passed
-python3 -m pytest tests/test_shape_core_not_halo.py                 → 2 passed
-python3 -m pytest tests/test_shape_u_arc_centerline.py              → 1 passed
-python3 -m pytest tests/test_shape_complex_internal_strokes.py     → 1 passed
-node tests/test_renderer_motionstate.js                             → 26 passed
+python3 -m pytest (36 shape test modules)  → 74 passed
+node tests/test_renderer_motionstate.js    → 26 passed
 ```
 
-**Total: 65 pytest + 26 JS — all pass**
+**Total: 74 pytest + 26 JS — all pass**
 
 ## Diagnostics honesty (unchanged)
 
 - `visible_geometry_source = DECODER_FALLBACK_DRAWFAN`
 - `projection_source = NOT_WIRED_PR_G3`
 - Warning: `shape_ref_internal_only_visible_geometry_decoder_fallback_until_PR_G3`
-- No `EXACT_CAPTURE_RENDER_AUTHORITY` while visible geometry is fallback
 
 ## Explicit non-mutations
 
@@ -185,9 +167,7 @@ Visible aerial geometry remains **`DECODER_FALLBACK_DRAWFAN`** until PR-G3.
 
 ## Known limitations
 
-1. Subset build (`--phase6-limit 12`), not full corpus
-2. Five CH3 families have `no_ch3_family_representative`
-3. Real U-wave / multicolor curve captures may still lose stroke span when `segmented_components` wins over skeleton centerline — marked weak/unusable pending Brandon review
-4. Automated visual summary reports **0 pass** — human overlay check is the acceptance gate
-5. Local stills not in git — full verification requires local media
-6. `thin_stroke_skeleton_from_soft_mask` not selected on any real capture in this build; may need scoring tuning after Brandon review
+1. Subset build (`--phase6-limit 12`)
+2. Automated pass threshold is strict — real captures still fail pixel-fit on complex macros
+3. `branched_complex` routing still common on intricate shapes — needs Brandon visual review
+4. Contact-sheet quality must be validated by human overlay review before any merge claim

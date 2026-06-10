@@ -18,7 +18,7 @@ except ImportError:  # pragma: no cover
 
 ARTIFACT_VERSION = "shape-library-v1"
 COORDINATE_SPACE = "wall_norm_per_fixture_calibration_box"
-EXTRACTION_POLICY_VERSION = "v5"
+EXTRACTION_POLICY_VERSION = "v6"
 DEFAULT_GLOW_THRESHOLD_K = 3.5
 DEFAULT_CORE_THRESHOLD_K = 4.8
 DEFAULT_MIN_AREA_PX = 40
@@ -763,52 +763,34 @@ def extract_shape_from_image(
     sample_step: int = DEFAULT_CONTOUR_SAMPLE_STEP,
     other_boxes: dict[str, FixtureBox] | None = None,
 ) -> dict[str, Any]:
-    from tools.shape_candidate_extraction import (
-        ImageContext,
-        run_all_candidates,
-        select_best_candidate,
+    from tools.shape_hysteresis_support import build_hysteresis_support
+    from tools.shape_laser_maps import build_laser_maps
+    from tools.shape_stroke_vectorization import (
+        classify_shape_type,
+        run_typed_vectorization,
     )
 
     glow_k = threshold_k if threshold_k is not None else DEFAULT_GLOW_THRESHOLD_K
     crop = image.crop((box.x0, box.y0, box.x1, box.y1)).convert("RGB")
     w, h = crop.size
     pixels = crop.load()
-    scores = [[0.0] * w for _ in range(h)]
-    values: list[float] = []
-    for y in range(h):
-        for x in range(w):
-            r, g, b = pixels[x, y]
-            sval = _laser_brightness(r, g, b)
-            scores[y][x] = sval
-            values.append(sval)
-    if not values:
+    maps = build_laser_maps(pixels, w, h)
+    if not maps.values:
         return _empty_extraction(box, glow_k, min_area_px)
 
-    med = statistics.median(values)
-    mad = statistics.median([abs(v - med) for v in values]) or 1.0
-    ctx = ImageContext(
-        w=w,
-        h=h,
-        scores=scores,
-        values=values,
-        med=med,
-        mad=mad,
-        pixels=pixels,
-        min_area_px=min_area_px,
-    )
+    support = build_hysteresis_support(maps, min_area_px=min_area_px)
+    shape_type = classify_shape_type(support, maps)
+    best, cand_meta = run_typed_vectorization(maps, support, box, shape_type)
 
-    candidates = run_all_candidates(ctx, box)
-    best, cand_meta = select_best_candidate(candidates)
-
-    glow_thr = med + glow_k * mad
-    glow_mask = [[scores[y][x] >= glow_thr for x in range(w)] for y in range(h)]
-    quality_flags: list[str] = ["core_mask_used", "multi_candidate_v5"]
+    glow_thr = maps.med + glow_k * maps.mad
+    glow_mask = [[maps.combined_laser_score[y][x] >= glow_thr for x in range(w)] for y in range(h)]
+    quality_flags: list[str] = ["hysteresis_support", "typed_stroke_v6"]
     full = image.convert("RGB")
     if _detect_out_of_box_leak(glow_mask, box, glow_thr, full, other_boxes, _laser_brightness):
         quality_flags.append("out_of_box")
 
     if not best.polylines:
-        quality_flags.append("blank_still" if max(values) < glow_thr else "low_contrast")
+        quality_flags.append("blank_still" if max(maps.values) < glow_thr else "low_contrast")
         quality_flags.append("low_shape_confidence")
         quality_flags.append("visual_review_required")
         return {
@@ -824,15 +806,16 @@ def extract_shape_from_image(
             "extraction_params": {
                 "glow_threshold_k": glow_k,
                 "min_area_px": min_area_px,
-                "background_median": med,
-                "extraction_policy": "multi_candidate_v5",
+                "background_median": maps.med,
+                "extraction_policy": "typed_stroke_v6",
+                "shape_type": shape_type,
             },
         }
 
     for flag in best.quality_flags:
         if flag not in quality_flags:
             quality_flags.append(flag)
-    if cand_meta.get("selected_extractor") == "contour_only_closed_loop":
+    if cand_meta.get("selected_extractor") == "closed_loop_contour":
         for poly in best.polylines:
             if best.topology == "closed_loop" and len(poly.get("points") or []) >= 4:
                 poly["closed"] = True
@@ -841,11 +824,11 @@ def extract_shape_from_image(
     for flag in best.reject_reasons:
         if flag == "internal_strokes_missing" and flag not in quality_flags:
             quality_flags.append(flag)
-        if flag in ("broad_glow_blob", "fragment_only", "fixture_edge_clipped", "missing_color_span"):
+        if flag in ("fragment_only", "missing_color_span", "geometry_off_support"):
             quality_flags.append("visual_review_required")
 
     all_points: list[tuple[float, float]] = []
-    for px, py in [p for c in best.major for p in c]:
+    for px, py in [p for c in best.support_components for p in c]:
         all_points.append(pixel_to_wall_norm(px + box.x0, py + box.y0, box))
 
     if best.clusters:
@@ -876,15 +859,20 @@ def extract_shape_from_image(
         "extraction_params": {
             "glow_threshold_k": glow_k,
             "min_area_px": min_area_px,
-            "background_median": med,
+            "background_median": maps.med,
             "contour_simplify_epsilon_px": simplify_epsilon,
             "contour_sample_step": sample_step,
-            "brightness_source": "max_rgb_sat_channel_bonus",
-            "geometry_mask": "core_mask",
-            "diagnostic_mask": "glow_mask",
-            "extraction_policy": "multi_candidate_v5",
+            "brightness_source": "per_channel_laser_maps",
+            "geometry_mask": "hysteresis_support_mask",
+            "diagnostic_mask": "high_core_mask",
+            "extraction_policy": "typed_stroke_v6",
+            "shape_type": shape_type,
+            "selected_vectorizer": cand_meta.get("selected_vectorizer"),
+            "geometry_scores": cand_meta.get("geometry_scores") or {},
             "selected_extractor": cand_meta.get("selected_extractor"),
         },
+        "geometry_scores": cand_meta.get("geometry_scores") or {},
+        "shape_type": shape_type,
     }
 
 
@@ -898,23 +886,18 @@ def _empty_extraction(box: FixtureBox, threshold_k: float, min_area_px: int) -> 
         "topology_class": "unknown",
         "shape_point_count": 0,
         "quality_flags": ["blank_still"],
-        "extraction_candidates_tried": list(
-            (
-                "bright_core_centerline",
-                "color_saturation_centerline",
-                "adaptive_local_core",
-                "segmented_components",
-                "thin_stroke_skeleton_from_soft_mask",
-                "contour_only_closed_loop",
-            )
-        ),
+        "extraction_candidates_tried": [],
         "selected_extractor": "none",
+        "selected_vectorizer": "none",
         "selected_extractor_reason": "blank still",
         "candidate_scores": {},
+        "geometry_scores": {},
         "rejected_candidate_reasons": {},
+        "shape_type": "unknown",
         "extraction_params": {
             "glow_threshold_k": threshold_k,
             "min_area_px": min_area_px,
+            "extraction_policy": "typed_stroke_v6",
         },
     }
 
