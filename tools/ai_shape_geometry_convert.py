@@ -14,6 +14,8 @@ from tools.shape_extraction import (
     pixel_to_wall_norm,
 )
 
+from tools.ai_shape_spatial_gate import explain_spatial_authority_mismatch
+
 AI_EXTRACTION_STATUSES = frozenset({"extracted", "uncertain", "failed"})
 AI_GEOMETRY_KINDS = frozenset(
     {
@@ -225,6 +227,7 @@ def explain_authority_ineligibility(
     *,
     min_confidence: float = DEFAULT_MIN_AUTHORITY_CONFIDENCE,
     require_status: str = "extracted",
+    laser_mask: list[list[bool]] | None = None,
 ) -> str | None:
     """Return None when eligible for authority; otherwise a specific gate reason."""
     try:
@@ -247,6 +250,10 @@ def explain_authority_ineligibility(
     has_geometry = bool(validated["paths_px"] or validated["dot_anchors_px"] or validated["segment_anchors_px"])
     if not has_geometry:
         return "no_geometry"
+    if laser_mask is not None:
+        spatial_reason = explain_spatial_authority_mismatch(validated, laser_mask)
+        if spatial_reason is not None:
+            return spatial_reason
     return None
 
 
@@ -255,12 +262,14 @@ def ai_result_eligible_for_authority(
     *,
     min_confidence: float = DEFAULT_MIN_AUTHORITY_CONFIDENCE,
     require_status: str = "extracted",
+    laser_mask: list[list[bool]] | None = None,
 ) -> bool:
     """Opt-in authority gate for --require-ai-pass-for-authority integration."""
     return explain_authority_ineligibility(
         result,
         min_confidence=min_confidence,
         require_status=require_status,
+        laser_mask=laser_mask,
     ) is None
 
 
@@ -273,6 +282,7 @@ def ai_result_to_shape_entry(
     source_still: str,
     fixture_box_label: str,
     entry_meta: dict[str, Any] | None = None,
+    laser_mask: list[list[bool]] | None = None,
 ) -> dict[str, Any]:
     """Convert a validated extracted AI result into a partial shape-library entry."""
     validated = validate_ai_extraction_result(result)
@@ -280,7 +290,7 @@ def ai_result_to_shape_entry(
         raise AIExtractionValidationError(f"cannot convert non-extracted status: {validated['status']}")
     if validated["geometry_kind"] == "unknown":
         raise AIExtractionValidationError("cannot convert unknown geometry_kind")
-    if not ai_result_eligible_for_authority(validated):
+    if not ai_result_eligible_for_authority(validated, laser_mask=laser_mask):
         raise AIExtractionValidationError("AI result fails authority eligibility gate")
 
     crop_w = validated["image_width"]

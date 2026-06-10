@@ -22,6 +22,7 @@ from tools.ai_shape_extractor_adapter import (  # noqa: E402
     get_adapter,
 )
 from tools.ai_shape_geometry_convert import explain_authority_ineligibility  # noqa: E402
+from tools.ai_shape_spatial_gate import build_laser_pixel_mask  # noqa: E402
 from tools.shape_extraction import (  # noqa: E402
     compute_shape_ref,
     load_fixture_boxes,
@@ -185,8 +186,8 @@ def _finalize_result(
     return parsed
 
 
-def _authority_gate(result: dict[str, Any]) -> tuple[bool, str]:
-    reason = explain_authority_ineligibility(result)
+def _authority_gate(result: dict[str, Any], *, laser_mask: list[list[bool]]) -> tuple[bool, str]:
+    reason = explain_authority_ineligibility(result, laser_mask=laser_mask)
     if reason is None:
         return True, "eligible"
     return False, reason
@@ -268,7 +269,8 @@ def run_extraction(
         result["provider"] = response.provider
         result["model"] = response.model
 
-        eligible, gate_reason = _authority_gate(result)
+        laser_mask = build_laser_pixel_mask(crop)
+        eligible, gate_reason = _authority_gate(result, laser_mask=laser_mask)
         result["authority_eligible"] = eligible
         result["authority_gate_reason"] = gate_reason
 
