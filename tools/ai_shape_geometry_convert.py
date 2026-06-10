@@ -14,7 +14,7 @@ from tools.shape_extraction import (
     pixel_to_wall_norm,
 )
 
-from tools.ai_shape_spatial_gate import explain_spatial_authority_mismatch
+from tools.ai_shape_spatial_gate import LaserSpatialMasks, explain_spatial_authority_mismatch
 
 AI_EXTRACTION_STATUSES = frozenset({"extracted", "uncertain", "failed"})
 AI_GEOMETRY_KINDS = frozenset(
@@ -227,7 +227,7 @@ def explain_authority_ineligibility(
     *,
     min_confidence: float = DEFAULT_MIN_AUTHORITY_CONFIDENCE,
     require_status: str = "extracted",
-    laser_mask: list[list[bool]] | None = None,
+    laser_mask: LaserSpatialMasks | None = None,
 ) -> str | None:
     """Return None when eligible for authority; otherwise a specific gate reason."""
     try:
@@ -262,7 +262,7 @@ def ai_result_eligible_for_authority(
     *,
     min_confidence: float = DEFAULT_MIN_AUTHORITY_CONFIDENCE,
     require_status: str = "extracted",
-    laser_mask: list[list[bool]] | None = None,
+    laser_mask: LaserSpatialMasks | None = None,
 ) -> bool:
     """Opt-in authority gate for --require-ai-pass-for-authority integration."""
     return explain_authority_ineligibility(
@@ -282,7 +282,7 @@ def ai_result_to_shape_entry(
     source_still: str,
     fixture_box_label: str,
     entry_meta: dict[str, Any] | None = None,
-    laser_mask: list[list[bool]] | None = None,
+    laser_mask: LaserSpatialMasks | None = None,
 ) -> dict[str, Any]:
     """Convert a validated extracted AI result into a partial shape-library entry."""
     validated = validate_ai_extraction_result(result)
