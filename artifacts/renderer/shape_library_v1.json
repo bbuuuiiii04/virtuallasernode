@@ -518,20 +518,20 @@
           "point_count": 1,
           "points": [
             [
-              -0.226,
-              0.0806
+              -0.2276,
+              0.0826
             ]
           ],
           "points_px": [
             [
-              251.19,
-              349.99
+              250.78,
+              349.58
             ]
           ],
           "points_wall_norm": [
             [
-              -0.226,
-              0.0806
+              -0.2276,
+              0.0826
             ]
           ],
           "polyline_id": "p4",
@@ -559,6 +559,9 @@
           "component_id": "s0",
           "fit_residual_px_p90": 0.0,
           "geometry_kind": "rect_centerline",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
           "point_count": 5,
           "points": [
@@ -637,6 +640,9 @@
           "component_id": "s0",
           "fit_residual_px_p90": 1.0,
           "geometry_kind": "rect_centerline",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
           "point_count": 5,
           "points": [
@@ -715,6 +721,9 @@
           "component_id": "s0",
           "fit_residual_px_p90": 1.0,
           "geometry_kind": "rect_centerline",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
           "point_count": 5,
           "points": [
@@ -793,6 +802,9 @@
           "component_id": "s0",
           "fit_residual_px_p90": 1.0,
           "geometry_kind": "rect_centerline",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
           "point_count": 5,
           "points": [
@@ -870,29 +882,32 @@
           "closed": false,
           "component_id": "s6",
           "geometry_kind": "dot_anchor",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
           "point_count": 1,
           "points": [
             [
-              0.154,
-              0.0782
+              0.1513,
+              0.0791
             ]
           ],
           "points_px": [
             [
-              976.61,
-              350.26
+              975.86,
+              350.08
             ]
           ],
           "points_wall_norm": [
             [
-              0.154,
-              0.0782
+              0.1513,
+              0.0791
             ]
           ],
           "polyline_id": "sp4",
           "render_role": "render",
-          "structure_coverage": 0.8333
+          "structure_coverage": 1.0
         }
       ],
       "source_pixel_bbox": [
@@ -907,6 +922,1198 @@
       "usable_as_shape_authority": true,
       "v7_status": "authority",
       "vector_key": "v1:220,0,0,195,90,128,128,0,0,0,0,0,0,0,0,0,0,0,0",
+      "visual_review_reason": "v7 authority record with vector render geometry",
+      "visual_status": "pass"
+    },
+    {
+      "aperture_boxes": {
+        "image_left": [
+          60,
+          156,
+          554,
+          578
+        ],
+        "image_right": [
+          646,
+          153,
+          1219,
+          581
+        ]
+      },
+      "authority_source_record": "artifacts/renderer/shape_authority_v2/records/sh1_e9743d87837d24ad.json",
+      "bbox_wall_norm": [
+        -0.4818,
+        0.0379,
+        0.6599,
+        0.109
+      ],
+      "candidate_scores": {},
+      "capture_path": "phase1_single_channel/CH01_master_dimmer/CH01_220",
+      "centroid_wall_norm": [
+        0.0946,
+        0.0644
+      ],
+      "ch1_19": {
+        "CH1": 220,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 0,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 0,
+        "CH2": 0,
+        "CH3": 32,
+        "CH4": 10,
+        "CH5": 90,
+        "CH6": 128,
+        "CH7": 128,
+        "CH8": 20,
+        "CH9": 0
+      },
+      "clusters": [
+        {
+          "area_px": 153,
+          "bbox_px": [
+            448,
+            344,
+            470,
+            359
+          ],
+          "bbox_wall_norm": [
+            0.5708502024291497,
+            0.03791469194312791,
+            0.6599190283400809,
+            0.1090047393364929
+          ],
+          "class": "dot",
+          "component_id": "s0",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 981,
+          "bbox_px": [
+            188,
+            346,
+            439,
+            359
+          ],
+          "bbox_wall_norm": [
+            -0.4817813765182186,
+            0.03791469194312791,
+            0.534412955465587,
+            0.09952606635071093
+          ],
+          "class": "open_stroke",
+          "component_id": "s1",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 20,
+          "bbox_px": [
+            330,
+            347,
+            340,
+            349
+          ],
+          "bbox_wall_norm": [
+            0.09311740890688269,
+            0.08530805687203791,
+            0.1336032388663968,
+            0.09478672985781988
+          ],
+          "class": "open_stroke",
+          "component_id": "s2",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 29,
+          "bbox_px": [
+            364,
+            347,
+            375,
+            350
+          ],
+          "bbox_wall_norm": [
+            0.23076923076923084,
+            0.08056872037914697,
+            0.2753036437246963,
+            0.09478672985781988
+          ],
+          "class": "open_stroke",
+          "component_id": "s3",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 39,
+          "bbox_px": [
+            426,
+            347,
+            440,
+            350
+          ],
+          "bbox_wall_norm": [
+            0.4817813765182186,
+            0.08056872037914697,
+            0.5384615384615385,
+            0.09478672985781988
+          ],
+          "class": "open_stroke",
+          "component_id": "s4",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        }
+      ],
+      "exposure_track": "geometry_motion",
+      "extraction_candidates_tried": [
+        "v7_shape_authority_record"
+      ],
+      "extraction_params": {
+        "extraction_policy": "v7",
+        "geometry_scores": {
+          "components_detected": 5,
+          "components_vectorized": 5,
+          "core_precision": 1.0,
+          "core_recall": 0.963,
+          "dot_reasons": [],
+          "halo_spill": 0.0,
+          "is_dot_only": false,
+          "recall_basis": "structure_skeleton",
+          "vector_fit_residual_px_p95": 1.0
+        },
+        "selected_vectorizer": "v7_shape_authority_record",
+        "shape_type": "multi_geometry"
+      },
+      "fallback_reason": null,
+      "family_or_checkpoint": "horizontal line static",
+      "fixture_box_label": "image_left",
+      "geometry_kind": "multi_geometry",
+      "geometry_scores": {
+        "components_detected": 5,
+        "components_vectorized": 5,
+        "core_precision": 1.0,
+        "core_recall": 0.963,
+        "dot_reasons": [],
+        "halo_spill": 0.0,
+        "is_dot_only": false,
+        "recall_basis": "structure_skeleton",
+        "vector_fit_residual_px_p95": 1.0
+      },
+      "ordered": true,
+      "phase": "phase1_single_channel",
+      "polylines": [
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s0",
+          "geometry_kind": "dot_anchor",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              0.6153,
+              0.0623
+            ]
+          ],
+          "points_px": [
+            [
+              458.98,
+              353.85
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.6153,
+              0.0623
+            ]
+          ],
+          "polyline_id": "p0",
+          "render_role": "render",
+          "structure_coverage": 0.3889
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s1",
+          "fit_residual_px_p90": 0.698,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 2,
+          "points": [
+            [
+              -0.4534,
+              0.0635
+            ],
+            [
+              0.5344,
+              0.0628
+            ]
+          ],
+          "points_px": [
+            [
+              195.0,
+              353.61
+            ],
+            [
+              439.0,
+              353.74
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.4534,
+              0.0635
+            ],
+            [
+              0.5344,
+              0.0628
+            ]
+          ],
+          "polyline_id": "p1",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s2",
+          "fit_residual_px_p90": 0.0,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 2,
+          "points": [
+            [
+              0.0931,
+              0.09
+            ],
+            [
+              0.1336,
+              0.09
+            ]
+          ],
+          "points_px": [
+            [
+              330.0,
+              348.0
+            ],
+            [
+              340.0,
+              348.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.0931,
+              0.09
+            ],
+            [
+              0.1336,
+              0.09
+            ]
+          ],
+          "polyline_id": "p2",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s3",
+          "fit_residual_px_p90": 0.876,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 2,
+          "points": [
+            [
+              0.2712,
+              0.0917
+            ],
+            [
+              0.2346,
+              0.0893
+            ]
+          ],
+          "points_px": [
+            [
+              373.98,
+              347.65
+            ],
+            [
+              364.95,
+              348.16
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.2712,
+              0.0917
+            ],
+            [
+              0.2346,
+              0.0893
+            ]
+          ],
+          "polyline_id": "p3",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s4",
+          "fit_residual_px_p90": 1.026,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 2,
+          "points": [
+            [
+              0.4864,
+              0.0921
+            ],
+            [
+              0.5345,
+              0.0864
+            ]
+          ],
+          "points_px": [
+            [
+              427.15,
+              347.56
+            ],
+            [
+              439.02,
+              348.77
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.4864,
+              0.0921
+            ],
+            [
+              0.5345,
+              0.0864
+            ]
+          ],
+          "polyline_id": "p4",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        }
+      ],
+      "quality_flags": [],
+      "rejected_candidate_reasons": {},
+      "rejection_reasons": [],
+      "render_authority": "vector",
+      "render_fallback": "none",
+      "render_vectors": "derived_validated",
+      "selected_aperture": "image_left",
+      "selected_extractor": "v7_shape_authority_record",
+      "selected_extractor_reason": "status=authority; render_authority=vector; render_vectors=derived_validated",
+      "selected_vectorizer": "v7_shape_authority_record",
+      "shape_point_count": 9,
+      "shape_ref": "sh1_e9743d87837d24ad",
+      "shape_type": "multi_geometry",
+      "sibling_polylines": [
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s5",
+          "dash_count": 4,
+          "geometry_kind": "dotted_arc_path",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 23,
+          "points": [
+            [
+              -0.6963,
+              0.0514
+            ],
+            [
+              -0.6579,
+              0.0514
+            ],
+            [
+              -0.6545,
+              0.0467
+            ],
+            [
+              -0.6195,
+              0.0514
+            ],
+            [
+              -0.6091,
+              0.0467
+            ],
+            [
+              -0.6021,
+              0.0514
+            ],
+            [
+              -0.5532,
+              0.0514
+            ],
+            [
+              -0.4904,
+              0.0514
+            ],
+            [
+              -0.438,
+              0.0514
+            ],
+            [
+              -0.4346,
+              0.0561
+            ],
+            [
+              -0.3229,
+              0.0514
+            ],
+            [
+              -0.3194,
+              0.0561
+            ],
+            [
+              -0.2461,
+              0.0561
+            ],
+            [
+              -0.2426,
+              0.0514
+            ],
+            [
+              -0.1902,
+              0.0514
+            ],
+            [
+              -0.1763,
+              0.0561
+            ],
+            [
+              -0.1658,
+              0.0561
+            ],
+            [
+              -0.1623,
+              0.0607
+            ],
+            [
+              -0.1169,
+              0.0607
+            ],
+            [
+              -0.1134,
+              0.0561
+            ],
+            [
+              -0.0925,
+              0.0607
+            ],
+            [
+              -0.082,
+              0.0514
+            ],
+            [
+              -0.0611,
+              0.0514
+            ]
+          ],
+          "points_px": [
+            [
+              733.0,
+              356.0
+            ],
+            [
+              744.0,
+              356.0
+            ],
+            [
+              745.0,
+              357.0
+            ],
+            [
+              755.0,
+              356.0
+            ],
+            [
+              758.0,
+              357.0
+            ],
+            [
+              760.0,
+              356.0
+            ],
+            [
+              774.0,
+              356.0
+            ],
+            [
+              792.0,
+              356.0
+            ],
+            [
+              807.0,
+              356.0
+            ],
+            [
+              808.0,
+              355.0
+            ],
+            [
+              840.0,
+              356.0
+            ],
+            [
+              841.0,
+              355.0
+            ],
+            [
+              862.0,
+              355.0
+            ],
+            [
+              863.0,
+              356.0
+            ],
+            [
+              878.0,
+              356.0
+            ],
+            [
+              882.0,
+              355.0
+            ],
+            [
+              885.0,
+              355.0
+            ],
+            [
+              886.0,
+              354.0
+            ],
+            [
+              899.0,
+              354.0
+            ],
+            [
+              900.0,
+              355.0
+            ],
+            [
+              906.0,
+              354.0
+            ],
+            [
+              909.0,
+              356.0
+            ],
+            [
+              915.0,
+              356.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.6963,
+              0.0514
+            ],
+            [
+              -0.6579,
+              0.0514
+            ],
+            [
+              -0.6545,
+              0.0467
+            ],
+            [
+              -0.6195,
+              0.0514
+            ],
+            [
+              -0.6091,
+              0.0467
+            ],
+            [
+              -0.6021,
+              0.0514
+            ],
+            [
+              -0.5532,
+              0.0514
+            ],
+            [
+              -0.4904,
+              0.0514
+            ],
+            [
+              -0.438,
+              0.0514
+            ],
+            [
+              -0.4346,
+              0.0561
+            ],
+            [
+              -0.3229,
+              0.0514
+            ],
+            [
+              -0.3194,
+              0.0561
+            ],
+            [
+              -0.2461,
+              0.0561
+            ],
+            [
+              -0.2426,
+              0.0514
+            ],
+            [
+              -0.1902,
+              0.0514
+            ],
+            [
+              -0.1763,
+              0.0561
+            ],
+            [
+              -0.1658,
+              0.0561
+            ],
+            [
+              -0.1623,
+              0.0607
+            ],
+            [
+              -0.1169,
+              0.0607
+            ],
+            [
+              -0.1134,
+              0.0561
+            ],
+            [
+              -0.0925,
+              0.0607
+            ],
+            [
+              -0.082,
+              0.0514
+            ],
+            [
+              -0.0611,
+              0.0514
+            ]
+          ],
+          "polyline_id": "sp0",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s6",
+          "geometry_kind": "open_centerline",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 5,
+          "points": [
+            [
+              -0.644,
+              0.0701
+            ],
+            [
+              -0.6126,
+              0.0701
+            ],
+            [
+              -0.5812,
+              0.0841
+            ],
+            [
+              -0.5567,
+              0.0794
+            ],
+            [
+              -0.5462,
+              0.0701
+            ]
+          ],
+          "points_px": [
+            [
+              748.0,
+              352.0
+            ],
+            [
+              757.0,
+              352.0
+            ],
+            [
+              766.0,
+              349.0
+            ],
+            [
+              773.0,
+              350.0
+            ],
+            [
+              776.0,
+              352.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.644,
+              0.0701
+            ],
+            [
+              -0.6126,
+              0.0701
+            ],
+            [
+              -0.5812,
+              0.0841
+            ],
+            [
+              -0.5567,
+              0.0794
+            ],
+            [
+              -0.5462,
+              0.0701
+            ]
+          ],
+          "polyline_id": "sp1",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s7",
+          "fit_residual_px_p90": 0.678,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 2,
+          "points": [
+            [
+              0.0402,
+              0.0839
+            ],
+            [
+              0.0925,
+              0.0826
+            ]
+          ],
+          "points_px": [
+            [
+              944.02,
+              349.04
+            ],
+            [
+              959.01,
+              349.33
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.0402,
+              0.0839
+            ],
+            [
+              0.0925,
+              0.0826
+            ]
+          ],
+          "polyline_id": "sp2",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s8",
+          "fit_residual_px_p90": 0.672,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 2,
+          "points": [
+            [
+              -0.3718,
+              0.0811
+            ],
+            [
+              -0.316,
+              0.0828
+            ]
+          ],
+          "points_px": [
+            [
+              825.99,
+              349.65
+            ],
+            [
+              841.98,
+              349.29
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.3718,
+              0.0811
+            ],
+            [
+              -0.316,
+              0.0828
+            ]
+          ],
+          "polyline_id": "sp3",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s9",
+          "fit_residual_px_p90": 0.47,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 2,
+          "points": [
+            [
+              -0.2356,
+              0.085
+            ],
+            [
+              -0.1866,
+              0.082
+            ]
+          ],
+          "points_px": [
+            [
+              865.01,
+              348.81
+            ],
+            [
+              879.03,
+              349.46
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.2356,
+              0.085
+            ],
+            [
+              -0.1866,
+              0.082
+            ]
+          ],
+          "polyline_id": "sp4",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s10",
+          "fit_residual_px_p90": 0.693,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 2,
+          "points": [
+            [
+              -0.0995,
+              0.0818
+            ],
+            [
+              -0.0542,
+              0.083
+            ]
+          ],
+          "points_px": [
+            [
+              903.99,
+              349.49
+            ],
+            [
+              916.98,
+              349.23
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.0995,
+              0.0818
+            ],
+            [
+              -0.0542,
+              0.083
+            ]
+          ],
+          "polyline_id": "sp5",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s11",
+          "dash_count": 3,
+          "geometry_kind": "dotted_arc_path",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
+          "ordered": true,
+          "point_count": 15,
+          "points": [
+            [
+              0.0017,
+              0.0561
+            ],
+            [
+              0.0262,
+              0.0561
+            ],
+            [
+              0.0297,
+              0.0607
+            ],
+            [
+              0.1065,
+              0.0561
+            ],
+            [
+              0.1099,
+              0.0607
+            ],
+            [
+              0.1763,
+              0.0607
+            ],
+            [
+              0.1867,
+              0.0607
+            ],
+            [
+              0.1937,
+              0.0654
+            ],
+            [
+              0.1972,
+              0.0607
+            ],
+            [
+              0.2251,
+              0.0561
+            ],
+            [
+              0.2321,
+              0.0607
+            ],
+            [
+              0.3578,
+              0.0654
+            ],
+            [
+              0.3613,
+              0.0607
+            ],
+            [
+              0.3822,
+              0.0607
+            ],
+            [
+              0.3962,
+              0.0654
+            ]
+          ],
+          "points_px": [
+            [
+              933.0,
+              355.0
+            ],
+            [
+              940.0,
+              355.0
+            ],
+            [
+              941.0,
+              354.0
+            ],
+            [
+              963.0,
+              355.0
+            ],
+            [
+              964.0,
+              354.0
+            ],
+            [
+              983.0,
+              354.0
+            ],
+            [
+              986.0,
+              354.0
+            ],
+            [
+              988.0,
+              353.0
+            ],
+            [
+              989.0,
+              354.0
+            ],
+            [
+              997.0,
+              355.0
+            ],
+            [
+              999.0,
+              354.0
+            ],
+            [
+              1035.0,
+              353.0
+            ],
+            [
+              1036.0,
+              354.0
+            ],
+            [
+              1042.0,
+              354.0
+            ],
+            [
+              1046.0,
+              353.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.0017,
+              0.0561
+            ],
+            [
+              0.0262,
+              0.0561
+            ],
+            [
+              0.0297,
+              0.0607
+            ],
+            [
+              0.1065,
+              0.0561
+            ],
+            [
+              0.1099,
+              0.0607
+            ],
+            [
+              0.1763,
+              0.0607
+            ],
+            [
+              0.1867,
+              0.0607
+            ],
+            [
+              0.1937,
+              0.0654
+            ],
+            [
+              0.1972,
+              0.0607
+            ],
+            [
+              0.2251,
+              0.0561
+            ],
+            [
+              0.2321,
+              0.0607
+            ],
+            [
+              0.3578,
+              0.0654
+            ],
+            [
+              0.3613,
+              0.0607
+            ],
+            [
+              0.3822,
+              0.0607
+            ],
+            [
+              0.3962,
+              0.0654
+            ]
+          ],
+          "polyline_id": "sp6",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        }
+      ],
+      "source_pixel_bbox": [
+        188,
+        344,
+        470,
+        359
+      ],
+      "source_still": "captures/fixture_model/phase1_single_channel/CH01_master_dimmer/CH01_220/still.jpg",
+      "test_id": "horizontal line static",
+      "topology_class": "complex_shape",
+      "usable_as_shape_authority": true,
+      "v7_status": "authority",
+      "vector_key": "v1:220,0,32,10,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0",
       "visual_review_reason": "v7 authority record with vector render geometry",
       "visual_status": "pass"
     },
@@ -1046,20 +2253,20 @@
           "point_count": 1,
           "points": [
             [
-              -0.4395,
-              0.0672
+              -0.4396,
+              0.0618
             ]
           ],
           "points_px": [
             [
-              198.44,
-              352.82
+              198.41,
+              353.96
             ]
           ],
           "points_wall_norm": [
             [
-              -0.4395,
-              0.0672
+              -0.4396,
+              0.0618
             ]
           ],
           "polyline_id": "p0",
@@ -1075,25 +2282,25 @@
           "point_count": 1,
           "points": [
             [
-              0.646,
-              0.0709
+              0.6436,
+              0.0631
             ]
           ],
           "points_px": [
             [
-              466.57,
-              352.04
+              465.97,
+              353.69
             ]
           ],
           "points_wall_norm": [
             [
-              0.646,
-              0.0709
+              0.6436,
+              0.0631
             ]
           ],
           "polyline_id": "p1",
           "render_role": "render",
-          "structure_coverage": 0.4444
+          "structure_coverage": 0.6667
         }
       ],
       "quality_flags": [],
@@ -1119,20 +2326,20 @@
           "point_count": 1,
           "points": [
             [
-              -0.6962,
-              0.0488
+              -0.6885,
+              0.0487
             ]
           ],
           "points_px": [
             [
-              733.05,
-              356.55
+              735.25,
+              356.57
             ]
           ],
           "points_wall_norm": [
             [
-              -0.6962,
-              0.0488
+              -0.6885,
+              0.0487
             ]
           ],
           "polyline_id": "sp0",
@@ -1148,20 +2355,20 @@
           "point_count": 1,
           "points": [
             [
-              0.3798,
-              0.0595
+              0.386,
+              0.0628
             ]
           ],
           "points_px": [
             [
-              1041.32,
-              354.27
+              1043.09,
+              353.56
             ]
           ],
           "points_wall_norm": [
             [
-              0.3798,
-              0.0595
+              0.386,
+              0.0628
             ]
           ],
           "polyline_id": "sp1",
@@ -1321,7 +2528,7 @@
           "components_detected": 4,
           "components_vectorized": 4,
           "core_precision": 1.0,
-          "core_recall": 0.8723,
+          "core_recall": 0.883,
           "dot_reasons": [],
           "halo_spill": 0.0,
           "is_dot_only": false,
@@ -1339,7 +2546,7 @@
         "components_detected": 4,
         "components_vectorized": 4,
         "core_precision": 1.0,
-        "core_recall": 0.8723,
+        "core_recall": 0.883,
         "dot_reasons": [],
         "halo_spill": 0.0,
         "is_dot_only": false,
@@ -1354,6 +2561,9 @@
           "closed": false,
           "component_id": "s0",
           "geometry_kind": "open_centerline",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold"
+          ],
           "ordered": true,
           "point_count": 14,
           "points": [
@@ -1540,6 +2750,9 @@
           "component_id": "s2",
           "dash_count": 2,
           "geometry_kind": "dotted_arc_path",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold"
+          ],
           "ordered": true,
           "point_count": 3,
           "points": [
@@ -1593,6 +2806,9 @@
           "closed": false,
           "component_id": "s6",
           "geometry_kind": "dot_anchor",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold"
+          ],
           "ordered": true,
           "point_count": 1,
           "points": [
@@ -1622,29 +2838,32 @@
           "closed": false,
           "component_id": "s8",
           "geometry_kind": "dot_anchor",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold"
+          ],
           "ordered": true,
           "point_count": 1,
           "points": [
             [
-              0.5029,
-              -0.1767
+              0.5017,
+              -0.1674
             ]
           ],
           "points_px": [
             [
-              431.22,
-              404.29
+              430.91,
+              402.32
             ]
           ],
           "points_wall_norm": [
             [
-              0.5029,
-              -0.1767
+              0.5017,
+              -0.1674
             ]
           ],
           "polyline_id": "p3",
           "render_role": "render",
-          "structure_coverage": 0.75
+          "structure_coverage": 1.0
         }
       ],
       "quality_flags": [],
@@ -1665,131 +2884,401 @@
           "aperture": "image_right",
           "closed": false,
           "component_id": "s1",
-          "geometry_kind": "dot_anchor",
+          "dash_count": 3,
+          "geometry_kind": "dotted_arc_path",
+          "group_rejection_reasons": [
+            "chain_bridge_length_above_threshold",
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
-          "point_count": 1,
+          "point_count": 12,
           "points": [
             [
-              -0.6728,
-              0.0605
+              -0.6789,
+              0.1262
+            ],
+            [
+              -0.6824,
+              0.1168
+            ],
+            [
+              -0.6754,
+              0.1028
+            ],
+            [
+              -0.6754,
+              0.0794
+            ],
+            [
+              -0.6684,
+              0.0654
+            ],
+            [
+              -0.6649,
+              0.0187
+            ],
+            [
+              -0.6545,
+              -0.028
+            ],
+            [
+              -0.6545,
+              -0.0514
+            ],
+            [
+              -0.6475,
+              -0.0701
+            ],
+            [
+              -0.6475,
+              -0.0888
+            ],
+            [
+              -0.6265,
+              -0.1542
+            ],
+            [
+              -0.6798,
+              0.1425
             ]
           ],
           "points_px": [
             [
-              739.75,
-              354.05
+              738.0,
+              340.0
+            ],
+            [
+              737.0,
+              342.0
+            ],
+            [
+              739.0,
+              345.0
+            ],
+            [
+              739.0,
+              350.0
+            ],
+            [
+              741.0,
+              353.0
+            ],
+            [
+              742.0,
+              363.0
+            ],
+            [
+              745.0,
+              373.0
+            ],
+            [
+              745.0,
+              378.0
+            ],
+            [
+              747.0,
+              382.0
+            ],
+            [
+              747.0,
+              386.0
+            ],
+            [
+              753.0,
+              400.0
+            ],
+            [
+              737.75,
+              336.5
             ]
           ],
           "points_wall_norm": [
             [
-              -0.6728,
-              0.0605
+              -0.6789,
+              0.1262
+            ],
+            [
+              -0.6824,
+              0.1168
+            ],
+            [
+              -0.6754,
+              0.1028
+            ],
+            [
+              -0.6754,
+              0.0794
+            ],
+            [
+              -0.6684,
+              0.0654
+            ],
+            [
+              -0.6649,
+              0.0187
+            ],
+            [
+              -0.6545,
+              -0.028
+            ],
+            [
+              -0.6545,
+              -0.0514
+            ],
+            [
+              -0.6475,
+              -0.0701
+            ],
+            [
+              -0.6475,
+              -0.0888
+            ],
+            [
+              -0.6265,
+              -0.1542
+            ],
+            [
+              -0.6798,
+              0.1425
             ]
           ],
           "polyline_id": "sp0",
           "render_role": "render",
-          "structure_coverage": 0.069
+          "structure_coverage": 1.0
         },
         {
           "aperture": "image_right",
           "closed": false,
           "component_id": "s3",
-          "geometry_kind": "dot_anchor",
+          "dash_count": 7,
+          "geometry_kind": "dotted_arc_path",
+          "group_rejection_reasons": [
+            "chain_bridge_length_above_threshold",
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
-          "point_count": 1,
+          "point_count": 14,
           "points": [
             [
-              -0.4823,
-              -0.0423
+              -0.6056,
+              -0.1869
+            ],
+            [
+              -0.5881,
+              -0.1869
+            ],
+            [
+              -0.5777,
+              -0.1869
+            ],
+            [
+              -0.5602,
+              -0.1682
+            ],
+            [
+              -0.5323,
+              -0.1402
+            ],
+            [
+              -0.5253,
+              -0.1262
+            ],
+            [
+              -0.5148,
+              -0.1028
+            ],
+            [
+              -0.4869,
+              -0.0654
+            ],
+            [
+              -0.4834,
+              -0.0514
+            ],
+            [
+              -0.466,
+              -0.0234
+            ],
+            [
+              -0.4485,
+              0.0
+            ],
+            [
+              -0.438,
+              0.0187
+            ],
+            [
+              -0.4346,
+              0.0327
+            ],
+            [
+              -0.4066,
+              0.0607
             ]
           ],
           "points_px": [
             [
-              794.32,
-              376.05
+              759.0,
+              407.0
+            ],
+            [
+              764.0,
+              407.0
+            ],
+            [
+              767.0,
+              407.0
+            ],
+            [
+              772.0,
+              403.0
+            ],
+            [
+              780.0,
+              397.0
+            ],
+            [
+              782.0,
+              394.0
+            ],
+            [
+              785.0,
+              389.0
+            ],
+            [
+              793.0,
+              381.0
+            ],
+            [
+              794.0,
+              378.0
+            ],
+            [
+              799.0,
+              372.0
+            ],
+            [
+              804.0,
+              367.0
+            ],
+            [
+              807.0,
+              363.0
+            ],
+            [
+              808.0,
+              360.0
+            ],
+            [
+              816.0,
+              354.0
             ]
           ],
           "points_wall_norm": [
             [
-              -0.4823,
-              -0.0423
+              -0.6056,
+              -0.1869
+            ],
+            [
+              -0.5881,
+              -0.1869
+            ],
+            [
+              -0.5777,
+              -0.1869
+            ],
+            [
+              -0.5602,
+              -0.1682
+            ],
+            [
+              -0.5323,
+              -0.1402
+            ],
+            [
+              -0.5253,
+              -0.1262
+            ],
+            [
+              -0.5148,
+              -0.1028
+            ],
+            [
+              -0.4869,
+              -0.0654
+            ],
+            [
+              -0.4834,
+              -0.0514
+            ],
+            [
+              -0.466,
+              -0.0234
+            ],
+            [
+              -0.4485,
+              0.0
+            ],
+            [
+              -0.438,
+              0.0187
+            ],
+            [
+              -0.4346,
+              0.0327
+            ],
+            [
+              -0.4066,
+              0.0607
             ]
           ],
           "polyline_id": "sp1",
           "render_role": "render",
-          "structure_coverage": 0.0816
+          "structure_coverage": 1.0
         },
         {
           "aperture": "image_right",
           "closed": false,
           "component_id": "s4",
-          "geometry_kind": "open_centerline",
+          "fit_residual_px_p90": 0.723,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_bridge_length_above_threshold",
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
-          "point_count": 5,
+          "point_count": 2,
           "points": [
             [
-              -0.6824,
+              -0.6823,
               -0.0234
             ],
             [
-              -0.6789,
-              -0.0327
-            ],
-            [
-              -0.6789,
-              -0.0748
-            ],
-            [
-              -0.6719,
-              -0.0841
-            ],
-            [
-              -0.6719,
-              -0.1075
+              -0.6714,
+              -0.1074
             ]
           ],
           "points_px": [
             [
-              737.0,
+              737.02,
               372.0
             ],
             [
-              738.0,
-              374.0
-            ],
-            [
-              738.0,
-              383.0
-            ],
-            [
-              740.0,
-              385.0
-            ],
-            [
-              740.0,
-              390.0
+              740.13,
+              389.98
             ]
           ],
           "points_wall_norm": [
             [
-              -0.6824,
+              -0.6823,
               -0.0234
             ],
             [
-              -0.6789,
-              -0.0327
-            ],
-            [
-              -0.6789,
-              -0.0748
-            ],
-            [
-              -0.6719,
-              -0.0841
-            ],
-            [
-              -0.6719,
-              -0.1075
+              -0.6714,
+              -0.1074
             ]
           ],
           "polyline_id": "sp2",
@@ -1801,6 +3290,11 @@
           "closed": false,
           "component_id": "s5",
           "geometry_kind": "dot_anchor",
+          "group_rejection_reasons": [
+            "chain_bridge_length_above_threshold",
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
           "point_count": 1,
           "points": [
@@ -1830,6 +3324,11 @@
           "closed": false,
           "component_id": "s7",
           "geometry_kind": "dot_anchor",
+          "group_rejection_reasons": [
+            "chain_bridge_length_above_threshold",
+            "chain_total_bridge_fraction_above_threshold",
+            "chain_sharp_turns_above_threshold"
+          ],
           "ordered": true,
           "point_count": 1,
           "points": [
@@ -2356,20 +3855,20 @@
           "point_count": 1,
           "points": [
             [
-              0.5989,
-              0.2683
+              0.6057,
+              0.2494
             ]
           ],
           "points_px": [
             [
-              454.93,
-              310.39
+              456.62,
+              314.38
             ]
           ],
           "points_wall_norm": [
             [
-              0.5989,
-              0.2683
+              0.6057,
+              0.2494
             ]
           ],
           "polyline_id": "p0",
@@ -2395,6 +3894,7 @@
           "aperture": "image_right",
           "closed": false,
           "component_id": "s1",
+          "diagnostic_fallback_reason": "group_chain_rejected",
           "geometry_kind": "dot_anchor",
           "ordered": true,
           "point_count": 1,
@@ -2424,6 +3924,7 @@
           "aperture": "image_right",
           "closed": false,
           "component_id": "s2",
+          "diagnostic_fallback_reason": "group_chain_rejected",
           "geometry_kind": "dot_anchor",
           "ordered": true,
           "point_count": 1,
@@ -2453,6 +3954,7 @@
           "aperture": "image_right",
           "closed": false,
           "component_id": "s3",
+          "diagnostic_fallback_reason": "group_chain_rejected",
           "geometry_kind": "dot_anchor",
           "ordered": true,
           "point_count": 1,
@@ -2611,25 +4113,25 @@
           "point_count": 1,
           "points": [
             [
-              -0.6621,
-              0.2727
+              -0.6843,
+              0.3031
             ]
           ],
           "points_px": [
             [
-              143.46,
-              309.47
+              137.97,
+              303.04
             ]
           ],
           "points_wall_norm": [
             [
-              -0.6621,
-              0.2727
+              -0.6843,
+              0.3031
             ]
           ],
           "polyline_id": "p0",
           "render_role": "render",
-          "structure_coverage": 0.0497
+          "structure_coverage": 0.0559
         }
       ],
       "quality_flags": [],
@@ -2655,25 +4157,25 @@
           "point_count": 1,
           "points": [
             [
-              0.6269,
-              0.2455
+              0.6708,
+              0.2984
             ]
           ],
           "points_px": [
             [
-              1112.11,
-              314.47
+              1124.68,
+              303.14
             ]
           ],
           "points_wall_norm": [
             [
-              0.6269,
-              0.2455
+              0.6708,
+              0.2984
             ]
           ],
           "polyline_id": "sp0",
           "render_role": "render",
-          "structure_coverage": 0.0579
+          "structure_coverage": 0.0211
         }
       ],
       "source_pixel_bbox": [
@@ -3157,6 +4659,942 @@
           581
         ]
       },
+      "authority_source_record": "artifacts/renderer/shape_authority_v2/records/sh1_5f0125b19c4208c0.json",
+      "bbox_wall_norm": [
+        -0.0769,
+        -0.1327,
+        0.9069,
+        0.1374
+      ],
+      "candidate_scores": {},
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_011_breakdown_turqoise_pointy",
+      "centroid_wall_norm": [
+        0.524,
+        -0.0189
+      ],
+      "ch1_19": {
+        "CH1": 3,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 176,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 74,
+        "CH2": 0,
+        "CH3": 28,
+        "CH4": 78,
+        "CH5": 0,
+        "CH6": 79,
+        "CH7": 131,
+        "CH8": 90,
+        "CH9": 115
+      },
+      "clusters": [
+        {
+          "area_px": 103,
+          "bbox_px": [
+            392,
+            338,
+            430,
+            342
+          ],
+          "bbox_wall_norm": [
+            0.3441295546558705,
+            0.11848341232227488,
+            0.4979757085020242,
+            0.13744075829383884
+          ],
+          "class": "open_stroke",
+          "component_id": "s0",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 756,
+          "bbox_px": [
+            434,
+            340,
+            531,
+            394
+          ],
+          "bbox_wall_norm": [
+            0.51417004048583,
+            -0.12796208530805697,
+            0.9068825910931173,
+            0.12796208530805686
+          ],
+          "class": "dot",
+          "component_id": "s1",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 115,
+          "bbox_px": [
+            349,
+            341,
+            387,
+            362
+          ],
+          "bbox_wall_norm": [
+            0.17004048582995956,
+            0.023696682464455,
+            0.3238866396761133,
+            0.12322274881516593
+          ],
+          "class": "dot",
+          "component_id": "s3",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 258,
+          "bbox_px": [
+            288,
+            366,
+            344,
+            395
+          ],
+          "bbox_wall_norm": [
+            -0.07692307692307687,
+            -0.1327014218009479,
+            0.1497975708502024,
+            0.004739336492891044
+          ],
+          "class": "dot",
+          "component_id": "s5",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        }
+      ],
+      "exposure_track": "geometry_motion",
+      "extraction_candidates_tried": [
+        "v7_shape_authority_record"
+      ],
+      "extraction_params": {
+        "extraction_policy": "v7",
+        "geometry_scores": {
+          "components_detected": 4,
+          "components_vectorized": 4,
+          "core_precision": 1.0,
+          "core_recall": 0.9894,
+          "dot_reasons": [],
+          "halo_spill": 0.0,
+          "is_dot_only": false,
+          "recall_basis": "structure_skeleton",
+          "vector_fit_residual_px_p95": 1.0
+        },
+        "selected_vectorizer": "v7_shape_authority_record",
+        "shape_type": "dotted_arc_path"
+      },
+      "fallback_reason": null,
+      "family_or_checkpoint": "cue_011_breakdown_turqoise_pointy",
+      "fixture_box_label": "image_left",
+      "geometry_kind": "dotted_arc_path",
+      "geometry_scores": {
+        "components_detected": 4,
+        "components_vectorized": 4,
+        "core_precision": 1.0,
+        "core_recall": 0.9894,
+        "dot_reasons": [],
+        "halo_spill": 0.0,
+        "is_dot_only": false,
+        "recall_basis": "structure_skeleton",
+        "vector_fit_residual_px_p95": 1.0
+      },
+      "ordered": true,
+      "phase": "phase6_cue_validation",
+      "polylines": [
+        {
+          "aperture": "image_left",
+          "bridge_spans": [
+            [
+              0,
+              1
+            ],
+            [
+              5,
+              6
+            ],
+            [
+              8,
+              9
+            ],
+            [
+              12,
+              13
+            ],
+            [
+              16,
+              17
+            ]
+          ],
+          "bridges": [
+            {
+              "from": 0,
+              "glow_coverage": 1.0,
+              "length_px": 8.766,
+              "to": 1
+            },
+            {
+              "from": 5,
+              "glow_coverage": 1.0,
+              "length_px": 12.806,
+              "to": 6
+            },
+            {
+              "from": 8,
+              "glow_coverage": 1.0,
+              "length_px": 10.77,
+              "to": 9
+            },
+            {
+              "from": 12,
+              "glow_coverage": 1.0,
+              "length_px": 7.28,
+              "to": 13
+            },
+            {
+              "from": 16,
+              "glow_coverage": 1.0,
+              "length_px": 6.403,
+              "to": 17
+            }
+          ],
+          "closed": false,
+          "component_id": "s1",
+          "dash_count": 6,
+          "geometry_kind": "dotted_arc_path",
+          "member_component_ids": [
+            "s0",
+            "s1",
+            "s3",
+            "s5"
+          ],
+          "ordered": true,
+          "point_count": 21,
+          "points": [
+            [
+              -0.0553,
+              -0.1149
+            ],
+            [
+              -0.0243,
+              -0.0948
+            ],
+            [
+              -0.0081,
+              -0.0948
+            ],
+            [
+              0.0405,
+              -0.0616
+            ],
+            [
+              0.0486,
+              -0.0616
+            ],
+            [
+              0.1377,
+              0.0
+            ],
+            [
+              0.1781,
+              0.0379
+            ],
+            [
+              0.3036,
+              0.1137
+            ],
+            [
+              0.3117,
+              0.1137
+            ],
+            [
+              0.3522,
+              0.1327
+            ],
+            [
+              0.3684,
+              0.1374
+            ],
+            [
+              0.4737,
+              0.1374
+            ],
+            [
+              0.4899,
+              0.1327
+            ],
+            [
+              0.5182,
+              0.1232
+            ],
+            [
+              0.5789,
+              0.09
+            ],
+            [
+              0.6559,
+              0.0284
+            ],
+            [
+              0.6721,
+              0.0284
+            ],
+            [
+              0.6883,
+              0.0047
+            ],
+            [
+              0.7085,
+              -0.0047
+            ],
+            [
+              0.8219,
+              -0.0948
+            ],
+            [
+              0.83,
+              -0.0948
+            ]
+          ],
+          "points_px": [
+            [
+              293.33,
+              391.25
+            ],
+            [
+              301.0,
+              387.0
+            ],
+            [
+              305.0,
+              387.0
+            ],
+            [
+              317.0,
+              380.0
+            ],
+            [
+              319.0,
+              380.0
+            ],
+            [
+              341.0,
+              367.0
+            ],
+            [
+              351.0,
+              359.0
+            ],
+            [
+              382.0,
+              343.0
+            ],
+            [
+              384.0,
+              343.0
+            ],
+            [
+              394.0,
+              339.0
+            ],
+            [
+              398.0,
+              338.0
+            ],
+            [
+              424.0,
+              338.0
+            ],
+            [
+              428.0,
+              339.0
+            ],
+            [
+              435.0,
+              341.0
+            ],
+            [
+              450.0,
+              348.0
+            ],
+            [
+              469.0,
+              361.0
+            ],
+            [
+              473.0,
+              361.0
+            ],
+            [
+              477.0,
+              366.0
+            ],
+            [
+              482.0,
+              368.0
+            ],
+            [
+              510.0,
+              387.0
+            ],
+            [
+              512.0,
+              387.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.0553,
+              -0.1149
+            ],
+            [
+              -0.0243,
+              -0.0948
+            ],
+            [
+              -0.0081,
+              -0.0948
+            ],
+            [
+              0.0405,
+              -0.0616
+            ],
+            [
+              0.0486,
+              -0.0616
+            ],
+            [
+              0.1377,
+              0.0
+            ],
+            [
+              0.1781,
+              0.0379
+            ],
+            [
+              0.3036,
+              0.1137
+            ],
+            [
+              0.3117,
+              0.1137
+            ],
+            [
+              0.3522,
+              0.1327
+            ],
+            [
+              0.3684,
+              0.1374
+            ],
+            [
+              0.4737,
+              0.1374
+            ],
+            [
+              0.4899,
+              0.1327
+            ],
+            [
+              0.5182,
+              0.1232
+            ],
+            [
+              0.5789,
+              0.09
+            ],
+            [
+              0.6559,
+              0.0284
+            ],
+            [
+              0.6721,
+              0.0284
+            ],
+            [
+              0.6883,
+              0.0047
+            ],
+            [
+              0.7085,
+              -0.0047
+            ],
+            [
+              0.8219,
+              -0.0948
+            ],
+            [
+              0.83,
+              -0.0948
+            ]
+          ],
+          "polyline_id": "p0",
+          "render_role": "render",
+          "structure_coverage": 0.9894
+        }
+      ],
+      "quality_flags": [],
+      "rejected_candidate_reasons": {},
+      "rejection_reasons": [],
+      "render_authority": "vector",
+      "render_fallback": "none",
+      "render_vectors": "derived_validated",
+      "selected_aperture": "image_left",
+      "selected_extractor": "v7_shape_authority_record",
+      "selected_extractor_reason": "status=authority; render_authority=vector; render_vectors=derived_validated",
+      "selected_vectorizer": "v7_shape_authority_record",
+      "shape_point_count": 21,
+      "shape_ref": "sh1_5f0125b19c4208c0",
+      "shape_type": "dotted_arc_path",
+      "sibling_polylines": [
+        {
+          "aperture": "image_right",
+          "bridge_spans": [
+            [
+              0,
+              1
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              7,
+              8
+            ],
+            [
+              12,
+              13
+            ],
+            [
+              17,
+              18
+            ],
+            [
+              24,
+              25
+            ]
+          ],
+          "bridges": [
+            {
+              "from": 0,
+              "glow_coverage": 1.0,
+              "length_px": 13.454,
+              "to": 1
+            },
+            {
+              "from": 3,
+              "glow_coverage": 1.0,
+              "length_px": 10.296,
+              "to": 4
+            },
+            {
+              "from": 7,
+              "glow_coverage": 1.0,
+              "length_px": 6.083,
+              "to": 8
+            },
+            {
+              "from": 12,
+              "glow_coverage": 1.0,
+              "length_px": 7.616,
+              "to": 13
+            },
+            {
+              "from": 17,
+              "glow_coverage": 1.0,
+              "length_px": 14.422,
+              "to": 18
+            },
+            {
+              "from": 24,
+              "glow_coverage": 1.0,
+              "length_px": 10.296,
+              "to": 25
+            }
+          ],
+          "closed": false,
+          "component_id": "s2",
+          "dash_count": 7,
+          "geometry_kind": "dotted_arc_path",
+          "member_component_ids": [
+            "s2",
+            "s4"
+          ],
+          "ordered": true,
+          "point_count": 27,
+          "points": [
+            [
+              -0.903,
+              -0.1196
+            ],
+            [
+              -0.8569,
+              -0.1075
+            ],
+            [
+              -0.7976,
+              -0.0654
+            ],
+            [
+              -0.7382,
+              -0.0093
+            ],
+            [
+              -0.7068,
+              0.014
+            ],
+            [
+              -0.6894,
+              0.0327
+            ],
+            [
+              -0.5846,
+              0.1028
+            ],
+            [
+              -0.5777,
+              0.1168
+            ],
+            [
+              -0.5567,
+              0.1121
+            ],
+            [
+              -0.5358,
+              0.1215
+            ],
+            [
+              -0.5079,
+              0.1215
+            ],
+            [
+              -0.5044,
+              0.1262
+            ],
+            [
+              -0.4206,
+              0.1168
+            ],
+            [
+              -0.3962,
+              0.1028
+            ],
+            [
+              -0.3578,
+              0.0888
+            ],
+            [
+              -0.3508,
+              0.0794
+            ],
+            [
+              -0.3264,
+              0.0701
+            ],
+            [
+              -0.267,
+              0.028
+            ],
+            [
+              -0.2251,
+              -0.0093
+            ],
+            [
+              -0.2182,
+              -0.0093
+            ],
+            [
+              -0.2112,
+              -0.0187
+            ],
+            [
+              -0.1623,
+              -0.0514
+            ],
+            [
+              -0.0925,
+              -0.0888
+            ],
+            [
+              -0.082,
+              -0.1028
+            ],
+            [
+              -0.0785,
+              -0.0981
+            ],
+            [
+              -0.0471,
+              -0.1215
+            ],
+            [
+              -0.0366,
+              -0.1215
+            ]
+          ],
+          "points_px": [
+            [
+              673.8,
+              392.6
+            ],
+            [
+              687.0,
+              390.0
+            ],
+            [
+              704.0,
+              381.0
+            ],
+            [
+              721.0,
+              369.0
+            ],
+            [
+              730.0,
+              364.0
+            ],
+            [
+              735.0,
+              360.0
+            ],
+            [
+              765.0,
+              345.0
+            ],
+            [
+              767.0,
+              342.0
+            ],
+            [
+              773.0,
+              343.0
+            ],
+            [
+              779.0,
+              341.0
+            ],
+            [
+              787.0,
+              341.0
+            ],
+            [
+              788.0,
+              340.0
+            ],
+            [
+              812.0,
+              342.0
+            ],
+            [
+              819.0,
+              345.0
+            ],
+            [
+              830.0,
+              348.0
+            ],
+            [
+              832.0,
+              350.0
+            ],
+            [
+              839.0,
+              352.0
+            ],
+            [
+              856.0,
+              361.0
+            ],
+            [
+              868.0,
+              369.0
+            ],
+            [
+              870.0,
+              369.0
+            ],
+            [
+              872.0,
+              371.0
+            ],
+            [
+              886.0,
+              378.0
+            ],
+            [
+              906.0,
+              386.0
+            ],
+            [
+              909.0,
+              389.0
+            ],
+            [
+              910.0,
+              388.0
+            ],
+            [
+              919.0,
+              393.0
+            ],
+            [
+              922.0,
+              393.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.903,
+              -0.1196
+            ],
+            [
+              -0.8569,
+              -0.1075
+            ],
+            [
+              -0.7976,
+              -0.0654
+            ],
+            [
+              -0.7382,
+              -0.0093
+            ],
+            [
+              -0.7068,
+              0.014
+            ],
+            [
+              -0.6894,
+              0.0327
+            ],
+            [
+              -0.5846,
+              0.1028
+            ],
+            [
+              -0.5777,
+              0.1168
+            ],
+            [
+              -0.5567,
+              0.1121
+            ],
+            [
+              -0.5358,
+              0.1215
+            ],
+            [
+              -0.5079,
+              0.1215
+            ],
+            [
+              -0.5044,
+              0.1262
+            ],
+            [
+              -0.4206,
+              0.1168
+            ],
+            [
+              -0.3962,
+              0.1028
+            ],
+            [
+              -0.3578,
+              0.0888
+            ],
+            [
+              -0.3508,
+              0.0794
+            ],
+            [
+              -0.3264,
+              0.0701
+            ],
+            [
+              -0.267,
+              0.028
+            ],
+            [
+              -0.2251,
+              -0.0093
+            ],
+            [
+              -0.2182,
+              -0.0093
+            ],
+            [
+              -0.2112,
+              -0.0187
+            ],
+            [
+              -0.1623,
+              -0.0514
+            ],
+            [
+              -0.0925,
+              -0.0888
+            ],
+            [
+              -0.082,
+              -0.1028
+            ],
+            [
+              -0.0785,
+              -0.0981
+            ],
+            [
+              -0.0471,
+              -0.1215
+            ],
+            [
+              -0.0366,
+              -0.1215
+            ]
+          ],
+          "polyline_id": "sp0",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        }
+      ],
+      "source_pixel_bbox": [
+        288,
+        338,
+        531,
+        395
+      ],
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_011_breakdown_turqoise_pointy/still.jpg",
+      "test_id": "cue_011_breakdown_turqoise_pointy",
+      "topology_class": "complex_shape",
+      "usable_as_shape_authority": true,
+      "v7_status": "authority",
+      "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,74",
+      "visual_review_reason": "v7 authority record with vector render geometry",
+      "visual_status": "pass"
+    },
+    {
+      "aperture_boxes": {
+        "image_left": [
+          60,
+          156,
+          554,
+          578
+        ],
+        "image_right": [
+          646,
+          153,
+          1219,
+          581
+        ]
+      },
       "authority_source_record": "artifacts/renderer/shape_authority_v2/records/sh1_83b4671ca39044d5.json",
       "bbox_wall_norm": [
         -0.1377,
@@ -3332,6 +5770,9 @@
           "component_id": "s0",
           "dash_count": 4,
           "geometry_kind": "dotted_arc_path",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold"
+          ],
           "ordered": true,
           "point_count": 12,
           "points": [
@@ -3493,24 +5934,27 @@
           "closed": false,
           "component_id": "s2",
           "geometry_kind": "dot_anchor",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold"
+          ],
           "ordered": true,
           "point_count": 1,
           "points": [
             [
-              0.6154,
-              0.0304
+              0.6123,
+              0.0318
             ]
           ],
           "points_px": [
             [
-              459.01,
-              360.58
+              458.23,
+              360.3
             ]
           ],
           "points_wall_norm": [
             [
-              0.6154,
-              0.0304
+              0.6123,
+              0.0318
             ]
           ],
           "polyline_id": "p1",
@@ -3522,24 +5966,27 @@
           "closed": false,
           "component_id": "s4",
           "geometry_kind": "dot_anchor",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold"
+          ],
           "ordered": true,
           "point_count": 1,
           "points": [
             [
-              0.7208,
-              -0.0499
+              0.7162,
+              -0.0468
             ]
           ],
           "points_px": [
             [
-              485.03,
-              377.52
+              483.89,
+              376.88
             ]
           ],
           "points_wall_norm": [
             [
-              0.7208,
-              -0.0499
+              0.7162,
+              -0.0468
             ]
           ],
           "polyline_id": "p2",
@@ -3550,85 +5997,41 @@
           "aperture": "image_left",
           "closed": false,
           "component_id": "s5",
-          "geometry_kind": "open_centerline",
+          "fit_residual_px_p90": 0.716,
+          "geometry_kind": "line_centerline",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold"
+          ],
           "ordered": true,
-          "point_count": 6,
+          "point_count": 2,
           "points": [
             [
-              0.8259,
-              -0.1185
+              0.8256,
+              -0.1213
             ],
             [
-              0.8947,
-              -0.1327
-            ],
-            [
-              0.8988,
-              -0.1374
-            ],
-            [
-              0.9474,
-              -0.1374
-            ],
-            [
-              0.9514,
-              -0.1422
-            ],
-            [
-              0.9595,
-              -0.1374
+              0.9589,
+              -0.1426
             ]
           ],
           "points_px": [
             [
-              511.0,
-              392.0
+              510.92,
+              392.59
             ],
             [
-              528.0,
-              395.0
-            ],
-            [
-              529.0,
-              396.0
-            ],
-            [
-              541.0,
-              396.0
-            ],
-            [
-              542.0,
-              397.0
-            ],
-            [
-              544.0,
-              396.0
+              543.85,
+              397.09
             ]
           ],
           "points_wall_norm": [
             [
-              0.8259,
-              -0.1185
+              0.8256,
+              -0.1213
             ],
             [
-              0.8947,
-              -0.1327
-            ],
-            [
-              0.8988,
-              -0.1374
-            ],
-            [
-              0.9474,
-              -0.1374
-            ],
-            [
-              0.9514,
-              -0.1422
-            ],
-            [
-              0.9595,
-              -0.1374
+              0.9589,
+              -0.1426
             ]
           ],
           "polyline_id": "p3",
@@ -3640,24 +6043,27 @@
           "closed": false,
           "component_id": "s6",
           "geometry_kind": "dot_anchor",
+          "group_rejection_reasons": [
+            "chain_total_bridge_fraction_above_threshold"
+          ],
           "ordered": true,
           "point_count": 1,
           "points": [
             [
-              0.9957,
-              -0.1366
+              0.992,
+              -0.1338
             ]
           ],
           "points_px": [
             [
-              552.94,
-              395.82
+              552.03,
+              395.24
             ]
           ],
           "points_wall_norm": [
             [
-              0.9957,
-              -0.1366
+              0.992,
+              -0.1338
             ]
           ],
           "polyline_id": "p4",
@@ -3677,19 +6083,182 @@
       "selected_extractor": "v7_shape_authority_record",
       "selected_extractor_reason": "status=authority; render_authority=vector; render_vectors=derived_validated",
       "selected_vectorizer": "v7_shape_authority_record",
-      "shape_point_count": 21,
+      "shape_point_count": 17,
       "shape_ref": "sh1_83b4671ca39044d5",
       "shape_type": "multi_geometry",
       "sibling_polylines": [
         {
           "aperture": "image_right",
+          "bridge_spans": [
+            [
+              2,
+              3
+            ],
+            [
+              10,
+              11
+            ],
+            [
+              17,
+              18
+            ],
+            [
+              20,
+              21
+            ],
+            [
+              24,
+              25
+            ],
+            [
+              27,
+              28
+            ],
+            [
+              39,
+              40
+            ]
+          ],
+          "bridges": [
+            {
+              "from": 2,
+              "glow_coverage": 1.0,
+              "length_px": 3.162,
+              "to": 3
+            },
+            {
+              "from": 10,
+              "glow_coverage": 1.0,
+              "length_px": 8.246,
+              "to": 11
+            },
+            {
+              "from": 17,
+              "glow_coverage": 1.0,
+              "length_px": 8.602,
+              "to": 18
+            },
+            {
+              "from": 20,
+              "glow_coverage": 1.0,
+              "length_px": 52.811,
+              "to": 21
+            },
+            {
+              "from": 24,
+              "glow_coverage": 1.0,
+              "length_px": 7.0,
+              "to": 25
+            },
+            {
+              "from": 27,
+              "glow_coverage": 1.0,
+              "length_px": 12.53,
+              "to": 28
+            },
+            {
+              "from": 39,
+              "glow_coverage": 1.0,
+              "length_px": 13.306,
+              "to": 40
+            }
+          ],
           "closed": false,
           "component_id": "s1",
-          "dash_count": 4,
+          "dash_count": 8,
           "geometry_kind": "dotted_arc_path",
+          "member_component_ids": [
+            "s1",
+            "s3",
+            "s7"
+          ],
           "ordered": true,
-          "point_count": 20,
+          "point_count": 41,
           "points": [
+            [
+              -0.9965,
+              -0.1449
+            ],
+            [
+              -0.9895,
+              -0.1402
+            ],
+            [
+              -0.9791,
+              -0.1495
+            ],
+            [
+              -0.9686,
+              -0.1449
+            ],
+            [
+              -0.9651,
+              -0.1495
+            ],
+            [
+              -0.9407,
+              -0.1495
+            ],
+            [
+              -0.9372,
+              -0.1449
+            ],
+            [
+              -0.9092,
+              -0.1449
+            ],
+            [
+              -0.8848,
+              -0.1355
+            ],
+            [
+              -0.8639,
+              -0.1355
+            ],
+            [
+              -0.8534,
+              -0.1168
+            ],
+            [
+              -0.8255,
+              -0.1075
+            ],
+            [
+              -0.815,
+              -0.1075
+            ],
+            [
+              -0.808,
+              -0.0981
+            ],
+            [
+              -0.7836,
+              -0.0841
+            ],
+            [
+              -0.7173,
+              -0.028
+            ],
+            [
+              -0.7068,
+              -0.014
+            ],
+            [
+              -0.6963,
+              -0.014
+            ],
+            [
+              -0.6789,
+              0.0187
+            ],
+            [
+              -0.6684,
+              0.0187
+            ],
+            [
+              -0.6614,
+              0.028
+            ],
             [
               -0.4869,
               0.1075
@@ -3773,6 +6342,90 @@
           ],
           "points_px": [
             [
+              647.0,
+              398.0
+            ],
+            [
+              649.0,
+              397.0
+            ],
+            [
+              652.0,
+              399.0
+            ],
+            [
+              655.0,
+              398.0
+            ],
+            [
+              656.0,
+              399.0
+            ],
+            [
+              663.0,
+              399.0
+            ],
+            [
+              664.0,
+              398.0
+            ],
+            [
+              672.0,
+              398.0
+            ],
+            [
+              679.0,
+              396.0
+            ],
+            [
+              685.0,
+              396.0
+            ],
+            [
+              688.0,
+              392.0
+            ],
+            [
+              696.0,
+              390.0
+            ],
+            [
+              699.0,
+              390.0
+            ],
+            [
+              701.0,
+              388.0
+            ],
+            [
+              708.0,
+              385.0
+            ],
+            [
+              727.0,
+              373.0
+            ],
+            [
+              730.0,
+              370.0
+            ],
+            [
+              733.0,
+              370.0
+            ],
+            [
+              738.0,
+              363.0
+            ],
+            [
+              741.0,
+              363.0
+            ],
+            [
+              743.0,
+              361.0
+            ],
+            [
               793.0,
               344.0
             ],
@@ -3854,6 +6507,90 @@
             ]
           ],
           "points_wall_norm": [
+            [
+              -0.9965,
+              -0.1449
+            ],
+            [
+              -0.9895,
+              -0.1402
+            ],
+            [
+              -0.9791,
+              -0.1495
+            ],
+            [
+              -0.9686,
+              -0.1449
+            ],
+            [
+              -0.9651,
+              -0.1495
+            ],
+            [
+              -0.9407,
+              -0.1495
+            ],
+            [
+              -0.9372,
+              -0.1449
+            ],
+            [
+              -0.9092,
+              -0.1449
+            ],
+            [
+              -0.8848,
+              -0.1355
+            ],
+            [
+              -0.8639,
+              -0.1355
+            ],
+            [
+              -0.8534,
+              -0.1168
+            ],
+            [
+              -0.8255,
+              -0.1075
+            ],
+            [
+              -0.815,
+              -0.1075
+            ],
+            [
+              -0.808,
+              -0.0981
+            ],
+            [
+              -0.7836,
+              -0.0841
+            ],
+            [
+              -0.7173,
+              -0.028
+            ],
+            [
+              -0.7068,
+              -0.014
+            ],
+            [
+              -0.6963,
+              -0.014
+            ],
+            [
+              -0.6789,
+              0.0187
+            ],
+            [
+              -0.6684,
+              0.0187
+            ],
+            [
+              -0.6614,
+              0.028
+            ],
             [
               -0.4869,
               0.1075
@@ -3938,269 +6675,6 @@
           "polyline_id": "sp0",
           "render_role": "render",
           "structure_coverage": 1.0
-        },
-        {
-          "aperture": "image_right",
-          "closed": false,
-          "component_id": "s3",
-          "dash_count": 3,
-          "geometry_kind": "dotted_arc_path",
-          "ordered": true,
-          "point_count": 18,
-          "points": [
-            [
-              -0.9686,
-              -0.1449
-            ],
-            [
-              -0.9651,
-              -0.1495
-            ],
-            [
-              -0.9407,
-              -0.1495
-            ],
-            [
-              -0.9372,
-              -0.1449
-            ],
-            [
-              -0.9092,
-              -0.1449
-            ],
-            [
-              -0.8848,
-              -0.1355
-            ],
-            [
-              -0.8639,
-              -0.1355
-            ],
-            [
-              -0.8534,
-              -0.1168
-            ],
-            [
-              -0.8255,
-              -0.1075
-            ],
-            [
-              -0.815,
-              -0.1075
-            ],
-            [
-              -0.808,
-              -0.0981
-            ],
-            [
-              -0.7836,
-              -0.0841
-            ],
-            [
-              -0.7173,
-              -0.028
-            ],
-            [
-              -0.7068,
-              -0.014
-            ],
-            [
-              -0.6963,
-              -0.014
-            ],
-            [
-              -0.6789,
-              0.0187
-            ],
-            [
-              -0.6684,
-              0.0187
-            ],
-            [
-              -0.6614,
-              0.028
-            ]
-          ],
-          "points_px": [
-            [
-              655.0,
-              398.0
-            ],
-            [
-              656.0,
-              399.0
-            ],
-            [
-              663.0,
-              399.0
-            ],
-            [
-              664.0,
-              398.0
-            ],
-            [
-              672.0,
-              398.0
-            ],
-            [
-              679.0,
-              396.0
-            ],
-            [
-              685.0,
-              396.0
-            ],
-            [
-              688.0,
-              392.0
-            ],
-            [
-              696.0,
-              390.0
-            ],
-            [
-              699.0,
-              390.0
-            ],
-            [
-              701.0,
-              388.0
-            ],
-            [
-              708.0,
-              385.0
-            ],
-            [
-              727.0,
-              373.0
-            ],
-            [
-              730.0,
-              370.0
-            ],
-            [
-              733.0,
-              370.0
-            ],
-            [
-              738.0,
-              363.0
-            ],
-            [
-              741.0,
-              363.0
-            ],
-            [
-              743.0,
-              361.0
-            ]
-          ],
-          "points_wall_norm": [
-            [
-              -0.9686,
-              -0.1449
-            ],
-            [
-              -0.9651,
-              -0.1495
-            ],
-            [
-              -0.9407,
-              -0.1495
-            ],
-            [
-              -0.9372,
-              -0.1449
-            ],
-            [
-              -0.9092,
-              -0.1449
-            ],
-            [
-              -0.8848,
-              -0.1355
-            ],
-            [
-              -0.8639,
-              -0.1355
-            ],
-            [
-              -0.8534,
-              -0.1168
-            ],
-            [
-              -0.8255,
-              -0.1075
-            ],
-            [
-              -0.815,
-              -0.1075
-            ],
-            [
-              -0.808,
-              -0.0981
-            ],
-            [
-              -0.7836,
-              -0.0841
-            ],
-            [
-              -0.7173,
-              -0.028
-            ],
-            [
-              -0.7068,
-              -0.014
-            ],
-            [
-              -0.6963,
-              -0.014
-            ],
-            [
-              -0.6789,
-              0.0187
-            ],
-            [
-              -0.6684,
-              0.0187
-            ],
-            [
-              -0.6614,
-              0.028
-            ]
-          ],
-          "polyline_id": "sp1",
-          "render_role": "render",
-          "structure_coverage": 1.0
-        },
-        {
-          "aperture": "image_right",
-          "closed": false,
-          "component_id": "s7",
-          "geometry_kind": "dot_anchor",
-          "ordered": true,
-          "point_count": 1,
-          "points": [
-            [
-              -0.9927,
-              -0.1581
-            ]
-          ],
-          "points_px": [
-            [
-              648.1,
-              400.83
-            ]
-          ],
-          "points_wall_norm": [
-            [
-              -0.9927,
-              -0.1581
-            ]
-          ],
-          "polyline_id": "sp2",
-          "render_role": "render",
-          "structure_coverage": 0.0
         }
       ],
       "source_pixel_bbox": [
@@ -4235,13 +6709,13 @@
     {
       "capture_path": "phase1_single_channel/CH01_master_dimmer/CH01_220",
       "family_or_checkpoint": "horizontal line static",
-      "reason": "render_authority_core_mask",
+      "reason": null,
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_e9743d87837d24ad.json",
-      "selected_render_polyline_count": 4,
-      "shape_authority": false,
+      "selected_render_polyline_count": 5,
+      "shape_authority": true,
       "shape_ref": "sh1_e9743d87837d24ad",
       "sibling_render_polyline_count": 7,
-      "v7_status": "conflicts",
+      "v7_status": "authority",
       "vector_key": "v1:220,0,32,10,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0"
     },
     {
@@ -4288,7 +6762,7 @@
       "selected_render_polyline_count": 2,
       "shape_authority": false,
       "shape_ref": "sh1_3e98be8e27ea1c58",
-      "sibling_render_polyline_count": 2,
+      "sibling_render_polyline_count": 3,
       "v7_status": "provisional",
       "vector_key": "v1:65,7,148,0,183,83,134,8,255,255,0,0,0,0,0,0,0,0,0"
     },
@@ -4331,13 +6805,13 @@
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_003_intro_techno",
       "family_or_checkpoint": "cue_003_intro_techno",
-      "reason": "v7_status_provisional",
+      "reason": "v7_status_quarantined",
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_b92cc7b21e95ce78.json",
-      "selected_render_polyline_count": 6,
+      "selected_render_polyline_count": 7,
       "shape_authority": false,
       "shape_ref": "sh1_b92cc7b21e95ce78",
-      "sibling_render_polyline_count": 5,
-      "v7_status": "provisional",
+      "sibling_render_polyline_count": 9,
+      "v7_status": "quarantined",
       "vector_key": "v1:3,0,38,135,214,100,134,172,121,0,0,159,231,0,59,0,0,0,136"
     },
     {
@@ -4345,7 +6819,7 @@
       "family_or_checkpoint": "cue_004_breakdown_1",
       "reason": "v7_status_provisional",
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_298397439f5ce2a9.json",
-      "selected_render_polyline_count": 2,
+      "selected_render_polyline_count": 3,
       "shape_authority": false,
       "shape_ref": "sh1_298397439f5ce2a9",
       "sibling_render_polyline_count": 2,
@@ -4355,13 +6829,13 @@
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_005_breakdown_2",
       "family_or_checkpoint": "cue_005_breakdown_2",
-      "reason": "v7_status_provisional",
+      "reason": "v7_status_quarantined",
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_39cde94194e37010.json",
-      "selected_render_polyline_count": 0,
+      "selected_render_polyline_count": 2,
       "shape_authority": false,
       "shape_ref": "sh1_39cde94194e37010",
-      "sibling_render_polyline_count": 1,
-      "v7_status": "provisional",
+      "sibling_render_polyline_count": 2,
+      "v7_status": "quarantined",
       "vector_key": "v1:3,0,0,203,190,141,117,162,86,128,0,0,0,0,189,0,0,0,121"
     },
     {
@@ -4427,13 +6901,13 @@
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_011_breakdown_turqoise_pointy",
       "family_or_checkpoint": "cue_011_breakdown_turqoise_pointy",
-      "reason": "v7_status_provisional",
+      "reason": null,
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_5f0125b19c4208c0.json",
-      "selected_render_polyline_count": 4,
-      "shape_authority": false,
+      "selected_render_polyline_count": 1,
+      "shape_authority": true,
       "shape_ref": "sh1_5f0125b19c4208c0",
-      "sibling_render_polyline_count": 2,
-      "v7_status": "provisional",
+      "sibling_render_polyline_count": 1,
+      "v7_status": "authority",
       "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,74"
     },
     {
@@ -4444,17 +6918,17 @@
       "selected_render_polyline_count": 5,
       "shape_authority": true,
       "shape_ref": "sh1_83b4671ca39044d5",
-      "sibling_render_polyline_count": 3,
+      "sibling_render_polyline_count": 1,
       "v7_status": "authority",
       "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,79"
     }
   ],
   "v7_authority_counts": {
-    "authority": 8,
-    "conflicts": 1,
+    "authority": 10,
+    "conflicts": 0,
     "missing": 0,
-    "provisional": 10,
-    "quarantined": 0
+    "provisional": 7,
+    "quarantined": 2
   },
   "v7_authority_manifest": "artifacts/renderer/shape_authority_v2/manifest.json",
   "v7_authority_root": "artifacts/renderer/shape_authority_v2"

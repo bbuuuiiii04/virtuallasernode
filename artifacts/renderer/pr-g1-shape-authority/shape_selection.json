@@ -81,11 +81,11 @@
       "selection_reason": "exact CH3=32 representative in range 16-40",
       "selection_tier": "exact_family",
       "still_path": "captures/fixture_model/phase1_single_channel/CH01_master_dimmer/CH01_220/still.jpg",
-      "v7_authority_status": "conflicts",
-      "v7_fallback_reason": "render_authority_core_mask",
+      "v7_authority_status": "authority",
+      "v7_fallback_reason": null,
       "v7_record_path": "artifacts/renderer/shape_authority_v2/records/sh1_e9743d87837d24ad.json",
-      "v7_selected_render_polyline_count": 4,
-      "v7_shape_authority": false,
+      "v7_selected_render_polyline_count": 5,
+      "v7_shape_authority": true,
       "v7_shape_ref": "sh1_e9743d87837d24ad",
       "v7_sibling_render_polyline_count": 7,
       "vector_key": "v1:220,0,32,10,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0"
@@ -267,7 +267,7 @@
       "v7_selected_render_polyline_count": 2,
       "v7_shape_authority": false,
       "v7_shape_ref": "sh1_3e98be8e27ea1c58",
-      "v7_sibling_render_polyline_count": 2,
+      "v7_sibling_render_polyline_count": 3,
       "vector_key": "v1:65,7,148,0,183,83,134,8,255,255,0,0,0,0,0,0,0,0,0"
     },
     {
@@ -537,13 +537,13 @@
       "selection_reason": "phase6 cue_relevant local capture (CH1-19 authority)",
       "selection_tier": "phase6_cue",
       "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_003_intro_techno/still.jpg",
-      "v7_authority_status": "provisional",
-      "v7_fallback_reason": "v7_status_provisional",
+      "v7_authority_status": "quarantined",
+      "v7_fallback_reason": "v7_status_quarantined",
       "v7_record_path": "artifacts/renderer/shape_authority_v2/records/sh1_b92cc7b21e95ce78.json",
-      "v7_selected_render_polyline_count": 6,
+      "v7_selected_render_polyline_count": 7,
       "v7_shape_authority": false,
       "v7_shape_ref": "sh1_b92cc7b21e95ce78",
-      "v7_sibling_render_polyline_count": 5,
+      "v7_sibling_render_polyline_count": 9,
       "vector_key": "v1:3,0,38,135,214,100,134,172,121,0,0,159,231,0,59,0,0,0,136"
     },
     {
@@ -584,7 +584,7 @@
       "v7_authority_status": "provisional",
       "v7_fallback_reason": "v7_status_provisional",
       "v7_record_path": "artifacts/renderer/shape_authority_v2/records/sh1_298397439f5ce2a9.json",
-      "v7_selected_render_polyline_count": 2,
+      "v7_selected_render_polyline_count": 3,
       "v7_shape_authority": false,
       "v7_shape_ref": "sh1_298397439f5ce2a9",
       "v7_sibling_render_polyline_count": 2,
@@ -625,13 +625,13 @@
       "selection_reason": "phase6 cue_relevant local capture (CH1-19 authority)",
       "selection_tier": "phase6_cue",
       "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_005_breakdown_2/still.jpg",
-      "v7_authority_status": "provisional",
-      "v7_fallback_reason": "v7_status_provisional",
+      "v7_authority_status": "quarantined",
+      "v7_fallback_reason": "v7_status_quarantined",
       "v7_record_path": "artifacts/renderer/shape_authority_v2/records/sh1_39cde94194e37010.json",
-      "v7_selected_render_polyline_count": 0,
+      "v7_selected_render_polyline_count": 2,
       "v7_shape_authority": false,
       "v7_shape_ref": "sh1_39cde94194e37010",
-      "v7_sibling_render_polyline_count": 1,
+      "v7_sibling_render_polyline_count": 2,
       "vector_key": "v1:3,0,0,203,190,141,117,162,86,128,0,0,0,0,189,0,0,0,121"
     },
     {
@@ -889,13 +889,13 @@
       "selection_reason": "phase6 cue_relevant local capture (CH1-19 authority)",
       "selection_tier": "phase6_cue",
       "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_011_breakdown_turqoise_pointy/still.jpg",
-      "v7_authority_status": "provisional",
-      "v7_fallback_reason": "v7_status_provisional",
+      "v7_authority_status": "authority",
+      "v7_fallback_reason": null,
       "v7_record_path": "artifacts/renderer/shape_authority_v2/records/sh1_5f0125b19c4208c0.json",
-      "v7_selected_render_polyline_count": 4,
-      "v7_shape_authority": false,
+      "v7_selected_render_polyline_count": 1,
+      "v7_shape_authority": true,
       "v7_shape_ref": "sh1_5f0125b19c4208c0",
-      "v7_sibling_render_polyline_count": 2,
+      "v7_sibling_render_polyline_count": 1,
       "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,74"
     },
     {
@@ -939,7 +939,7 @@
       "v7_selected_render_polyline_count": 5,
       "v7_shape_authority": true,
       "v7_shape_ref": "sh1_83b4671ca39044d5",
-      "v7_sibling_render_polyline_count": 3,
+      "v7_sibling_render_polyline_count": 1,
       "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,79"
     }
   ],
@@ -963,13 +963,13 @@
     {
       "capture_path": "phase1_single_channel/CH01_master_dimmer/CH01_220",
       "family_or_checkpoint": "horizontal line static",
-      "reason": "render_authority_core_mask",
+      "reason": null,
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_e9743d87837d24ad.json",
-      "selected_render_polyline_count": 4,
-      "shape_authority": false,
+      "selected_render_polyline_count": 5,
+      "shape_authority": true,
       "shape_ref": "sh1_e9743d87837d24ad",
       "sibling_render_polyline_count": 7,
-      "v7_status": "conflicts",
+      "v7_status": "authority",
       "vector_key": "v1:220,0,32,10,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0"
     },
     {
@@ -1016,7 +1016,7 @@
       "selected_render_polyline_count": 2,
       "shape_authority": false,
       "shape_ref": "sh1_3e98be8e27ea1c58",
-      "sibling_render_polyline_count": 2,
+      "sibling_render_polyline_count": 3,
       "v7_status": "provisional",
       "vector_key": "v1:65,7,148,0,183,83,134,8,255,255,0,0,0,0,0,0,0,0,0"
     },
@@ -1059,13 +1059,13 @@
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_003_intro_techno",
       "family_or_checkpoint": "cue_003_intro_techno",
-      "reason": "v7_status_provisional",
+      "reason": "v7_status_quarantined",
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_b92cc7b21e95ce78.json",
-      "selected_render_polyline_count": 6,
+      "selected_render_polyline_count": 7,
       "shape_authority": false,
       "shape_ref": "sh1_b92cc7b21e95ce78",
-      "sibling_render_polyline_count": 5,
-      "v7_status": "provisional",
+      "sibling_render_polyline_count": 9,
+      "v7_status": "quarantined",
       "vector_key": "v1:3,0,38,135,214,100,134,172,121,0,0,159,231,0,59,0,0,0,136"
     },
     {
@@ -1073,7 +1073,7 @@
       "family_or_checkpoint": "cue_004_breakdown_1",
       "reason": "v7_status_provisional",
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_298397439f5ce2a9.json",
-      "selected_render_polyline_count": 2,
+      "selected_render_polyline_count": 3,
       "shape_authority": false,
       "shape_ref": "sh1_298397439f5ce2a9",
       "sibling_render_polyline_count": 2,
@@ -1083,13 +1083,13 @@
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_005_breakdown_2",
       "family_or_checkpoint": "cue_005_breakdown_2",
-      "reason": "v7_status_provisional",
+      "reason": "v7_status_quarantined",
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_39cde94194e37010.json",
-      "selected_render_polyline_count": 0,
+      "selected_render_polyline_count": 2,
       "shape_authority": false,
       "shape_ref": "sh1_39cde94194e37010",
-      "sibling_render_polyline_count": 1,
-      "v7_status": "provisional",
+      "sibling_render_polyline_count": 2,
+      "v7_status": "quarantined",
       "vector_key": "v1:3,0,0,203,190,141,117,162,86,128,0,0,0,0,189,0,0,0,121"
     },
     {
@@ -1155,13 +1155,13 @@
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_011_breakdown_turqoise_pointy",
       "family_or_checkpoint": "cue_011_breakdown_turqoise_pointy",
-      "reason": "v7_status_provisional",
+      "reason": null,
       "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_5f0125b19c4208c0.json",
-      "selected_render_polyline_count": 4,
-      "shape_authority": false,
+      "selected_render_polyline_count": 1,
+      "shape_authority": true,
       "shape_ref": "sh1_5f0125b19c4208c0",
-      "sibling_render_polyline_count": 2,
-      "v7_status": "provisional",
+      "sibling_render_polyline_count": 1,
+      "v7_status": "authority",
       "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,74"
     },
     {
@@ -1172,17 +1172,17 @@
       "selected_render_polyline_count": 5,
       "shape_authority": true,
       "shape_ref": "sh1_83b4671ca39044d5",
-      "sibling_render_polyline_count": 3,
+      "sibling_render_polyline_count": 1,
       "v7_status": "authority",
       "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,79"
     }
   ],
   "v7_authority_counts": {
-    "authority": 8,
-    "conflicts": 1,
+    "authority": 10,
+    "conflicts": 0,
     "missing": 0,
-    "provisional": 10,
-    "quarantined": 0
+    "provisional": 7,
+    "quarantined": 2
   },
   "v7_authority_root": "artifacts/renderer/shape_authority_v2",
   "v7_subset_count": 19

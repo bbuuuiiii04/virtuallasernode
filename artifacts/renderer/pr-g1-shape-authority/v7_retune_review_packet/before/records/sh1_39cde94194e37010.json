@@ -1,0 +1,333 @@
+{
+  "record_version": "shape-authority-v2",
+  "shape_ref": "sh1_39cde94194e37010",
+  "vector_key": "v1:3,0,0,203,190,141,117,162,86,128,0,0,0,0,189,0,0,0,121",
+  "ch1_19": {
+    "CH1": 3,
+    "CH10": 128,
+    "CH11": 0,
+    "CH12": 0,
+    "CH13": 0,
+    "CH14": 0,
+    "CH15": 189,
+    "CH16": 0,
+    "CH17": 0,
+    "CH18": 0,
+    "CH19": 121,
+    "CH2": 0,
+    "CH3": 0,
+    "CH4": 203,
+    "CH5": 190,
+    "CH6": 141,
+    "CH7": 117,
+    "CH8": 162,
+    "CH9": 86
+  },
+  "capture_path": "phase6_cue_validation/cue_relevant/cue_005_breakdown_2",
+  "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_005_breakdown_2/still.jpg",
+  "test_id": "cue_005_breakdown_2",
+  "phase": "phase6_cue_validation",
+  "exposure_track": "geometry_motion",
+  "fixture_box_label": "image_left",
+  "detection_domain_px": [
+    0,
+    129,
+    1280,
+    589
+  ],
+  "authority_scope": "aperture",
+  "selected_aperture": "image_left",
+  "aperture_boxes": {
+    "image_left": [
+      60,
+      156,
+      554,
+      578
+    ],
+    "image_right": [
+      646,
+      153,
+      1219,
+      581
+    ]
+  },
+  "source_core_components": [
+    {
+      "source_component_id": "s0",
+      "aperture_assignment": "image_left",
+      "significant": true,
+      "bbox_px": [
+        275,
+        373,
+        300,
+        399
+      ],
+      "area_px": 432,
+      "out_of_box_geometry": false
+    },
+    {
+      "source_component_id": "s1",
+      "aperture_assignment": "image_right",
+      "significant": true,
+      "bbox_px": [
+        912,
+        374,
+        942,
+        407
+      ],
+      "area_px": 634,
+      "out_of_box_geometry": false
+    },
+    {
+      "source_component_id": "s2",
+      "aperture_assignment": "image_left",
+      "significant": true,
+      "bbox_px": [
+        228,
+        393,
+        275,
+        419
+      ],
+      "area_px": 715,
+      "out_of_box_geometry": false
+    },
+    {
+      "source_component_id": "s3",
+      "aperture_assignment": "image_right",
+      "significant": true,
+      "bbox_px": [
+        940,
+        396,
+        1001,
+        427
+      ],
+      "area_px": 1258,
+      "out_of_box_geometry": false
+    }
+  ],
+  "included_component_ids": [
+    "s0",
+    "s2"
+  ],
+  "sibling_aperture_component_ids": [
+    "s1",
+    "s3"
+  ],
+  "unaccounted_component_ids": [],
+  "component_structure_coverage": {
+    "s0": 0.0,
+    "s2": 0.0,
+    "s1": 0.0,
+    "s3": 0.125
+  },
+  "source_frame_accounting_complete": false,
+  "fixture_output_accounting_complete": false,
+  "geometry_source": {
+    "path": "captures/fixture_model/analysis_geometry.json",
+    "sha256": "72d99c676ebfacc2f0cdcf88e5b6b13dcd51bd677d8de67d9aeb52f340cce699"
+  },
+  "extraction": {
+    "policy_version": "v7",
+    "params": {
+      "k_core": 8.0,
+      "k_glow": 3.5,
+      "sat_floor": 200.0,
+      "min_core_area_px": 20
+    },
+    "background": {
+      "median_score": 93.24,
+      "mad_score": 8.18
+    },
+    "timing_ms": 0
+  },
+  "core_mask": {
+    "rle_path": "masks/sh1_39cde94194e37010.rle.json",
+    "pixel_count": 1147,
+    "bbox_px": [
+      228,
+      373,
+      300,
+      419
+    ],
+    "bbox_wall_norm": [
+      -0.3198,
+      -0.2464,
+      -0.0283,
+      -0.0284
+    ],
+    "centroid_wall_norm": [
+      -0.171,
+      -0.153
+    ]
+  },
+  "components": [
+    {
+      "component_id": "s0",
+      "class": "dot",
+      "area_px": 432,
+      "bbox_px": [
+        275,
+        373,
+        300,
+        399
+      ],
+      "bbox_wall_norm": [
+        -0.12955465587044535,
+        -0.15165876777251186,
+        -0.028340080971659964,
+        -0.028436018957346043
+      ],
+      "out_of_box_geometry": false,
+      "fixture_assignment": "contained"
+    },
+    {
+      "component_id": "s2",
+      "class": "dot",
+      "area_px": 715,
+      "bbox_px": [
+        228,
+        393,
+        275,
+        419
+      ],
+      "bbox_wall_norm": [
+        -0.31983805668016196,
+        -0.24644549763033186,
+        -0.12955465587044535,
+        -0.12322274881516582
+      ],
+      "out_of_box_geometry": false,
+      "fixture_assignment": "contained"
+    }
+  ],
+  "polylines": [
+    {
+      "component_id": "s0",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          287.32,
+          385.92
+        ]
+      ],
+      "aperture": "image_left",
+      "points_wall_norm": [
+        [
+          -0.0797,
+          -0.0897
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "p0",
+      "render_role": "diagnostic",
+      "structure_coverage": 0.0
+    },
+    {
+      "component_id": "s2",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          251.23,
+          407.44
+        ]
+      ],
+      "aperture": "image_left",
+      "points_wall_norm": [
+        [
+          -0.2258,
+          -0.1917
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "p1",
+      "render_role": "diagnostic",
+      "structure_coverage": 0.0
+    }
+  ],
+  "sibling_polylines": [
+    {
+      "component_id": "s1",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          926.44,
+          388.24
+        ]
+      ],
+      "aperture": "image_right",
+      "points_wall_norm": [
+        [
+          -0.0212,
+          -0.0993
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "sp0",
+      "render_role": "diagnostic",
+      "structure_coverage": 0.0
+    },
+    {
+      "component_id": "s3",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          969.86,
+          410.84
+        ]
+      ],
+      "aperture": "image_right",
+      "points_wall_norm": [
+        [
+          0.1304,
+          -0.2049
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "sp1",
+      "render_role": "render",
+      "structure_coverage": 0.125
+    }
+  ],
+  "topology_summary": {
+    "dots": 2,
+    "closed_strokes": 0,
+    "open_strokes": 0
+  },
+  "metrics": {
+    "core_precision": 0.0,
+    "core_recall": 0.0,
+    "halo_spill": 0.0,
+    "vector_fit_residual_px_p95": 0.0,
+    "components_detected": 2,
+    "components_vectorized": 2
+  },
+  "status": "provisional",
+  "selected_aperture_authority_eligible": false,
+  "authority_eligible": false,
+  "status_reasons": [
+    "core_precision_below_threshold:0.000<0.9",
+    "core_recall_below_threshold:0.000<0.8",
+    "component_reconstruction_incomplete",
+    "sibling_aperture_unaccounted"
+  ],
+  "quality_flags": [],
+  "render_authority": "core_mask",
+  "geometry_layers": {
+    "core_mask": "primary_evidence_authority",
+    "raw_debug_vectors": "diagnostic_only",
+    "render_vectors": null,
+    "render_fallback": "core_mask"
+  },
+  "human_review": {
+    "verdict": "pending",
+    "date": null
+  }
+}

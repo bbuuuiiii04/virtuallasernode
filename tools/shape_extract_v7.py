@@ -95,7 +95,13 @@ def extract_record(
         compute_metrics,
         component_structure_coverage,
     )
-    from tools.shape_vectorize_v7 import extract_structure_submask, vectorize_component
+    from tools.shape_vectorize_v7 import (
+        extract_structure_submask,
+        group_chain_rejection_reasons,
+        sample_geometry_points,
+        vectorize_component,
+        vectorize_group,
+    )
 
     t0 = time.perf_counter()
 
@@ -145,23 +151,20 @@ def extract_record(
             fixture_boxes=fixture_boxes,
         )
 
-    # Process components
+    # Component pass: preserve source component IDs/order, but defer authority
+    # accounting until grouped vectorization and artifact rejection are known.
     source_core_components: list[dict[str, Any]] = []
     included_component_ids: list[str] = []
     sibling_aperture_component_ids: list[str] = []
     unaccounted_component_ids: list[str] = []
-    
-    components: list[dict[str, Any]] = []
+
+    comp_infos: list[dict[str, Any]] = []
     polylines: list[dict[str, Any]] = []
     sibling_polylines: list[dict[str, Any]] = []
     quality_flags: list[str] = []
-    target_core_mask = np.zeros((H, W), dtype=bool)
     full_core_mask = np.zeros((H, W), dtype=bool)
-    target_structure_mask = np.zeros((H, W), dtype=bool)
-    # Per-component structure masks for render-role coverage checks
     structure_by_comp: dict[str, np.ndarray] = {}
     comp_class_by_id: dict[str, str] = {}
-    sibling_comp_ids_with_geometry: set[str] = set()
 
     for cid in range(1, n_components + 1):
         comp_mask = labeled == cid
@@ -187,69 +190,35 @@ def extract_record(
         comp_structure = extract_structure_submask(comp_mask, img_rgb)
         structure_by_comp[comp_id] = comp_structure
         comp_class_by_id[comp_id] = comp_class
+        comp_infos.append({
+            "index": len(comp_infos),
+            "component_id": comp_id,
+            "mask": comp_mask,
+            "structure": comp_structure,
+            "class": comp_class,
+            "area_px": area,
+            "bbox_px": bbox_px,
+            "aperture_assignment": a_type,
+            "aperture_label": a_label,
+            "out_of_box_geometry": out_of_box,
+            "centroid_px": [float(xs.mean()), float(ys.mean())],
+            "peak_score": float(score_map[comp_mask].max()) if area else 0.0,
+        })
 
         if a_label == target_box_label:
             included_component_ids.append(comp_id)
-            target_core_mask |= comp_mask
-            target_structure_mask |= comp_structure
 
             if a_type == "ambiguous":
                 quality_flags.append("fixture_assignment_ambiguous")
 
-            wnorm = bbox_wall_norm(
-                float(bbox_px[0]), float(bbox_px[1]),
-                float(bbox_px[2]), float(bbox_px[3]),
-                target_box,
-            ) if target_box else [0.0, 0.0, 0.0, 0.0]
-
             if out_of_box:
                 quality_flags.append("out_of_box_geometry")
-
-            components.append({
-                "component_id": comp_id,
-                "class": comp_class,
-                "area_px": area,
-                "bbox_px": bbox_px,
-                "bbox_wall_norm": wnorm,
-                "out_of_box_geometry": out_of_box,
-                "fixture_assignment": a_type,
-            })
-
-            comp_polys = vectorize_component(
-                comp_mask, comp_class, score_map, comp_id,
-                img_rgb=img_rgb, structure_mask=comp_structure,
-            )
-            for pl in comp_polys:
-                pl["aperture"] = target_box_label
-            polylines.extend(comp_polys)
         elif a_label is not None:
-            # Sibling aperture: same fixture, same DMX state — its output is
-            # traced with the same machinery, not just bounding-boxed.
             sibling_aperture_component_ids.append(comp_id)
-            comp_polys = vectorize_component(
-                comp_mask, comp_class, score_map, comp_id,
-                img_rgb=img_rgb, structure_mask=comp_structure,
-            )
-            sibling_box = fixture_boxes.get(a_label)
-            for pl in comp_polys:
-                pl["aperture"] = a_label
-                wpts = []
-                if sibling_box:
-                    for xy in pl["points_px"]:
-                        wx, wy = pixel_to_wall_norm(xy[0], xy[1], sibling_box)
-                        wpts.append([round(wx, 4), round(wy, 4)])
-                pl["points_wall_norm"] = wpts
-                pl["point_count"] = len(pl["points_px"])
-            if comp_polys:
-                sibling_comp_ids_with_geometry.add(comp_id)
-            sibling_polylines.extend(comp_polys)
         else:
             unaccounted_component_ids.append(comp_id)
 
-    n_detected = len(components)
-    n_vectorized = len(set(pl["component_id"] for pl in polylines))
-
-    if n_detected == 0:
+    if not included_component_ids:
         elapsed_ms = int((time.perf_counter() - t0) * 1000)
         return _empty_record(
             shape_ref, entry, geom, geom_path, params,
@@ -260,34 +229,182 @@ def extract_record(
             fixture_boxes=fixture_boxes,
         )
 
-    # Add wall_norm coords to polylines
-    for pl in polylines:
+    from skimage.measure import label as _label
+
+    glow_labeled = _label(glow_mask, connectivity=2)
+    grouped: dict[tuple[str, int], list[dict[str, Any]]] = {}
+    solo_groups: list[list[dict[str, Any]]] = []
+    for info in comp_infos:
+        aperture = info["aperture_label"]
+        if aperture is None:
+            continue
+        if info["class"] == "closed_stroke":
+            solo_groups.append([info])
+            continue
+        labels = glow_labeled[info["mask"]]
+        labels = labels[labels > 0]
+        if labels.size == 0:
+            solo_groups.append([info])
+            continue
+        vals, counts = np.unique(labels, return_counts=True)
+        glow_id = int(vals[int(np.argmax(counts))])
+        grouped.setdefault((str(aperture), glow_id), []).append(info)
+
+    groups = solo_groups + list(grouped.values())
+    groups.sort(key=lambda g: min(int(info["index"]) for info in g))
+    for group in groups:
+        group.sort(key=lambda info: int(info["index"]))
+        aperture = group[0]["aperture_label"]
+        if len(group) == 1:
+            info = group[0]
+            group_polys = vectorize_component(
+                info["mask"], info["class"], score_map, info["component_id"],
+                img_rgb=img_rgb, structure_mask=info["structure"],
+            )
+        else:
+            group_polys = vectorize_group(
+                [info["mask"] for info in group],
+                [info["structure"] for info in group],
+                [info["class"] for info in group],
+                [info["component_id"] for info in group],
+                score_map,
+                glow_mask,
+                img_rgb,
+            )
+            if group_polys is None:
+                group_polys = []
+                rejection_reasons = group_chain_rejection_reasons(
+                    [info["structure"] for info in group],
+                    glow_mask,
+                )
+                turn_rejected = any(
+                    r in {"chain_sharp_turns_above_threshold", "chain_mean_turn_above_threshold"}
+                    for r in rejection_reasons
+                )
+                if all(info["class"] == "dot" for info in group) and turn_rejected:
+                    for info in group:
+                        group_polys.append(_diagnostic_anchor_polyline(
+                            info["mask"], score_map, info["component_id"], "group_chain_rejected"
+                        ))
+                else:
+                    for info in group:
+                        fallback_polys = vectorize_component(
+                            info["mask"], info["class"], score_map, info["component_id"],
+                            img_rgb=img_rgb, structure_mask=info["structure"],
+                        )
+                        for pl in fallback_polys:
+                            if rejection_reasons:
+                                pl["group_rejection_reasons"] = rejection_reasons
+                        group_polys.extend(fallback_polys)
+
+        represented = {
+            member
+            for pl in group_polys
+            for member in _polyline_member_ids(pl)
+        }
+        for info in group:
+            if info["component_id"] not in represented:
+                group_polys.append(_diagnostic_anchor_polyline(
+                    info["mask"], score_map, info["component_id"], "empty_trace_fallback"
+                ))
+
+        for pl in group_polys:
+            pl["aperture"] = aperture
+            if aperture == target_box_label:
+                polylines.append(pl)
+            else:
+                sibling_polylines.append(pl)
+
+    for pl in polylines + sibling_polylines:
+        box = fixture_boxes.get(pl.get("aperture"))
         wpts = []
-        if target_box:
-            for xy in pl["points_px"]:
-                wx, wy = pixel_to_wall_norm(xy[0], xy[1], target_box)
+        if box:
+            for xy in pl.get("points_px", []):
+                wx, wy = pixel_to_wall_norm(xy[0], xy[1], box)
                 wpts.append([round(wx, 4), round(wy, 4)])
         pl["points_wall_norm"] = wpts
-        pl["point_count"] = len(pl["points_px"])
+        pl["point_count"] = len(pl.get("points_px", []))
 
-    # Assign polyline_id
     for i, pl in enumerate(polylines):
         pl["polyline_id"] = f"p{i}"
     for i, pl in enumerate(sibling_polylines):
         pl["polyline_id"] = f"sp{i}"
 
-    # Topology summary
+    coverage_by_comp: dict[str, float] = {}
+    render_represented_by_comp: set[str] = set()
+    _assign_render_roles(
+        polylines + sibling_polylines,
+        structure_by_comp,
+        comp_class_by_id,
+        component_structure_coverage,
+        coverage_by_comp,
+        render_represented_by_comp,
+    )
+
+    artifact_reasons = _find_artifact_rejections(
+        comp_infos,
+        polylines + sibling_polylines,
+        render_represented_by_comp,
+        sample_geometry_points,
+    )
+    rejected_component_ids = sorted(
+        artifact_reasons.keys(),
+        key=lambda cid: int(cid[1:]) if cid.startswith("s") and cid[1:].isdigit() else cid,
+    )
+    rejected_set = set(rejected_component_ids)
+    for sc in source_core_components:
+        cid = sc.get("source_component_id")
+        if cid in artifact_reasons:
+            sc["significant"] = False
+            sc["artifact_reason"] = artifact_reasons[cid]
+
+    significant_included_ids = [
+        cid for cid in included_component_ids if cid not in rejected_set
+    ]
+    significant_sibling_ids = [
+        cid for cid in sibling_aperture_component_ids if cid not in rejected_set
+    ]
+
+    components: list[dict[str, Any]] = []
+    target_core_mask = np.zeros((H, W), dtype=bool)
+    target_structure_mask = np.zeros((H, W), dtype=bool)
+    for info in comp_infos:
+        cid = info["component_id"]
+        if cid not in significant_included_ids:
+            continue
+        target_core_mask |= info["mask"]
+        target_structure_mask |= info["structure"]
+        bbox_px = info["bbox_px"]
+        wnorm = bbox_wall_norm(
+            float(bbox_px[0]), float(bbox_px[1]),
+            float(bbox_px[2]), float(bbox_px[3]),
+            target_box,
+        ) if target_box else [0.0, 0.0, 0.0, 0.0]
+        components.append({
+            "component_id": cid,
+            "class": info["class"],
+            "area_px": info["area_px"],
+            "bbox_px": bbox_px,
+            "bbox_wall_norm": wnorm,
+            "out_of_box_geometry": info["out_of_box_geometry"],
+            "fixture_assignment": info["aperture_assignment"],
+        })
+
+    n_detected = len(components)
+    vectorized_ids = {
+        member
+        for pl in polylines
+        for member in _polyline_member_ids(pl)
+        if member in significant_included_ids
+    }
+    n_vectorized = len(vectorized_ids)
+
     dots = sum(1 for c in components if c["class"] == "dot")
     closed = sum(1 for c in components if c["class"] == "closed_stroke")
     opened = sum(1 for c in components if c["class"] == "open_stroke")
     topo = {"dots": dots, "closed_strokes": closed, "open_strokes": opened}
 
-    # Core mask stats restricted to target box
-    # Instead of clipping to the calibration box, we use the union of all components
-    # assigned to this box, which preserves out-of-box geometry.
     core_in_box = target_core_mask
-
-
     core_ys, core_xs = np.where(core_in_box)
     if len(core_ys):
         core_bbox_px = [int(core_xs.min()), int(core_ys.min()), int(core_xs.max()), int(core_ys.max())]
@@ -308,81 +425,26 @@ def extract_record(
     full_core_rle = rle_encode(full_core_mask)
     rle_path_rel = f"masks/{shape_ref}.rle.json"
 
-    # Determine render_role per polyline by measured coverage: a component's
-    # vectors are render geometry only when together they reconstruct that
-    # component's laser structure (>= MIN_COMPONENT_COVERAGE of its structure
-    # skeleton within tolerance). Anything weaker is diagnostic-only — debug
-    # vectors must never be promoted to render_vectors.
-    MIN_COMPONENT_COVERAGE = 0.6
-    from skimage.morphology import dilation as _dilation, disk as _disk
-    coverage_by_comp: dict[str, float] = {}
-    for pl_list in (polylines, sibling_polylines):
-        by_comp: dict[str, list[dict[str, Any]]] = {}
-        for pl in pl_list:
-            by_comp.setdefault(pl.get("component_id", ""), []).append(pl)
-        for cid, pls in by_comp.items():
-            struct = structure_by_comp.get(cid)
-            if struct is None:
-                cov = 0.0
-            else:
-                cov = component_structure_coverage(pls, struct)
-            coverage_by_comp[cid] = round(cov, 4)
-
-            if (
-                comp_class_by_id.get(cid) == "dot"
-                and all(pl.get("geometry_kind") == "dot_anchor" for pl in pls)
-            ):
-                # A dot's render geometry is its anchor point; the structure
-                # skeleton includes lens-flare arms that a point can never
-                # "cover". The anchor is render iff it sits on the structure.
-                struct_near = _dilation(struct, _disk(2)) if struct is not None else None
-                on_structure = False
-                for pl in pls:
-                    for ax, ay in pl.get("points_px", []):
-                        xi, yi = int(round(ax)), int(round(ay))
-                        if (
-                            struct_near is not None
-                            and 0 <= yi < struct_near.shape[0]
-                            and 0 <= xi < struct_near.shape[1]
-                            and struct_near[yi, xi]
-                        ):
-                            on_structure = True
-                role = "render" if on_structure else "diagnostic"
-            else:
-                role = "render" if cov >= MIN_COMPONENT_COVERAGE else "diagnostic"
-            for pl in pls:
-                pl["render_role"] = role
-                pl["structure_coverage"] = round(cov, 4)
-
-    # render_authority: "vector" when every included component is represented
-    # by render-role geometry (dot anchors included); otherwise the CORE mask
-    # remains the only render evidence.
-    comps_with_render = {
-        pl.get("component_id") for pl in polylines if pl.get("render_role") == "render"
-    }
     has_vector_authority = (
-        len(components) > 0
-        and all(c["component_id"] in comps_with_render for c in components)
+        n_detected > 0
+        and all(cid in render_represented_by_comp for cid in significant_included_ids)
     )
     render_authority = "vector" if has_vector_authority else "core_mask"
 
-    # Sibling aperture is accounted only when each sibling component is
-    # actually traced with render-quality geometry (a bbox is not tracing).
-    sibling_comps_with_render = {
-        pl.get("component_id") for pl in sibling_polylines
-        if pl.get("render_role") == "render"
-    }
     sibling_accounted = all(
-        cid in sibling_comps_with_render
-        for cid in sibling_aperture_component_ids
+        cid in render_represented_by_comp
+        for cid in significant_sibling_ids
     )
+    sibling_missing_reasons = {
+        cid: f"no_render_geometry:structure_coverage={coverage_by_comp.get(cid, 0.0):.2f}"
+        for cid in significant_sibling_ids
+        if cid not in render_represented_by_comp
+    }
     fixture_output_accounting_complete = (
         len(unaccounted_component_ids) == 0 and sibling_accounted
     )
     source_frame_accounting_complete = fixture_output_accounting_complete
 
-    # Metrics measure only render-role geometry: diagnostic vectors must not
-    # inflate coverage.
     render_polys = [p for p in polylines if p.get("render_role") == "render"]
     metrics = compute_metrics(
         render_polys, core_in_box, glow_mask, components,
@@ -394,6 +456,7 @@ def extract_record(
     auth_eligible, status, reasons = compute_authority_gate(
         metrics, n_detected, n_vectorized, quality_flags, fixture_output_accounting_complete
     )
+    status, reasons = _cap_status_for_render_authority(status, reasons, render_authority)
 
     elapsed_ms = int((time.perf_counter() - t0) * 1000)
 
@@ -416,6 +479,8 @@ def extract_record(
         "included_component_ids": included_component_ids,
         "sibling_aperture_component_ids": sibling_aperture_component_ids,
         "unaccounted_component_ids": unaccounted_component_ids,
+        "rejected_component_ids": rejected_component_ids,
+        "sibling_missing_reasons": sibling_missing_reasons,
         "component_structure_coverage": coverage_by_comp,
         "source_frame_accounting_complete": source_frame_accounting_complete,
         "fixture_output_accounting_complete": fixture_output_accounting_complete,
@@ -453,7 +518,7 @@ def extract_record(
         "selected_aperture_authority_eligible": auth_eligible,
         "authority_eligible": auth_eligible,
         "status_reasons": reasons,
-        "quality_flags": list(set(quality_flags)),
+        "quality_flags": sorted(set(quality_flags)),
         "render_authority": render_authority,
         "geometry_layers": {
             "core_mask": "primary_evidence_authority",
@@ -466,6 +531,188 @@ def extract_record(
         "_full_core_rle": full_core_rle,  # ephemeral; used by contact sheet, then removed
     }
     return record
+
+
+def _polyline_member_ids(pl: dict[str, Any]) -> list[str]:
+    members = pl.get("member_component_ids")
+    if isinstance(members, list) and members:
+        return [str(m) for m in members]
+    cid = pl.get("component_id")
+    return [str(cid)] if cid else []
+
+
+def _component_sort_key(cid: str) -> int:
+    return int(cid[1:]) if cid.startswith("s") and cid[1:].isdigit() else 10**9
+
+
+def _diagnostic_anchor_polyline(
+    comp_mask: np.ndarray,
+    score_map: np.ndarray,
+    comp_id: str,
+    reason: str,
+) -> dict[str, Any]:
+    ys, xs = np.where(comp_mask)
+    if len(ys) == 0:
+        cx = cy = 0.0
+    else:
+        weights = score_map[ys, xs].astype(np.float64)
+        if weights.sum() < 1e-9:
+            weights = np.ones(len(ys), dtype=np.float64)
+        cx = float(np.average(xs, weights=weights))
+        cy = float(np.average(ys, weights=weights))
+    return {
+        "component_id": comp_id,
+        "geometry_kind": "dot_anchor",
+        "closed": False,
+        "ordered": True,
+        "diagnostic_fallback_reason": reason,
+        "points_px": [[round(cx, 2), round(cy, 2)]],
+    }
+
+
+def _assign_render_roles(
+    polylines: list[dict[str, Any]],
+    structure_by_comp: dict[str, np.ndarray],
+    comp_class_by_id: dict[str, str],
+    component_structure_coverage_fn: Any,
+    coverage_by_comp: dict[str, float],
+    render_represented_by_comp: set[str],
+) -> None:
+    MIN_COMPONENT_COVERAGE = 0.6
+    MIN_MEMBER_RENDER_COVERAGE = 0.4
+    from skimage.morphology import dilation as _dilation, disk as _disk
+
+    clusters: dict[tuple[str, ...], list[dict[str, Any]]] = {}
+    for pl in polylines:
+        key = tuple(sorted(_polyline_member_ids(pl), key=_component_sort_key))
+        if key:
+            clusters.setdefault(key, []).append(pl)
+
+    for members, pls in clusters.items():
+        union_structure = None
+        for cid in members:
+            struct = structure_by_comp.get(cid)
+            if struct is None:
+                continue
+            union_structure = struct.copy() if union_structure is None else (union_structure | struct)
+
+        cluster_cov = (
+            component_structure_coverage_fn(pls, union_structure)
+            if union_structure is not None else 0.0
+        )
+        single_dot_anchor = (
+            len(members) == 1
+            and comp_class_by_id.get(members[0]) == "dot"
+            and all(pl.get("geometry_kind") == "dot_anchor" for pl in pls)
+        )
+        on_structure = False
+        if single_dot_anchor:
+            struct = structure_by_comp.get(members[0])
+            struct_near = _dilation(struct, _disk(2)) if struct is not None else None
+            for pl in pls:
+                for ax, ay in pl.get("points_px", []):
+                    xi, yi = int(round(ax)), int(round(ay))
+                    if (
+                        struct_near is not None
+                        and 0 <= yi < struct_near.shape[0]
+                        and 0 <= xi < struct_near.shape[1]
+                        and struct_near[yi, xi]
+                    ):
+                        on_structure = True
+            role = "render" if on_structure else "diagnostic"
+        else:
+            role = "render" if cluster_cov >= MIN_COMPONENT_COVERAGE else "diagnostic"
+
+        for cid in members:
+            struct = structure_by_comp.get(cid)
+            if struct is None:
+                member_cov = 0.0
+            elif single_dot_anchor and on_structure:
+                member_cov = 1.0
+            else:
+                member_cov = component_structure_coverage_fn(pls, struct)
+            coverage_by_comp[cid] = round(float(member_cov), 4)
+            if role == "render" and member_cov >= MIN_MEMBER_RENDER_COVERAGE:
+                render_represented_by_comp.add(cid)
+
+        for pl in pls:
+            pl["render_role"] = role
+            pl["structure_coverage"] = round(float(cluster_cov), 4)
+
+
+def _find_artifact_rejections(
+    comp_infos: list[dict[str, Any]],
+    polylines: list[dict[str, Any]],
+    render_represented_by_comp: set[str],
+    sample_geometry_points_fn: Any,
+) -> dict[str, str]:
+    render_pts_by_aperture: dict[str, list[list[float]]] = {}
+    for pl in polylines:
+        if pl.get("render_role") != "render":
+            continue
+        aperture = str(pl.get("aperture") or "")
+        render_pts_by_aperture.setdefault(aperture, []).extend(
+            sample_geometry_points_fn([pl], spacing=1.0)
+        )
+
+    peak_by_cid = {info["component_id"]: float(info["peak_score"]) for info in comp_infos}
+    max_render_peak_by_aperture: dict[str, float] = {}
+    for info in comp_infos:
+        cid = info["component_id"]
+        aperture = str(info.get("aperture_label") or "")
+        if cid not in render_represented_by_comp or not aperture:
+            continue
+        max_render_peak_by_aperture[aperture] = max(
+            max_render_peak_by_aperture.get(aperture, 0.0),
+            peak_by_cid.get(cid, 0.0),
+        )
+
+    reasons: dict[str, str] = {}
+    for info in comp_infos:
+        cid = info["component_id"]
+        aperture = str(info.get("aperture_label") or "")
+        if not aperture:
+            continue
+        if int(info["area_px"]) >= 30:
+            continue
+        if cid in render_represented_by_comp:
+            continue
+        pts = render_pts_by_aperture.get(aperture) or []
+        if not pts:
+            continue
+        centroid = info["centroid_px"]
+        min_dist = min(
+            ((centroid[0] - p[0]) ** 2 + (centroid[1] - p[1]) ** 2) ** 0.5
+            for p in pts
+        )
+        if min_dist <= 15.0:
+            continue
+        max_peak = max_render_peak_by_aperture.get(aperture, 0.0)
+        if max_peak <= 0.0:
+            continue
+        peak = peak_by_cid.get(cid, 0.0)
+        if peak >= 0.5 * max_peak:
+            continue
+        reasons[cid] = (
+            "tiny_dim_far_artifact:"
+            f"area_px={int(info['area_px'])},"
+            f"centroid_distance_px={min_dist:.1f},"
+            f"peak_score={peak:.1f}<0.5*{max_peak:.1f}"
+        )
+    return reasons
+
+
+def _cap_status_for_render_authority(
+    status: str,
+    reasons: list[str],
+    render_authority: str,
+) -> tuple[str, list[str]]:
+    if status == "authority" and render_authority != "vector":
+        capped = list(reasons)
+        if "render_authority_core_mask" not in capped:
+            capped.append("render_authority_core_mask")
+        return "provisional", capped
+    return status, reasons
 
 
 def _empty_record(
@@ -502,6 +749,9 @@ def _empty_record(
         "included_component_ids": [],
         "sibling_aperture_component_ids": [],
         "unaccounted_component_ids": [],
+        "rejected_component_ids": [],
+        "sibling_missing_reasons": {},
+        "component_structure_coverage": {},
         "source_frame_accounting_complete": False,
         "fixture_output_accounting_complete": False,
         "geometry_source": {
@@ -518,7 +768,6 @@ def _empty_record(
         "components": [],
         "polylines": [],
         "sibling_polylines": [],
-        "component_structure_coverage": {},
         "topology_summary": {"dots": 0, "closed_strokes": 0, "open_strokes": 0},
         "metrics": {
             "core_precision": 0.0, "core_recall": 0.0, "halo_spill": 0.0,
@@ -708,6 +957,20 @@ def write_manifest(out_dir: Path, records: list[dict[str, Any]], geom_path: Path
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
 
 
+def _selection_entry_has_local_media(entry: dict[str, Any], capture_root: Path) -> bool:
+    if entry.get("excluded_reason"):
+        return False
+    if not entry.get("local_media_exists", True):
+        return False
+    if not entry.get("vector_key") or not entry.get("capture_path"):
+        return False
+    still_rel = entry.get("still_path") or ""
+    if not still_rel:
+        return False
+    still_path = capture_root / still_rel
+    return still_path.is_file() or (still_path.parent / "still_color.jpg").is_file()
+
+
 def main() -> None:
     _check_no_ai()
 
@@ -762,6 +1025,8 @@ def main() -> None:
     else:
         to_process = []
         for e in entries:
+            if not _selection_entry_has_local_media(e, capture_root):
+                continue
             vk = e.get("vector_key", "")
             cp = e.get("capture_path", "")
             box = e.get("selected_fixture_box", "image_left")

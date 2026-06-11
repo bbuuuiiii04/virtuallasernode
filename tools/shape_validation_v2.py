@@ -7,13 +7,14 @@ from typing import Any
 import numpy as np
 from skimage.morphology import dilation, disk, skeletonize
 
-from tools.shape_vectorize_v7 import sample_geometry_points
+from tools.shape_vectorize_v7 import sample_geometry_points, sample_geometry_points_with_bridge_flags
 
 R_P = 2.0   # core_precision radius (px)
 R_R = 3.0   # core_recall radius (px)
 PREC_GATE = 0.90
 RECALL_GATE = 0.80
 HALO_GATE = 0.05
+RESIDUAL_GATE = 2.5
 
 
 def compute_metrics(
@@ -40,7 +41,8 @@ def compute_metrics(
       components_detected (set externally), components_vectorized (set externally).
     """
     H, W = core_mask.shape
-    geom_pts = sample_geometry_points(polylines, spacing=1.0)
+    geom_pts, bridge_flags = sample_geometry_points_with_bridge_flags(polylines, spacing=1.0)
+    metric_pts = [pt for pt, is_bridge in zip(geom_pts, bridge_flags) if not is_bridge]
 
     # Skeleton of the recall basis (structure if provided, else CORE)
     recall_mask = structure_mask if structure_mask is not None else core_mask
@@ -62,20 +64,26 @@ def compute_metrics(
     core_dilated = dilation(core_mask, disk(r_p_int))
 
     # core_precision: fraction of geometry pts within r_p of core
-    in_core = sum(
-        1 for (gx, gy) in geom_pts
-        if 0 <= int(gy) < H and 0 <= int(gx) < W and core_dilated[int(gy), int(gx)]
-    )
-    core_precision = in_core / len(geom_pts)
+    if metric_pts:
+        in_core = sum(
+            1 for (gx, gy) in metric_pts
+            if 0 <= int(gy) < H and 0 <= int(gx) < W and core_dilated[int(gy), int(gx)]
+        )
+        core_precision = in_core / len(metric_pts)
+    else:
+        core_precision = 1.0
 
     # halo_spill: fraction of geometry pts not in core_dilated but in glow
-    halo_count = sum(
-        1 for (gx, gy) in geom_pts
-        if 0 <= int(gy) < H and 0 <= int(gx) < W
-        and not core_dilated[int(gy), int(gx)]
-        and glow_mask[int(gy), int(gx)]
-    )
-    halo_spill = halo_count / len(geom_pts)
+    if metric_pts:
+        halo_count = sum(
+            1 for (gx, gy) in metric_pts
+            if 0 <= int(gy) < H and 0 <= int(gx) < W
+            and not core_dilated[int(gy), int(gx)]
+            and glow_mask[int(gy), int(gx)]
+        )
+        halo_spill = halo_count / len(metric_pts)
+    else:
+        halo_spill = 0.0
 
     # core_recall: fraction of SKEL(CORE) pts within r_r of geometry
     if skel_count == 0:
@@ -97,7 +105,7 @@ def compute_metrics(
         dist_to_core = distance_transform_edt(~core_mask)
         residuals = [
             float(dist_to_core[int(gy), int(gx)])
-            for gx, gy in geom_pts
+            for gx, gy in metric_pts
             if 0 <= int(gy) < H and 0 <= int(gx) < W
         ]
         p95 = float(np.percentile(residuals, 95)) if residuals else 0.0
@@ -217,6 +225,11 @@ def compute_authority_gate(
         reasons.append("component_reconstruction_incomplete")
     if metrics["halo_spill"] > HALO_GATE:
         reasons.append(f"halo_spill_above_threshold:{metrics['halo_spill']:.3f}>{HALO_GATE}")
+    if metrics.get("vector_fit_residual_px_p95", 0.0) > RESIDUAL_GATE:
+        reasons.append(
+            f"vector_fit_residual_above_threshold:"
+            f"{metrics['vector_fit_residual_px_p95']:.3f}>{RESIDUAL_GATE}"
+        )
     
     if components_detected > 0 and components_vectorized < components_detected:
         reasons.append("vectorization_incomplete")
@@ -235,6 +248,7 @@ def compute_authority_gate(
         metrics["core_precision"] >= PREC_GATE and
         metrics["core_recall"] >= RECALL_GATE and
         metrics["halo_spill"] <= HALO_GATE and
+        metrics.get("vector_fit_residual_px_p95", 0.0) <= RESIDUAL_GATE and
         "fixture_assignment_ambiguous" not in quality_flags
         and not metrics.get("dot_reasons", [])
     )

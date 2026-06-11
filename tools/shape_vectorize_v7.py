@@ -16,10 +16,11 @@ Geometry is then derived from that structure:
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import numpy as np
-from skimage.morphology import skeletonize
+from skimage.morphology import closing, disk, skeletonize
 
 DEFAULT_DP_EPSILON = 0.75
 DEFAULT_MIN_PATH_LEN = 3
@@ -32,6 +33,21 @@ STRUCTURE_MIN_SUB_PX = 3      # ignore sub-fragments smaller than this
 
 # Rectangle snap: p90 distance of centerline points to fitted rect
 RECT_SNAP_RESIDUAL_P90 = 1.75
+
+LINE_SNAP_RESIDUAL_P90 = 1.5
+GROUP_LINE_RESIDUAL_P90 = 2.0
+LINE_MIN_SPAN_PX = 25.0
+QUAD_SNAP_RESIDUAL_P90 = 2.5
+QUAD_MIN_EDGE_SUPPORT = 8
+QUAD_MIN_HOLE_FRACTION = 0.25
+QUAD_CLOSE_RADIUS = 5
+CHAIN_BRIDGE_GLOW_MIN = 0.85
+CHAIN_BRIDGE_MAX_LEN_FRAC = 0.45
+CHAIN_BRIDGE_MAX_LEN_MIN = 18.0
+CHAIN_MAX_SHARP_TURNS = 1
+CHAIN_SHARP_TURN_DEG = 60.0
+CHAIN_MEAN_TURN_DEG_MAX = 25.0
+CHAIN_TOTAL_BRIDGE_FRAC_MAX = 0.35
 
 # Substructure classification
 RING_HOLE_FRACTION = 0.15
@@ -57,9 +73,6 @@ def vectorize_component(
     recomputing the saturated-structure threshold; when omitted it is derived
     from img_rgb, or falls back to comp_mask if no image is available.
     """
-    if comp_class == "dot":
-        return _vectorize_dot(comp_mask, score_map, comp_id)
-
     if structure_mask is None:
         structure_mask = extract_structure_submask(comp_mask, img_rgb)
 
@@ -67,6 +80,9 @@ def vectorize_component(
     kinds = [_classify_substructure(m) for m in subs]
 
     polys: list[dict[str, Any]] = []
+    if comp_class == "dot" and len(subs) == 1 and kinds[0] != "ring":
+        return _vectorize_dot(subs[0], score_map, comp_id)
+
     if "ring" not in kinds and len(subs) >= 2:
         # Disjoint dashes/dots from one emission: a dashed/dotted path.
         path = _trace_dashed_path(subs, dp_epsilon)
@@ -205,6 +221,21 @@ def _vectorize_ring(
                 "points_px": pts,
             }]
 
+    qfit = _fit_quad([[float(p[1]), float(p[0])] for p in skel_pts])
+    if qfit is not None:
+        corners, residual = qfit
+        if residual <= QUAD_SNAP_RESIDUAL_P90:
+            pts = [[round(float(corners[i % 4][0]), 2),
+                    round(float(corners[i % 4][1]), 2)] for i in range(5)]
+            return [{
+                "component_id": comp_id,
+                "geometry_kind": "quad_centerline",
+                "closed": True,
+                "ordered": True,
+                "fit_residual_px_p90": round(residual, 3),
+                "points_px": pts,
+            }]
+
     # Not rectangle-like: closed centerline from the skeleton loop, or the
     # filled-component contour when the skeleton trace does not close.
     paths = trace_skeleton_paths(skel, min_path_len=min_path_len)
@@ -319,6 +350,158 @@ def _fit_rectangle(
     return corners, float(np.percentile(residuals, 90))
 
 
+def _fit_line(
+    pts_xy: list[list[float]] | np.ndarray,
+) -> tuple[tuple[float, float], tuple[float, float], float] | None:
+    """PCA line fit. Returns endpoints and p90 perpendicular residual."""
+    pts = np.asarray(pts_xy, dtype=np.float64)
+    if pts.ndim != 2 or pts.shape[0] < 2 or pts.shape[1] != 2:
+        return None
+    mean = pts.mean(axis=0)
+    centered = pts - mean
+    try:
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
+    except np.linalg.LinAlgError:
+        return None
+    axis = vh[0]
+    norm = float(np.hypot(axis[0], axis[1]))
+    if norm < 1e-9:
+        return None
+    axis = axis / norm
+    proj = centered @ axis
+    p0 = mean + axis * float(proj.min())
+    p1 = mean + axis * float(proj.max())
+    residuals = np.abs(centered[:, 0] * axis[1] - centered[:, 1] * axis[0])
+    return (float(p0[0]), float(p0[1])), (float(p1[0]), float(p1[1])), float(np.percentile(residuals, 90))
+
+
+def _fit_quad(
+    pts_xy: list[list[float]] | np.ndarray,
+) -> tuple[np.ndarray, float] | None:
+    """Fit a convex 4-edge centerline polygon to structure points."""
+    pts = np.asarray(pts_xy, dtype=np.float64)
+    if pts.ndim != 2 or pts.shape[0] < 12 or pts.shape[1] != 2:
+        return None
+    try:
+        from scipy.spatial import ConvexHull
+        hull = ConvexHull(pts)
+    except Exception:
+        return None
+    poly = [pts[i].copy() for i in hull.vertices]
+    if len(poly) < 4:
+        return None
+
+    while len(poly) > 4:
+        areas: list[tuple[float, int]] = []
+        n = len(poly)
+        for i in range(n):
+            a, b, c = poly[(i - 1) % n], poly[i], poly[(i + 1) % n]
+            ab = b - a
+            bc = c - b
+            area = abs(float(ab[0] * bc[1] - ab[1] * bc[0])) * 0.5
+            areas.append((area, i))
+        _, remove_idx = min(areas, key=lambda item: (item[0], item[1]))
+        poly.pop(remove_idx)
+    if len(poly) != 4:
+        return None
+
+    hull4 = np.asarray(poly, dtype=np.float64)
+    dists = np.stack([
+        _point_segment_distances(pts, hull4[i], hull4[(i + 1) % 4])
+        for i in range(4)
+    ], axis=1)
+    edge_idx = dists.argmin(axis=1)
+    if any(int(np.sum(edge_idx == i)) < QUAD_MIN_EDGE_SUPPORT for i in range(4)):
+        return None
+
+    lines: list[tuple[np.ndarray, np.ndarray]] = []
+    for i in range(4):
+        edge_pts = pts[edge_idx == i]
+        line = _tls_line(edge_pts)
+        if line is None:
+            return None
+        lines.append(line)
+
+    corners: list[np.ndarray] = []
+    for i in range(4):
+        inter = _line_intersection(lines[i], lines[(i + 1) % 4])
+        if inter is None or not np.all(np.isfinite(inter)):
+            return None
+        corners.append(inter)
+    corners_arr = np.asarray(corners, dtype=np.float64)
+
+    if not _is_convex_quad(corners_arr):
+        return None
+    edge_lens = [
+        float(np.linalg.norm(corners_arr[(i + 1) % 4] - corners_arr[i]))
+        for i in range(4)
+    ]
+    if min(edge_lens) < 3.0:
+        return None
+
+    residuals = np.min(np.stack([
+        _point_segment_distances(pts, corners_arr[i], corners_arr[(i + 1) % 4])
+        for i in range(4)
+    ], axis=1), axis=1)
+    return corners_arr, float(np.percentile(residuals, 90))
+
+
+def _point_segment_distances(pts: np.ndarray, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    ab = b - a
+    denom = float(ab @ ab)
+    if denom < 1e-9:
+        return np.linalg.norm(pts - a, axis=1)
+    t = ((pts - a) @ ab) / denom
+    t = np.clip(t, 0.0, 1.0)
+    proj = a + t[:, None] * ab
+    return np.linalg.norm(pts - proj, axis=1)
+
+
+def _tls_line(pts: np.ndarray) -> tuple[np.ndarray, np.ndarray] | None:
+    if pts.shape[0] < 2:
+        return None
+    mean = pts.mean(axis=0)
+    centered = pts - mean
+    try:
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
+    except np.linalg.LinAlgError:
+        return None
+    direction = vh[0]
+    norm = float(np.linalg.norm(direction))
+    if norm < 1e-9:
+        return None
+    return mean, direction / norm
+
+
+def _line_intersection(
+    line_a: tuple[np.ndarray, np.ndarray],
+    line_b: tuple[np.ndarray, np.ndarray],
+) -> np.ndarray | None:
+    p, r = line_a
+    q, s = line_b
+    cross = float(r[0] * s[1] - r[1] * s[0])
+    if abs(cross) < 1e-6:
+        return None
+    qp = q - p
+    t = float((qp[0] * s[1] - qp[1] * s[0]) / cross)
+    return p + t * r
+
+
+def _is_convex_quad(corners: np.ndarray) -> bool:
+    signs = []
+    for i in range(4):
+        a = corners[i]
+        b = corners[(i + 1) % 4]
+        c = corners[(i + 2) % 4]
+        ab = b - a
+        bc = c - b
+        cross = float(ab[0] * bc[1] - ab[1] * bc[0])
+        if abs(cross) < 1e-6:
+            return False
+        signs.append(cross > 0)
+    return all(s == signs[0] for s in signs)
+
+
 def _trace_dashed_path(
     subs: list[np.ndarray], dp_epsilon: float
 ) -> list[list[float]]:
@@ -328,6 +511,12 @@ def _trace_dashed_path(
     segments are then chained greedily by nearest endpoints starting from
     the leftmost segment, reversing segments as needed.
     """
+    segments = _dash_segments(subs, dp_epsilon)
+    path, _, _ = _chain_segments(segments, glow_mask=None)
+    return path
+
+
+def _dash_segments(subs: list[np.ndarray], dp_epsilon: float) -> list[list[list[float]]]:
     segments: list[list[list[float]]] = []
     for m in subs:
         ys, xs = np.where(m)
@@ -342,16 +531,23 @@ def _trace_dashed_path(
         best = max(paths, key=len)
         pts = _douglas_peucker([[float(p[1]), float(p[0])] for p in best], dp_epsilon)
         segments.append(pts)
+    return [s for s in segments if s]
 
-    segments = [s for s in segments if s]
+
+def _chain_segments(
+    segments: list[list[list[float]]],
+    glow_mask: np.ndarray | None,
+) -> tuple[list[list[float]], list[list[int]], list[dict[str, Any]]]:
     if not segments:
-        return []
+        return [], [], []
 
     current = min(segments, key=lambda s: min(p[0] for p in s))
     remaining = [s for s in segments if s is not current]
     if current[0][0] > current[-1][0]:
         current = current[::-1]
     chained: list[list[float]] = list(current)
+    bridge_spans: list[list[int]] = []
+    bridges: list[dict[str, Any]] = []
 
     while remaining:
         tail = chained[-1]
@@ -365,9 +561,225 @@ def _trace_dashed_path(
             if best_d is None or d < best_d:
                 best_seg, best_d, best_rev = seg, d, rev
         remaining.remove(best_seg)
-        chained.extend(best_seg[::-1] if best_rev else best_seg)
+        next_seg = best_seg[::-1] if best_rev else best_seg
+        bridge_idx = len(chained) - 1
+        bridge_len = _point_distance(tail, next_seg[0])
+        glow_cov = _line_glow_coverage(tail, next_seg[0], glow_mask) if glow_mask is not None else 1.0
+        bridge_spans.append([bridge_idx, bridge_idx + 1])
+        bridges.append({
+            "from": bridge_idx,
+            "to": bridge_idx + 1,
+            "length_px": round(bridge_len, 3),
+            "glow_coverage": round(glow_cov, 4),
+        })
+        chained.extend(next_seg)
 
-    return [[round(p[0], 2), round(p[1], 2)] for p in chained]
+    return [[round(p[0], 2), round(p[1], 2)] for p in chained], bridge_spans, bridges
+
+
+def vectorize_group(
+    member_masks: list[np.ndarray],
+    member_structures: list[np.ndarray],
+    member_classes: list[str],
+    comp_ids: list[str],
+    score_map: np.ndarray,
+    glow_mask: np.ndarray,
+    img_rgb: np.ndarray,
+    dp_epsilon: float = DEFAULT_DP_EPSILON,
+) -> list[dict[str, Any]] | None:
+    """Vectorize a multi-component glow group as one canonical primitive."""
+    if len(member_masks) < 2:
+        return None
+    union_structure = np.zeros_like(member_structures[0], dtype=bool)
+    for m in member_structures:
+        union_structure |= m
+    fragments = _structure_subcomponents(union_structure, union_structure)
+    kinds = [_classify_substructure(m) for m in fragments]
+    anchor_id = comp_ids[int(np.argmax([int(m.sum()) for m in member_masks]))]
+    members = list(comp_ids)
+
+    if len(fragments) == 2 and all(k == "dash" for k in kinds):
+        return None
+
+    ys, xs = np.where(union_structure)
+    pts = np.column_stack([xs.astype(np.float64), ys.astype(np.float64)])
+    if len(pts) >= 2:
+        line = _fit_line(pts)
+        if line is not None:
+            p0, p1, residual = line
+            span = _point_distance(p0, p1)
+            if residual <= GROUP_LINE_RESIDUAL_P90 and span >= LINE_MIN_SPAN_PX:
+                return [{
+                    "component_id": anchor_id,
+                    "member_component_ids": members,
+                    "geometry_kind": "line_centerline",
+                    "closed": False,
+                    "ordered": True,
+                    "fit_residual_px_p90": round(residual, 3),
+                    "points_px": [[round(p0[0], 2), round(p0[1], 2)],
+                                  [round(p1[0], 2), round(p1[1], 2)]],
+                }]
+
+    from scipy.ndimage import binary_fill_holes
+    closed = closing(union_structure, disk(QUAD_CLOSE_RADIUS))
+    filled = binary_fill_holes(closed)
+    filled_px = int(np.sum(filled))
+    if filled_px > 0:
+        hole_fraction = (filled_px - int(np.sum(closed))) / filled_px
+        if hole_fraction >= QUAD_MIN_HOLE_FRACTION:
+            qfit = _fit_quad(pts)
+            if qfit is not None:
+                corners, residual = qfit
+                if residual <= QUAD_SNAP_RESIDUAL_P90:
+                    qpts = [[round(float(corners[i % 4][0]), 2),
+                             round(float(corners[i % 4][1]), 2)] for i in range(5)]
+                    return [{
+                        "component_id": anchor_id,
+                        "member_component_ids": members,
+                        "geometry_kind": "quad_centerline",
+                        "closed": True,
+                        "ordered": True,
+                        "fit_residual_px_p90": round(residual, 3),
+                        "points_px": qpts,
+                    }]
+
+    if len(fragments) >= 2:
+        segments = _dash_segments(fragments, dp_epsilon)
+        path, bridge_spans, bridges = _chain_segments(segments, glow_mask=glow_mask)
+        if len(path) >= 2 and _chain_passes_gates(path, bridges):
+            return [{
+                "component_id": anchor_id,
+                "member_component_ids": members,
+                "geometry_kind": "dotted_arc_path",
+                "closed": False,
+                "ordered": True,
+                "dash_count": len(fragments),
+                "bridge_spans": bridge_spans,
+                "bridges": bridges,
+                "points_px": path,
+            }]
+    return None
+
+
+def group_chain_rejection_reasons(
+    member_structures: list[np.ndarray],
+    glow_mask: np.ndarray,
+    dp_epsilon: float = DEFAULT_DP_EPSILON,
+) -> list[str]:
+    if len(member_structures) < 2:
+        return []
+    union_structure = np.zeros_like(member_structures[0], dtype=bool)
+    for m in member_structures:
+        union_structure |= m
+    fragments = _structure_subcomponents(union_structure, union_structure)
+    kinds = [_classify_substructure(m) for m in fragments]
+    if len(fragments) == 2 and all(k == "dash" for k in kinds):
+        return ["two_compact_dots"]
+    if len(fragments) < 2:
+        return []
+    segments = _dash_segments(fragments, dp_epsilon)
+    path, _, bridges = _chain_segments(segments, glow_mask=glow_mask)
+    return _chain_rejection_reasons(path, bridges)
+
+
+def _chain_passes_gates(path: list[list[float]], bridges: list[dict[str, Any]]) -> bool:
+    return not _chain_rejection_reasons(path, bridges)
+
+
+def _chain_rejection_reasons(path: list[list[float]], bridges: list[dict[str, Any]]) -> list[str]:
+    reasons: list[str] = []
+    if not bridges:
+        return reasons
+    xs = [p[0] for p in path]
+    ys = [p[1] for p in path]
+    span = max(float(np.hypot(max(xs) - min(xs), max(ys) - min(ys))), 1e-9)
+    max_bridge = max(CHAIN_BRIDGE_MAX_LEN_MIN, CHAIN_BRIDGE_MAX_LEN_FRAC * span)
+    total_bridge = 0.0
+    for b in bridges:
+        length = float(b["length_px"])
+        total_bridge += length
+        if float(b["glow_coverage"]) < CHAIN_BRIDGE_GLOW_MIN:
+            reasons.append("chain_bridge_glow_below_threshold")
+        if length > max_bridge:
+            reasons.append("chain_bridge_length_above_threshold")
+    path_len = max(_path_length(path), 1e-9)
+    if total_bridge > CHAIN_TOTAL_BRIDGE_FRAC_MAX * path_len:
+        reasons.append("chain_total_bridge_fraction_above_threshold")
+    turns = _turn_angles_deg(_resample_path(path, spacing=6.0))
+    if turns:
+        sharp = sum(1 for a in turns if a > CHAIN_SHARP_TURN_DEG)
+        mean_turn = float(np.mean(np.abs(turns)))
+        if sharp > CHAIN_MAX_SHARP_TURNS:
+            reasons.append("chain_sharp_turns_above_threshold")
+        if mean_turn > CHAIN_MEAN_TURN_DEG_MAX:
+            reasons.append("chain_mean_turn_above_threshold")
+    return reasons
+
+
+def _point_distance(a: list[float] | tuple[float, float], b: list[float] | tuple[float, float]) -> float:
+    return float(math.hypot(float(a[0]) - float(b[0]), float(a[1]) - float(b[1])))
+
+
+def _path_length(path: list[list[float]]) -> float:
+    return sum(_point_distance(path[i], path[i + 1]) for i in range(len(path) - 1))
+
+
+def _line_glow_coverage(a: list[float], b: list[float], glow_mask: np.ndarray | None) -> float:
+    if glow_mask is None:
+        return 1.0
+    H, W = glow_mask.shape
+    length = max(_point_distance(a, b), 1e-9)
+    n = max(1, int(math.ceil(length)))
+    inside = 0
+    total = 0
+    for k in range(n + 1):
+        t = k / n
+        x = a[0] + t * (b[0] - a[0])
+        y = a[1] + t * (b[1] - a[1])
+        xi, yi = int(round(x)), int(round(y))
+        if 0 <= yi < H and 0 <= xi < W:
+            total += 1
+            if glow_mask[yi, xi]:
+                inside += 1
+    return inside / total if total else 0.0
+
+
+def _resample_path(path: list[list[float]], spacing: float) -> list[list[float]]:
+    if len(path) <= 1:
+        return path
+    out = [list(path[0])]
+    carry = 0.0
+    prev = list(path[0])
+    for cur in path[1:]:
+        cur = list(cur)
+        seg_len = _point_distance(prev, cur)
+        if seg_len < 1e-9:
+            prev = cur
+            continue
+        direction = [(cur[0] - prev[0]) / seg_len, (cur[1] - prev[1]) / seg_len]
+        dist = spacing - carry
+        while dist <= seg_len:
+            out.append([prev[0] + direction[0] * dist, prev[1] + direction[1] * dist])
+            dist += spacing
+        carry = max(0.0, seg_len - (dist - spacing))
+        prev = cur
+    if _point_distance(out[-1], path[-1]) > 1e-6:
+        out.append(list(path[-1]))
+    return out
+
+
+def _turn_angles_deg(path: list[list[float]]) -> list[float]:
+    turns: list[float] = []
+    for i in range(1, len(path) - 1):
+        a = np.array(path[i], dtype=np.float64) - np.array(path[i - 1], dtype=np.float64)
+        b = np.array(path[i + 1], dtype=np.float64) - np.array(path[i], dtype=np.float64)
+        na = float(np.linalg.norm(a))
+        nb = float(np.linalg.norm(b))
+        if na < 1e-9 or nb < 1e-9:
+            continue
+        cosv = float(np.clip((a @ b) / (na * nb), -1.0, 1.0))
+        turns.append(math.degrees(math.acos(cosv)))
+    return turns
 
 
 def _vectorize_open_stroke(
@@ -378,6 +790,22 @@ def _vectorize_open_stroke(
 
     if not paths:
         return []
+
+    if len(paths) == 1 and _is_non_branching_skeleton(skel):
+        raw_pts = [[float(p[1]), float(p[0])] for p in paths[0]]
+        fit = _fit_line(raw_pts)
+        if fit is not None:
+            p0, p1, residual = fit
+            if residual <= LINE_SNAP_RESIDUAL_P90:
+                return [{
+                    "component_id": comp_id,
+                    "geometry_kind": "line_centerline",
+                    "closed": False,
+                    "ordered": True,
+                    "fit_residual_px_p90": round(residual, 3),
+                    "points_px": [[round(p0[0], 2), round(p0[1], 2)],
+                                  [round(p1[0], 2), round(p1[1], 2)]],
+                }]
 
     results = []
     for path in paths:
@@ -393,6 +821,14 @@ def _vectorize_open_stroke(
                 "points_px": pts,
             })
     return results
+
+
+def _is_non_branching_skeleton(skel: np.ndarray) -> bool:
+    from scipy.ndimage import convolve
+    kernel = np.ones((3, 3), dtype=np.int32)
+    kernel[1, 1] = 0
+    neighbor_count = convolve(skel.astype(np.int32), kernel, mode="constant", cval=0)
+    return not bool(np.any(skel & (neighbor_count >= 3)))
 
 
 def _pts_close(a: list[float], b: list[float], tol: float) -> bool:
@@ -523,23 +959,43 @@ def _douglas_peucker(points: list[list[float]], epsilon: float) -> list[list[flo
     return _dp(points, epsilon)
 
 
-def sample_geometry_points(polylines: list[dict[str, Any]], spacing: float = 1.0) -> list[list[float]]:
-    """Sample polylines at ≤ spacing px intervals. Returns list of [x, y]."""
+def sample_geometry_points_with_bridge_flags(
+    polylines: list[dict[str, Any]], spacing: float = 1.0
+) -> tuple[list[list[float]], list[bool]]:
+    """Sample polylines and mark samples that lie on accepted bridge spans."""
     pts: list[list[float]] = []
+    bridge_flags: list[bool] = []
     for pl in polylines:
         pp = pl.get("points_px", [])
         if len(pp) == 0:
             continue
         if len(pp) == 1:
             pts.append(list(pp[0]))
+            bridge_flags.append(False)
             continue
+        bridge_segments = {
+            (int(span[0]), int(span[1]))
+            for span in pl.get("bridge_spans", [])
+            if isinstance(span, list) and len(span) == 2
+        }
+        last_flag = False
         for i in range(len(pp) - 1):
             x0, y0 = pp[i][0], pp[i][1]
             x1, y1 = pp[i + 1][0], pp[i + 1][1]
             seg_len = max(((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5, 1e-9)
             n_steps = max(1, int(seg_len / spacing))
+            is_bridge = (i, i + 1) in bridge_segments
             for k in range(n_steps):
                 t = k / n_steps
                 pts.append([x0 + t * (x1 - x0), y0 + t * (y1 - y0)])
+                bridge_flags.append(is_bridge)
+            last_flag = is_bridge
         pts.append(list(pp[-1]))
+        bridge_flags.append(last_flag)
+    return pts, bridge_flags
+
+
+def sample_geometry_points(polylines: list[dict[str, Any]], spacing: float = 1.0) -> list[list[float]]:
+    """Sample polylines at ≤ spacing px intervals. Returns list of [x, y]."""
+    pts, _ = sample_geometry_points_with_bridge_flags(polylines, spacing=spacing)
     return pts

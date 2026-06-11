@@ -10,6 +10,14 @@
     },
     {
       "brandon_verdict": "pending",
+      "contact_sheet_path": "artifacts/renderer/shape_authority_v2/contact_sheets/sh1_e9743d87837d24ad.png",
+      "family_or_checkpoint": "horizontal line static",
+      "lane": "v7_authority_record",
+      "shape_ref": "sh1_e9743d87837d24ad",
+      "still_path": "captures/fixture_model/phase1_single_channel/CH01_master_dimmer/CH01_220/still.jpg"
+    },
+    {
+      "brandon_verdict": "pending",
       "contact_sheet_path": "artifacts/renderer/shape_authority_v2/contact_sheets/sh1_41c84ad2ac1f458e.png",
       "family_or_checkpoint": "two-point / dual-dot static",
       "lane": "v7_authority_record",
@@ -55,6 +63,14 @@
       "lane": "v7_authority_record",
       "shape_ref": "sh1_14928e116b6d46fb",
       "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_009_breakdown_chill_2/still.jpg"
+    },
+    {
+      "brandon_verdict": "pending",
+      "contact_sheet_path": "artifacts/renderer/shape_authority_v2/contact_sheets/sh1_5f0125b19c4208c0.png",
+      "family_or_checkpoint": "cue_011_breakdown_turqoise_pointy",
+      "lane": "v7_authority_record",
+      "shape_ref": "sh1_5f0125b19c4208c0",
+      "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_011_breakdown_turqoise_pointy/still.jpg"
     },
     {
       "brandon_verdict": "pending",

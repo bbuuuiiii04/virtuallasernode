@@ -128,8 +128,18 @@ def test_v7_synthetic_dotted_arc():
     glow = np.zeros((32, 64), dtype=bool)
     glow[14:19, 8:37] = True
     
-    # Single open polyline tracing through all dots
-    polys = _line_polyline(16, 10, 35)
+    # Single open polyline tracing through all dots; the dim inter-dot spans
+    # are accepted bridges and must not count against residual/halo metrics.
+    polys = [{
+        "component_id": "c0",
+        "geometry_kind": "dotted_arc_path",
+        "closed": False,
+        "ordered": True,
+        "points_px": [[10.0, 16.0], [14.0, 16.0], [20.0, 16.0], [24.0, 16.0], [30.0, 16.0], [34.0, 16.0]],
+        "points_wall_norm": [],
+        "point_count": 6,
+        "bridge_spans": [[1, 2], [3, 4]],
+    }]
     
     m = compute_metrics(polys, core, glow)
     # 3 detected components (the 3 dots) but 1 vectorized component (the single line)
@@ -166,4 +176,3 @@ def test_v7_dual_aperture_accounting():
     assert eligible, "Should be selected_aperture_authority_eligible even if accounting incomplete"
     assert status == "provisional"
     assert "sibling_aperture_unaccounted" in reasons
-
