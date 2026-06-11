@@ -400,7 +400,8 @@
         ]
       ],
       "point_count": 12,
-      "polyline_id": "p0"
+      "polyline_id": "p0",
+      "render_role": "render"
     },
     {
       "component_id": "s2",
@@ -588,7 +589,8 @@
         ]
       ],
       "point_count": 22,
-      "polyline_id": "p1"
+      "polyline_id": "p1",
+      "render_role": "render"
     },
     {
       "component_id": "s3",
@@ -728,7 +730,8 @@
         ]
       ],
       "point_count": 16,
-      "polyline_id": "p2"
+      "polyline_id": "p2",
+      "render_role": "render"
     },
     {
       "component_id": "s4",
@@ -836,7 +839,8 @@
         ]
       ],
       "point_count": 12,
-      "polyline_id": "p3"
+      "polyline_id": "p3",
+      "render_role": "render"
     },
     {
       "component_id": "s5",
@@ -856,7 +860,8 @@
         ]
       ],
       "point_count": 1,
-      "polyline_id": "p4"
+      "polyline_id": "p4",
+      "render_role": "render"
     }
   ],
   "topology_summary": {
@@ -881,6 +886,7 @@
     "sibling_aperture_unaccounted"
   ],
   "quality_flags": [],
+  "render_authority": "vector",
   "geometry_layers": {
     "core_mask": "primary_evidence_authority",
     "raw_debug_vectors": "diagnostic_only",

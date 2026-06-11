@@ -213,7 +213,8 @@
         ]
       ],
       "point_count": 1,
-      "polyline_id": "p0"
+      "polyline_id": "p0",
+      "render_role": "render"
     },
     {
       "component_id": "s1",
@@ -233,7 +234,8 @@
         ]
       ],
       "point_count": 1,
-      "polyline_id": "p1"
+      "polyline_id": "p1",
+      "render_role": "render"
     }
   ],
   "topology_summary": {
@@ -258,11 +260,12 @@
     "sibling_aperture_unaccounted"
   ],
   "quality_flags": [],
+  "render_authority": "core_mask",
   "geometry_layers": {
     "core_mask": "primary_evidence_authority",
     "raw_debug_vectors": "diagnostic_only",
-    "render_vectors": "derived_validated",
-    "render_fallback": "none"
+    "render_vectors": null,
+    "render_fallback": "core_mask"
   },
   "human_review": {
     "verdict": "pending",

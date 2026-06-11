@@ -113,7 +113,7 @@ def test_dual_dot_exactly_two_dot_anchors():
 
 
 def test_cue_002_arcs_detected_no_fragment_only():
-    """cue_002: compact laser spot traced as peak_contour arc, both apertures accounted."""
+    """cue_002: compact laser spot uses mask-backed fallback, both apertures accounted."""
     ref = "sh1_adb58093da473f3e"
     r = _run_extraction(ref)
 
@@ -139,21 +139,31 @@ def test_cue_002_arcs_detected_no_fragment_only():
     assert r["fixture_output_accounting_complete"] is False, "cue_002: fixture_output_accounting_complete must be false due to sibling aperture"
     assert "sibling_aperture_unaccounted" in r["status_reasons"]
     
-    # cue_002 compact blob is classified as closed_stroke (skeleton forms cycle)
-    # but vectorized as peak_contour (peak-intensity sub-mask reveals arc structure)
+    # cue_002 compact blob: classified as closed_stroke (skeleton cycle)
     comp_classes = [c["class"] for c in r["components"]]
     assert "closed_stroke" in comp_classes, (
         f"cue_002: expected closed_stroke classification, got {comp_classes}"
     )
     
-    # The peak_contour must trace the arc with meaningful geometry (>3 points)
-    peak_polys = [p for p in r["polylines"] if p["geometry_kind"] == "peak_contour"]
-    assert len(peak_polys) >= 1, (
-        f"cue_002: expected peak_contour polyline, got {[p['geometry_kind'] for p in r['polylines']]}"
+    # CRITICAL: cue_002 must NOT claim vector render authority.
+    # The compact blob produces only diagnostic vectors (peak_contour).
+    # The CORE mask is the render evidence.
+    assert r["render_authority"] == "core_mask", (
+        f"cue_002: render_authority must be 'core_mask', got {r['render_authority']}"
     )
-    assert len(peak_polys[0]["points_px"]) > 3, (
-        f"cue_002: peak_contour too few points ({len(peak_polys[0]['points_px'])}), should trace the arc"
+    assert r["geometry_layers"]["render_fallback"] == "core_mask", (
+        f"cue_002: render_fallback must be 'core_mask'"
     )
+    assert r["geometry_layers"]["render_vectors"] is None, (
+        f"cue_002: render_vectors must be null (vectors are diagnostic)"
+    )
+    
+    # All non-dot polylines must be render_role='diagnostic'
+    for pl in r["polylines"]:
+        if pl["geometry_kind"] != "dot_anchor":
+            assert pl.get("render_role") == "diagnostic", (
+                f"cue_002: polyline {pl['geometry_kind']} must be diagnostic, got {pl.get('render_role')}"
+            )
     
     # cue_002 cannot pass as full fixture authority
     assert r["status"] != "authority" or r.get("authority_scope") == "aperture", "cue_002: cannot be full fixture authority"
@@ -189,7 +199,7 @@ def test_all_smoke_records_have_valid_schema():
                 "unaccounted_component_ids",
                 "extraction", "core_mask", "components", "polylines",
                 "topology_summary", "metrics", "status", "authority_eligible",
-                "status_reasons", "quality_flags"]
+                "status_reasons", "quality_flags", "render_authority"]
 
     for ref in SMOKE_REFS:
         r = _run_extraction(ref)

@@ -382,7 +382,8 @@
         ]
       ],
       "point_count": 28,
-      "polyline_id": "p0"
+      "polyline_id": "p0",
+      "render_role": "diagnostic"
     }
   ],
   "topology_summary": {
@@ -411,6 +412,7 @@
   "quality_flags": [
     "out_of_box_geometry"
   ],
+  "render_authority": "core_mask",
   "geometry_layers": {
     "core_mask": "primary_evidence_authority",
     "raw_debug_vectors": "diagnostic_only",

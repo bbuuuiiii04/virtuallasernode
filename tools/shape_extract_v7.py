@@ -151,6 +151,7 @@ def extract_record(
     polylines: list[dict[str, Any]] = []
     quality_flags: list[str] = []
     target_core_mask = np.zeros((H, W), dtype=bool)
+    full_core_mask = np.zeros((H, W), dtype=bool)
 
     for cid in range(1, n_components + 1):
         comp_mask = labeled == cid
@@ -169,6 +170,8 @@ def extract_record(
             "area_px": area,
             "out_of_box_geometry": out_of_box
         })
+
+        full_core_mask |= comp_mask
 
         if a_label == target_box_label:
             included_component_ids.append(comp_id)
@@ -265,7 +268,46 @@ def extract_record(
         core_bbox_wn = [0.0, 0.0, 0.0, 0.0]
 
     rle_data = rle_encode(core_in_box)
+    full_core_rle = rle_encode(full_core_mask)
     rle_path_rel = f"masks/{shape_ref}.rle.json"
+
+    # Determine render_role for each polyline: vectors that don't adequately
+    # cover the CORE mask evidence are diagnostic-only.
+    for pl in polylines:
+        gk = pl.get("geometry_kind", "")
+        if gk == "dot_anchor":
+            pl["render_role"] = "render"
+        elif gk == "peak_contour":
+            # peak_contour traces only the peak-intensity sub-mask; not a
+            # faithful representation of the full CORE evidence.
+            pl["render_role"] = "diagnostic"
+        elif gk == "closed_centerline":
+            # Check if the vector adequately covers the component mask.
+            cid = pl.get("component_id", "")
+            comp_info = next((c for c in components if c["component_id"] == cid), None)
+            if comp_info and comp_info.get("class") == "closed_stroke":
+                comp_area = comp_info.get("area_px", 0)
+                bbox = comp_info.get("bbox_px", [0, 0, 0, 0])
+                bbox_w = bbox[2] - bbox[0] + 1
+                bbox_h = bbox[3] - bbox[1] + 1
+                solidity = comp_area / max(1, bbox_w * bbox_h)
+                # Compact blobs (high solidity) produce uninformative
+                # skeleton centerlines — demote to diagnostic
+                if solidity > 0.65:
+                    pl["render_role"] = "diagnostic"
+                else:
+                    pl["render_role"] = "render"
+            else:
+                pl["render_role"] = "render"
+        else:
+            pl["render_role"] = "render"
+
+    # render_authority: "vector" when all render-role polylines are adequate,
+    # "core_mask" when vectors are diagnostic-only and the mask is the evidence
+    render_polys = [p for p in polylines if p.get("render_role") == "render"]
+    non_dot_render = [p for p in render_polys if p.get("geometry_kind") != "dot_anchor"]
+    has_vector_authority = len(non_dot_render) > 0
+    render_authority = "vector" if has_vector_authority else "core_mask"
 
     metrics = compute_metrics(polylines, core_in_box, glow_mask, components)
     metrics["components_detected"] = n_detected
@@ -332,14 +374,16 @@ def extract_record(
         "authority_eligible": auth_eligible,
         "status_reasons": reasons,
         "quality_flags": list(set(quality_flags)),
+        "render_authority": render_authority,
         "geometry_layers": {
             "core_mask": "primary_evidence_authority",
             "raw_debug_vectors": "diagnostic_only",
-            "render_vectors": "derived_validated" if auth_eligible else None,
-            "render_fallback": "core_mask" if not auth_eligible else "none"
+            "render_vectors": "derived_validated" if (auth_eligible and render_authority == "vector") else None,
+            "render_fallback": "core_mask" if render_authority == "core_mask" else "none"
         },
         "human_review": {"verdict": "pending", "date": None},
         "_rle_data": rle_data,  # ephemeral; written separately, then removed
+        "_full_core_rle": full_core_rle,  # ephemeral; used by contact sheet, then removed
     }
     return record
 
@@ -422,9 +466,19 @@ def render_contact_sheet(
     out_path: Path,
     fixture_boxes: dict[str, Any],
     roi: list[int],
+    full_core_rle: dict | None = None,
 ) -> None:
-    """Render side-by-side contact sheet with binding palette (§16)."""
+    """Render side-by-side contact sheet with binding palette (§16).
+
+    The overlay panel shows:
+    - CORE mask as semi-transparent fill (primary evidence layer)
+    - Fixture box frames in cyan
+    - Component bboxes in red
+    - Sibling aperture bboxes + masks in teal
+    - Vectors colored by render_role (bright=render, dim=diagnostic)
+    """
     from PIL import Image, ImageDraw, ImageFont
+    import numpy as np
 
     img = Image.open(still_path).convert("RGB")
     W, H = img.size
@@ -440,6 +494,7 @@ def render_contact_sheet(
         draw.rectangle([box.x0, box.y0, box.x1, box.y1], outline=(0, 255, 255), width=2)
 
     status = record.get("status", "quarantined")
+    render_authority = record.get("render_authority", "vector")
 
     # Choose geometry color by status (§16)
     if status == "authority":
@@ -449,13 +504,66 @@ def render_contact_sheet(
     else:
         geom_color = (255, 0, 255)  # magenta — rejected/quarantined
 
+    # ── CORE mask evidence overlay ──
+    # Render the CORE mask as a semi-transparent colored fill so the
+    # human reviewer can see the actual detected laser evidence.
+    if full_core_rle is not None:
+        try:
+            from tools.shape_core_mask import rle_decode
+            from skimage.measure import label as _label
+
+            full_mask = rle_decode(full_core_rle)
+            labeled_full, n_full = _label(full_mask, connectivity=2, return_num=True)
+
+            # Map component IDs to label indices
+            sibling_ids = set(record.get("sibling_aperture_component_ids", []))
+            included_ids = set(record.get("included_component_ids", []))
+            source_comps = record.get("source_core_components", [])
+
+            # Create mask overlay with alpha blending
+            mask_overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            mask_draw = ImageDraw.Draw(mask_overlay)
+
+            for idx, sc in enumerate(source_comps):
+                label_idx = idx + 1
+                if label_idx > n_full:
+                    continue
+                comp_pixels = np.argwhere(labeled_full == label_idx)
+                if len(comp_pixels) == 0:
+                    continue
+
+                cid = sc.get("source_component_id", "")
+                if cid in included_ids:
+                    # Selected aperture: orange fill
+                    fill = (255, 140, 0, 90)
+                elif cid in sibling_ids:
+                    # Sibling aperture: teal fill
+                    fill = (0, 180, 180, 90)
+                else:
+                    # Unaccounted: dim purple
+                    fill = (180, 0, 180, 60)
+
+                for y, x in comp_pixels:
+                    mask_draw.point((int(x), int(y)), fill=fill)
+
+            # Composite mask overlay onto the overlay image
+            overlay = Image.alpha_composite(overlay.convert("RGBA"), mask_overlay).convert("RGB")
+            draw = ImageDraw.Draw(overlay)
+
+            # Re-draw fixture box after compositing
+            if box:
+                draw.rectangle([box.x0, box.y0, box.x1, box.y1], outline=(0, 255, 255), width=2)
+
+        except Exception:
+            pass  # Non-fatal: don't block extraction
+
     # Red: component bboxes
     for comp in record.get("components", []):
         bbox = comp.get("bbox_px", [])
         if len(bbox) == 4:
             draw.rectangle([bbox[0], bbox[1], bbox[2], bbox[3]], outline=(255, 50, 50), width=1)
 
-    # Sibling aperture components (dim cyan)
+    # Sibling aperture components (dim cyan bbox + label)
     for s_comp in record.get("source_core_components", []):
         if s_comp.get("source_component_id") in record.get("sibling_aperture_component_ids", []):
             bbox = s_comp.get("bbox_px", [])
@@ -463,19 +571,33 @@ def render_contact_sheet(
                 draw.rectangle([bbox[0], bbox[1], bbox[2], bbox[3]], outline=(0, 150, 150), width=1)
                 draw.text((bbox[0], max(0, bbox[1]-10)), "sibling", fill=(0, 150, 150))
 
-
-    # Draw geometry (color based on status)
+    # Draw geometry — color by render_role
     for pl in record.get("polylines", []):
         pts = pl.get("points_px", [])
+        role = pl.get("render_role", "render")
+
+        if role == "render":
+            line_color = geom_color
+            line_width = 2
+        else:
+            # Diagnostic vectors: thin, dim
+            line_color = (
+                geom_color[0] // 2,
+                geom_color[1] // 2,
+                geom_color[2] // 2,
+            )
+            line_width = 1
+
         if len(pts) == 1:
             x, y = int(pts[0][0]), int(pts[0][1])
-            draw.ellipse([x - 3, y - 3, x + 3, y + 3], fill=geom_color)
+            draw.ellipse([x - 3, y - 3, x + 3, y + 3], fill=line_color)
         elif len(pts) >= 2:
             flat = [(int(p[0]), int(p[1])) for p in pts]
-            draw.line(flat, fill=geom_color, width=2)
+            draw.line(flat, fill=line_color, width=line_width)
 
     # Status label at top of fixture box
-    label_text = f"{record['shape_ref']} | {status}"
+    auth_label = f" [mask]" if render_authority == "core_mask" else ""
+    label_text = f"{record['shape_ref']} | {status}{auth_label}"
     if box:
         draw.text((box.x0 + 2, box.y0 + 2), label_text, fill=(200, 200, 200))
 
@@ -576,6 +698,7 @@ def main() -> None:
             record = extract_record(entry, shape_ref, capture_root, geom, geom_path, params)
 
             rle_data = record.pop("_rle_data", None)
+            full_core_rle = record.pop("_full_core_rle", None)
 
             # Write record JSON
             rec_path = out_dir / "records" / f"{shape_ref}.json"
@@ -592,7 +715,7 @@ def main() -> None:
                 still_path = still_path.parent / "still_color.jpg"
             cs_path = out_dir / "contact_sheets" / f"{shape_ref}.png"
             try:
-                render_contact_sheet(record, still_path, cs_path, fixture_boxes, geom["analysis_roi"])
+                render_contact_sheet(record, still_path, cs_path, fixture_boxes, geom["analysis_roi"], full_core_rle=full_core_rle)
             except Exception as e:
                 print(f"[contact sheet failed: {e}]", end=" ")
 
