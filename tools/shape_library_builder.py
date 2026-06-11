@@ -38,6 +38,8 @@ CAPTURE_ROOT_REL = "captures/fixture_model"
 PLAN_REVISION = "RENDERER_WALL_TO_AERIAL_PLAN_V1 rev 4"
 SELECTION_POLICY_VERSION = "v1"
 DEFAULT_FIXTURE_BOX = "image_left"
+V7_AUTHORITY_ROOT_REL = "artifacts/renderer/shape_authority_v2"
+V7_POLICY_VERSION = "v7"
 FORBIDDEN_PATH_FRAGMENTS = (
     "calib/captures",
     "archive/pre_corpus",
@@ -159,6 +161,241 @@ def _build_geometry_source(geometry_path: Path, root: Path) -> dict[str, Any]:
         "created_at": data.get("created_at"),
         "sha256": hashlib.sha256(raw).hexdigest(),
     }
+
+
+def _stable_v7_generated_at(v7_manifest: dict[str, Any]) -> str:
+    generated_at = v7_manifest.get("generated_at")
+    if isinstance(generated_at, str) and generated_at:
+        return generated_at
+    return "1970-01-01T00:00:00Z"
+
+
+def _selection_entries_for_v7_subset(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        dict(entry)
+        for entry in entries
+        if entry.get("local_media_exists") is True
+        and not entry.get("excluded_reason")
+        and entry.get("capture_path")
+        and entry.get("vector_key")
+    ]
+
+
+def _load_v7_records(v7_root: Path) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    records_dir = v7_root / "records"
+    manifest_path = v7_root / "manifest.json"
+    manifest = _load_json(manifest_path) if manifest_path.is_file() else {}
+    records: dict[str, dict[str, Any]] = {}
+    if not records_dir.is_dir():
+        return records, manifest
+    for path in sorted(records_dir.glob("*.json")):
+        record = _load_json(path)
+        shape_ref = record.get("shape_ref")
+        if isinstance(shape_ref, str) and shape_ref:
+            records[shape_ref] = record
+    return records, manifest
+
+
+def _v7_layer_value(record: dict[str, Any], key: str) -> Any:
+    if key in record:
+        return record.get(key)
+    layers = record.get("geometry_layers")
+    if isinstance(layers, dict):
+        return layers.get(key)
+    return None
+
+
+def _v7_render_polylines(record: dict[str, Any], field: str) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    raw_polys = record.get(field)
+    if not isinstance(raw_polys, list):
+        return out
+    for poly in raw_polys:
+        if not isinstance(poly, dict) or poly.get("render_role") != "render":
+            continue
+        points_wall_norm = poly.get("points_wall_norm")
+        if not isinstance(points_wall_norm, list) or not points_wall_norm:
+            continue
+        normalized = dict(poly)
+        normalized["points"] = points_wall_norm
+        normalized["point_count"] = int(poly.get("point_count") or len(points_wall_norm))
+        out.append(normalized)
+    return out
+
+
+def _v7_topology_class(record: dict[str, Any], polylines: list[dict[str, Any]]) -> str:
+    topo = record.get("topology_summary") if isinstance(record.get("topology_summary"), dict) else {}
+    dots = int(topo.get("dots") or 0)
+    closed = int(topo.get("closed_strokes") or 0)
+    opened = int(topo.get("open_strokes") or 0)
+    if dots and not closed and not opened:
+        return "dot_cluster"
+    if opened and not closed and not dots and len(polylines) == 1:
+        return "line"
+    if closed == 1 and not opened and not dots and len(polylines) == 1:
+        return "closed_shape"
+    return "complex_shape"
+
+
+def _v7_geometry_kind(polylines: list[dict[str, Any]]) -> str:
+    kinds = sorted({str(poly.get("geometry_kind") or "") for poly in polylines if poly.get("geometry_kind")})
+    if len(kinds) == 1:
+        return kinds[0]
+    return "multi_geometry"
+
+
+def _v7_rejection_reason(
+    *,
+    expected_shape_ref: str,
+    entry: dict[str, Any],
+    record: dict[str, Any] | None,
+    selected_polylines: list[dict[str, Any]] | None = None,
+) -> str | None:
+    if record is None:
+        return "missing_v7_record"
+    if record.get("shape_ref") != expected_shape_ref:
+        return "shape_ref_mismatch"
+    if record.get("vector_key") != entry.get("vector_key"):
+        return "vector_key_mismatch"
+    if record.get("capture_path") != entry.get("capture_path"):
+        return "capture_path_mismatch"
+    if record.get("status") != "authority":
+        return f"v7_status_{record.get('status') or 'missing'}"
+    if record.get("render_authority") != "vector":
+        return f"render_authority_{record.get('render_authority') or 'missing'}"
+    if _v7_layer_value(record, "render_vectors") != "derived_validated":
+        return f"render_vectors_{_v7_layer_value(record, 'render_vectors') or 'missing'}"
+    if _v7_layer_value(record, "render_fallback") not in ("none", None):
+        return f"render_fallback_{_v7_layer_value(record, 'render_fallback')}"
+    if selected_polylines is not None and not selected_polylines:
+        return "empty_selected_render_geometry"
+    return None
+
+
+def _shape_from_v7_record(
+    entry: dict[str, Any],
+    record: dict[str, Any],
+    selected_polylines: list[dict[str, Any]],
+    sibling_polylines: list[dict[str, Any]],
+) -> dict[str, Any]:
+    core_mask = record.get("core_mask") if isinstance(record.get("core_mask"), dict) else {}
+    point_count = sum(int(poly.get("point_count") or 0) for poly in selected_polylines)
+    geometry_kind = _v7_geometry_kind(selected_polylines)
+    shape_ref = str(record["shape_ref"])
+    return {
+        "shape_ref": shape_ref,
+        "vector_key": record.get("vector_key") or entry.get("vector_key") or "",
+        "capture_path": record.get("capture_path") or entry.get("capture_path") or "",
+        "source_still": record.get("source_still") or entry.get("still_path") or "",
+        "test_id": record.get("test_id") or entry.get("family_or_checkpoint") or "",
+        "family_or_checkpoint": entry.get("family_or_checkpoint") or record.get("test_id") or "",
+        "phase": record.get("phase") or entry.get("phase") or "",
+        "exposure_track": record.get("exposure_track") or entry.get("exposure_track") or "",
+        "ch1_19": record.get("ch1_19") or entry.get("ch1_19") or {},
+        "fixture_box_label": record.get("fixture_box_label") or entry.get("selected_fixture_box") or DEFAULT_FIXTURE_BOX,
+        "source_pixel_bbox": core_mask.get("bbox_px") or [0, 0, 0, 0],
+        "bbox_wall_norm": core_mask.get("bbox_wall_norm") or [0.0, 0.0, 0.0, 0.0],
+        "centroid_wall_norm": core_mask.get("centroid_wall_norm") or [0.0, 0.0],
+        "topology_class": _v7_topology_class(record, selected_polylines),
+        "shape_point_count": point_count,
+        "clusters": record.get("components") or [],
+        "polylines": selected_polylines,
+        "sibling_polylines": sibling_polylines,
+        "aperture_boxes": record.get("aperture_boxes") or {},
+        "selected_aperture": record.get("selected_aperture") or record.get("fixture_box_label") or DEFAULT_FIXTURE_BOX,
+        "extraction_params": {
+            "extraction_policy": V7_POLICY_VERSION,
+            "shape_type": geometry_kind,
+            "selected_vectorizer": "v7_shape_authority_record",
+            "geometry_scores": record.get("metrics") or {},
+        },
+        "quality_flags": sorted(set(record.get("quality_flags") or [])),
+        "fallback_reason": None,
+        "extraction_candidates_tried": ["v7_shape_authority_record"],
+        "selected_extractor": "v7_shape_authority_record",
+        "selected_extractor_reason": "status=authority; render_authority=vector; render_vectors=derived_validated",
+        "candidate_scores": {},
+        "rejected_candidate_reasons": {},
+        "shape_type": geometry_kind,
+        "selected_vectorizer": "v7_shape_authority_record",
+        "geometry_scores": record.get("metrics") or {},
+        "geometry_kind": geometry_kind,
+        "ordered": all(bool(poly.get("ordered", True)) for poly in selected_polylines),
+        "rejection_reasons": [],
+        "visual_status": "pass",
+        "usable_as_shape_authority": True,
+        "visual_review_reason": "v7 authority record with vector render geometry",
+        "v7_status": record.get("status"),
+        "render_authority": record.get("render_authority"),
+        "render_vectors": _v7_layer_value(record, "render_vectors"),
+        "render_fallback": _v7_layer_value(record, "render_fallback"),
+        "authority_source_record": f"{V7_AUTHORITY_ROOT_REL}/records/{shape_ref}.json",
+    }
+
+
+def _join_v7_authority_records(
+    entries: list[dict[str, Any]],
+    records: dict[str, dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, int]]:
+    shapes: list[dict[str, Any]] = []
+    accounting: list[dict[str, Any]] = []
+    counts = {"authority": 0, "provisional": 0, "quarantined": 0, "missing": 0, "conflicts": 0}
+
+    seen_shape_refs: set[str] = set()
+    for entry in entries:
+        expected_ref = compute_shape_ref(
+            ARTIFACT_VERSION,
+            str(entry.get("vector_key") or ""),
+            str(entry.get("capture_path") or ""),
+            str(entry.get("selected_fixture_box") or DEFAULT_FIXTURE_BOX),
+        )
+        record = records.get(expected_ref)
+        selected_polylines = _v7_render_polylines(record, "polylines") if record else []
+        sibling_polylines = _v7_render_polylines(record, "sibling_polylines") if record else []
+        reason = _v7_rejection_reason(
+            expected_shape_ref=expected_ref,
+            entry=entry,
+            record=record,
+            selected_polylines=selected_polylines,
+        )
+        status = "authority" if reason is None else "missing"
+        if record is not None and reason is not None:
+            raw_status = record.get("status")
+            if raw_status == "provisional":
+                status = "provisional"
+            elif raw_status == "quarantined":
+                status = "quarantined"
+            else:
+                status = "conflicts"
+        if status not in counts:
+            status = "conflicts"
+        counts[status] += 1
+
+        row = {
+            "shape_ref": expected_ref,
+            "vector_key": entry.get("vector_key") or "",
+            "capture_path": entry.get("capture_path") or "",
+            "family_or_checkpoint": entry.get("family_or_checkpoint") or "",
+            "v7_status": status,
+            "shape_authority": reason is None,
+            "reason": None if reason is None else reason,
+            "record_path": f"{V7_AUTHORITY_ROOT_REL}/records/{expected_ref}.json" if record else None,
+            "selected_render_polyline_count": len(selected_polylines),
+            "sibling_render_polyline_count": len(sibling_polylines),
+        }
+        accounting.append(row)
+
+        if reason is None and record is not None:
+            seen_shape_refs.add(expected_ref)
+            shapes.append(_shape_from_v7_record(entry, record, selected_polylines, sibling_polylines))
+
+    for shape_ref, record in records.items():
+        if shape_ref not in seen_shape_refs and record.get("capture_path"):
+            # Records outside the current selected subset are deliberately not
+            # promoted by exact vector match alone.
+            continue
+
+    return shapes, accounting, counts
 
 
 def _select_lane_a(
@@ -495,6 +732,70 @@ def merge_shape_refs_into_index(index_path: Path, shapes: list[dict[str, Any]]) 
     return {"vectors_with_shape_ref": merged}
 
 
+def merge_v7_shape_refs_into_index(
+    index_path: Path,
+    shapes: list[dict[str, Any]],
+    accounting: list[dict[str, Any]],
+) -> dict[str, int]:
+    with index_path.open("r", encoding="utf-8") as fh:
+        index = json.load(fh)
+
+    shape_by_ref = {shape["shape_ref"]: shape for shape in shapes}
+    selected_vectors = 0
+    authority_vectors = 0
+    rejected_vectors = 0
+
+    for row in accounting:
+        vector_key = row.get("vector_key")
+        if not vector_key:
+            continue
+        bucket = (index.get("vector_index") or {}).get(vector_key)
+        if not isinstance(bucket, dict):
+            continue
+        selected_vectors += 1
+        shape = shape_by_ref.get(row.get("shape_ref"))
+        if shape is not None:
+            bucket["shape_ref"] = shape["shape_ref"]
+            bucket["shape_point_count"] = shape["shape_point_count"]
+            bucket["topology_class"] = shape["topology_class"]
+            bucket["shape_evidence"] = "v7_shape_authority_record"
+            bucket["shape_fallback_reason"] = None
+            bucket["shape_quality_flags"] = shape.get("quality_flags") or []
+            bucket["shape_source_capture_path"] = shape["capture_path"]
+            bucket["shape_authority"] = True
+            bucket["shape_status"] = "authority"
+            bucket["shape_selected_extractor"] = "v7_shape_authority_record"
+            bucket["shape_visual_status"] = "pass"
+            bucket["shape_record_path"] = row.get("record_path")
+            bucket["shape_sibling_render_polyline_count"] = row.get("sibling_render_polyline_count", 0)
+            authority_vectors += 1
+        else:
+            bucket["shape_ref"] = None
+            bucket["shape_point_count"] = 0
+            bucket["topology_class"] = None
+            bucket["shape_evidence"] = None
+            bucket["shape_authority"] = False
+            bucket["shape_status"] = row.get("v7_status") or "missing"
+            bucket["shape_fallback_reason"] = row.get("reason") or "missing_v7_record"
+            bucket["shape_quality_flags"] = []
+            bucket["shape_source_capture_path"] = row.get("capture_path") or None
+            bucket["shape_selected_extractor"] = "v7_shape_authority_record"
+            bucket["shape_visual_status"] = None
+            bucket["shape_record_path"] = row.get("record_path")
+            bucket["shape_sibling_render_polyline_count"] = row.get("sibling_render_polyline_count", 0)
+            rejected_vectors += 1
+
+    with index_path.open("w", encoding="utf-8") as fh:
+        json.dump(index, fh, indent=2)
+        fh.write("\n")
+
+    return {
+        "selected_vectors": selected_vectors,
+        "authority_vectors": authority_vectors,
+        "rejected_vectors": rejected_vectors,
+    }
+
+
 def _visual_review_status(shape: dict[str, Any]) -> tuple[str, str, bool]:
     if shape.get("visual_status"):
         return (
@@ -576,6 +877,7 @@ def build_pr_g1_artifacts(
     *,
     phase6_limit: int | None = None,
     merge_index: bool = True,
+    extractor: str = "v6",
 ) -> dict[str, Any]:
     root = root or ROOT
     capture_root = root / CAPTURE_ROOT_REL
@@ -585,6 +887,11 @@ def build_pr_g1_artifacts(
     library_path = root / "artifacts" / "renderer" / "shape_library_v1.json"
     schema_path = root / "artifacts" / "renderer" / "shape_library_v1.schema.json"
     index_path = root / "artifacts" / "renderer" / "renderer-capture-index-pr1" / "capture_index_v1.json"
+
+    if extractor == "v7":
+        return build_pr_g1_v7_artifacts(root, merge_index=merge_index)
+    if extractor != "v6":
+        raise ValueError(f"unsupported extractor: {extractor}")
 
     if not capture_root.is_dir():
         raise FileNotFoundError("PR-G1 requires local capture root captures/fixture_model/")
@@ -685,6 +992,129 @@ def build_pr_g1_artifacts(
         "skipped_count": sum(1 for e in entries if e.get("excluded_reason")),
         "still_count": still_count,
         "still_color_count": still_color_count,
+        "merge_stats": merge_stats,
+    }
+
+
+def build_pr_g1_v7_artifacts(
+    root: Path | None = None,
+    *,
+    merge_index: bool = True,
+) -> dict[str, Any]:
+    root = root or ROOT
+    capture_root = root / CAPTURE_ROOT_REL
+    geometry_path = capture_root / "analysis_geometry.json"
+    out_dir = root / "artifacts" / "renderer" / "pr-g1-shape-authority"
+    selection_path = out_dir / "shape_selection.json"
+    library_path = root / "artifacts" / "renderer" / "shape_library_v1.json"
+    schema_path = root / "artifacts" / "renderer" / "shape_library_v1.schema.json"
+    index_path = root / "artifacts" / "renderer" / "renderer-capture-index-pr1" / "capture_index_v1.json"
+    v7_root = root / V7_AUTHORITY_ROOT_REL
+
+    if not selection_path.is_file():
+        raise FileNotFoundError("PR-G1 v7 requires existing shape_selection.json")
+    if not geometry_path.is_file():
+        raise FileNotFoundError("PR-G1 v7 requires captures/fixture_model/analysis_geometry.json")
+
+    selection_doc = _load_json(selection_path)
+    source_entries = selection_doc.get("entries")
+    if not isinstance(source_entries, list):
+        raise ValueError("shape_selection.json entries must be a list")
+
+    entries = _selection_entries_for_v7_subset(source_entries)
+    records, v7_manifest = _load_v7_records(v7_root)
+    shapes, accounting, counts = _join_v7_authority_records(entries, records)
+    generated_at = _stable_v7_generated_at(v7_manifest)
+
+    accounting_by_ref = {row["shape_ref"]: row for row in accounting}
+    updated_entries: list[dict[str, Any]] = []
+    selected_refs = set(accounting_by_ref)
+    for entry in source_entries:
+        updated = dict(entry)
+        if entry.get("vector_key") and entry.get("capture_path"):
+            expected_ref = compute_shape_ref(
+                ARTIFACT_VERSION,
+                str(entry.get("vector_key") or ""),
+                str(entry.get("capture_path") or ""),
+                str(entry.get("selected_fixture_box") or DEFAULT_FIXTURE_BOX),
+            )
+            row = accounting_by_ref.get(expected_ref)
+            if row:
+                updated["v7_shape_ref"] = expected_ref
+                updated["v7_authority_status"] = row["v7_status"]
+                updated["v7_shape_authority"] = row["shape_authority"]
+                updated["v7_fallback_reason"] = row["reason"]
+                updated["v7_record_path"] = row["record_path"]
+                updated["v7_selected_render_polyline_count"] = row["selected_render_polyline_count"]
+                updated["v7_sibling_render_polyline_count"] = row["sibling_render_polyline_count"]
+            elif expected_ref not in selected_refs:
+                updated.setdefault("v7_shape_authority", False)
+        updated_entries.append(updated)
+
+    v7_selection_doc = dict(selection_doc)
+    v7_selection_doc["generated_at"] = generated_at
+    v7_selection_doc["extractor"] = "v7"
+    v7_selection_doc["v7_authority_root"] = V7_AUTHORITY_ROOT_REL
+    v7_selection_doc["v7_subset_count"] = len(entries)
+    v7_selection_doc["v7_authority_accounting"] = accounting
+    v7_selection_doc["v7_authority_counts"] = counts
+    v7_selection_doc["entries"] = updated_entries
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    selection_path.write_text(json.dumps(v7_selection_doc, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    library_doc = {
+        "artifact_version": ARTIFACT_VERSION,
+        "generated_at": generated_at,
+        "capture_root": CAPTURE_ROOT_REL,
+        "coordinate_space": COORDINATE_SPACE,
+        "geometry_source": _build_geometry_source(geometry_path, root),
+        "selection_artifact": _rel(selection_path, root),
+        "extraction_policy_version": V7_POLICY_VERSION,
+        "extractor": "v7",
+        "v7_authority_root": V7_AUTHORITY_ROOT_REL,
+        "v7_authority_manifest": _rel(v7_root / "manifest.json", root),
+        "v7_authority_accounting": accounting,
+        "v7_authority_counts": counts,
+        "shapes": shapes,
+    }
+    library_path.parent.mkdir(parents=True, exist_ok=True)
+    library_path.write_text(json.dumps(library_doc, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    schema_path.write_text(_default_schema(), encoding="utf-8")
+
+    overlay_entries = []
+    for shape in shapes:
+        sheet_path = v7_root / "contact_sheets" / f"{shape['shape_ref']}.png"
+        overlay_entries.append(
+            {
+                "shape_ref": shape["shape_ref"],
+                "lane": "v7_authority_record",
+                "family_or_checkpoint": shape.get("family_or_checkpoint") or "",
+                "still_path": shape.get("source_still") or "",
+                "contact_sheet_path": _rel(sheet_path, root) if sheet_path.is_file() else "",
+                "brandon_verdict": "pending",
+            }
+        )
+    overlay_path = out_dir / "overlay_review_index.json"
+    overlay_path.write_text(json.dumps({"entries": overlay_entries}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    visual_summary_path = out_dir / "visual_review_summary.md"
+    _write_visual_review_summary(root, shapes, overlay_entries, visual_summary_path)
+
+    merge_stats = {}
+    if merge_index and index_path.is_file():
+        merge_stats = merge_v7_shape_refs_into_index(index_path, shapes, accounting)
+
+    return {
+        "selection_path": str(selection_path),
+        "library_path": str(library_path),
+        "schema_path": str(schema_path),
+        "overlay_index_path": str(overlay_path),
+        "visual_summary_path": str(visual_summary_path),
+        "extractor": "v7",
+        "v7_record_count": len(records),
+        "v7_subset_count": len(entries),
+        "shape_count": len(shapes),
+        "authority_counts": counts,
         "merge_stats": merge_stats,
     }
 
@@ -828,12 +1258,14 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--phase6-limit", type=int, default=None, help="Limit phase6 cue selections (subset smoke)")
     parser.add_argument("--no-merge-index", action="store_true")
+    parser.add_argument("--extractor", choices=("v6", "v7"), default="v6")
     args = parser.parse_args()
     try:
         stats = build_pr_g1_artifacts(
             args.root,
             phase6_limit=args.phase6_limit,
             merge_index=not args.no_merge_index,
+            extractor=args.extractor,
         )
     except FileNotFoundError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
