@@ -113,11 +113,11 @@ def test_dual_dot_exactly_two_dot_anchors():
 
 
 def test_cue_002_arcs_detected_no_fragment_only():
-    """cue_002: arcs detected without crop-induced fragment-only failure."""
+    """cue_002: compact laser spot traced as peak_contour arc, both apertures accounted."""
     ref = "sh1_adb58093da473f3e"
     r = _run_extraction(ref)
 
-    # Must have at least some polylines (arcs detected)
+    # Must have at least some polylines (detection success)
     assert len(r["polylines"]) > 0, "cue_002: no polylines detected (fragment-only failure)"
 
     # Must not have zero components (detection failure)
@@ -138,6 +138,22 @@ def test_cue_002_arcs_detected_no_fragment_only():
     assert len(r["sibling_aperture_component_ids"]) > 0, "cue_002: sibling aperture evidence not accounted for"
     assert r["fixture_output_accounting_complete"] is False, "cue_002: fixture_output_accounting_complete must be false due to sibling aperture"
     assert "sibling_aperture_unaccounted" in r["status_reasons"]
+    
+    # cue_002 compact blob is classified as closed_stroke (skeleton forms cycle)
+    # but vectorized as peak_contour (peak-intensity sub-mask reveals arc structure)
+    comp_classes = [c["class"] for c in r["components"]]
+    assert "closed_stroke" in comp_classes, (
+        f"cue_002: expected closed_stroke classification, got {comp_classes}"
+    )
+    
+    # The peak_contour must trace the arc with meaningful geometry (>3 points)
+    peak_polys = [p for p in r["polylines"] if p["geometry_kind"] == "peak_contour"]
+    assert len(peak_polys) >= 1, (
+        f"cue_002: expected peak_contour polyline, got {[p['geometry_kind'] for p in r['polylines']]}"
+    )
+    assert len(peak_polys[0]["points_px"]) > 3, (
+        f"cue_002: peak_contour too few points ({len(peak_polys[0]['points_px'])}), should trace the arc"
+    )
     
     # cue_002 cannot pass as full fixture authority
     assert r["status"] != "authority" or r.get("authority_scope") == "aperture", "cue_002: cannot be full fixture authority"

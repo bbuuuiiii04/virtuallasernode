@@ -27,7 +27,7 @@ def vectorize_component(
     if comp_class == "dot":
         return _vectorize_dot(comp_mask, score_map, comp_id)
     elif comp_class == "closed_stroke":
-        return _vectorize_closed_stroke(comp_mask, comp_id, dp_epsilon, min_path_len)
+        return _vectorize_closed_stroke(comp_mask, comp_id, dp_epsilon, min_path_len, score_map)
     else:
         return _vectorize_open_stroke(comp_mask, comp_id, dp_epsilon, min_path_len)
 
@@ -49,7 +49,8 @@ def _vectorize_dot(comp_mask: np.ndarray, score_map: np.ndarray, comp_id: str) -
 
 
 def _vectorize_closed_stroke(
-    comp_mask: np.ndarray, comp_id: str, dp_epsilon: float, min_path_len: int
+    comp_mask: np.ndarray, comp_id: str, dp_epsilon: float, min_path_len: int,
+    score_map: np.ndarray | None = None,
 ) -> list[dict[str, Any]]:
     skel = skeletonize(comp_mask)
     paths = trace_skeleton_paths(skel, min_path_len=min_path_len)
@@ -107,7 +108,91 @@ def _vectorize_closed_stroke(
                 "ordered": True,
                 "points_px": pts,
             })
+
+    # Peak-contour fallback for compact blobs where the skeleton centerline
+    # is uninformative (e.g. a tiny closed loop inside a filled laser spot).
+    # Instead of tracing the full outer mask boundary (which extends into
+    # the glow), threshold the score_map at p75 within the mask to reveal
+    # the peak-intensity arc/crescent structure inside.
+    if results and score_map is not None:
+        best_pl = max(results, key=lambda r: len(r["points_px"]))
+        best_pts = best_pl["points_px"]
+        path_len = sum(
+            ((best_pts[i][0] - best_pts[i+1][0])**2 + (best_pts[i][1] - best_pts[i+1][1])**2)**0.5
+            for i in range(len(best_pts) - 1)
+        )
+        path_len += ((best_pts[-1][0] - best_pts[0][0])**2 + (best_pts[-1][1] - best_pts[0][1])**2)**0.5
+
+        from skimage.measure import perimeter as _mask_perimeter
+        mask_perim = _mask_perimeter(comp_mask)
+
+        # Only trigger for compact blobs: short skeleton + high solidity
+        ys, xs = np.where(comp_mask)
+        area = len(ys)
+        bbox_h = int(ys.max() - ys.min() + 1)
+        bbox_w = int(xs.max() - xs.min() + 1)
+        solidity = area / max(1, bbox_h * bbox_w)
+
+        if path_len < mask_perim * 0.5 and solidity > 0.65:
+            peak_result = _peak_contour_fallback(
+                comp_mask, score_map, comp_id, dp_epsilon, min_path_len
+            )
+            if peak_result:
+                return peak_result
+
     return results
+
+
+def _peak_contour_fallback(
+    comp_mask: np.ndarray,
+    score_map: np.ndarray,
+    comp_id: str,
+    dp_epsilon: float,
+    min_path_len: int,
+) -> list[dict[str, Any]]:
+    """Trace contours of peak-intensity pixels within a compact CORE blob.
+
+    For compact blobs where the skeleton produces a tiny uninformative loop,
+    threshold the score_map at p75 within the mask to reveal internal
+    arc/crescent features. Returns the largest contour as a peak_contour
+    polyline, which traces the actual laser pattern rather than the
+    full outer mask boundary (which extends into the glow region).
+    """
+    from skimage.measure import find_contours
+
+    # Compute p75 threshold of score within this component
+    scores_in_mask = score_map[comp_mask]
+    if len(scores_in_mask) == 0:
+        return []
+    thresh = float(np.percentile(scores_in_mask, 75))
+
+    # Create sub-mask of peak pixels
+    sub_mask = np.zeros_like(comp_mask)
+    sub_mask[comp_mask] = score_map[comp_mask] >= thresh
+
+    if np.sum(sub_mask) < 5:
+        return []
+
+    # Trace contours of the sub-mask
+    contours = find_contours(sub_mask.astype(float), 0.5)
+    if not contours:
+        return []
+
+    # Use the longest contour (the main arc feature)
+    longest = max(contours, key=len)
+    pts = [[float(pt[1]), float(pt[0])] for pt in longest]  # (y,x) → [x,y]
+    pts = _douglas_peucker(pts, dp_epsilon)
+
+    if len(pts) < min_path_len:
+        return []
+
+    return [{
+        "component_id": comp_id,
+        "geometry_kind": "peak_contour",
+        "closed": True,
+        "ordered": True,
+        "points_px": pts,
+    }]
 
 
 def _vectorize_open_stroke(

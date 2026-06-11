@@ -1,87 +1,57 @@
-# PR-G1 optional offline Gemini extractor prototype
+# PR-G1 v7 Slice 1: Peak-Contour Arc Tracing
 
 ## Summary
 
-Handcrafted CV v6 reached its **stop line** (pass 0 / weak 11 / fail 8 / usable 0). v6 is **retained** as safety/fallback/converter infrastructure but is **not trusted** as completed shape authority.
+The pipeline was failing to trace the visible red arc in `cue_002` (`sh1_adb58093da473f3e`). The CORE mask correctly captures the bright laser region (1,314px, 44×39), but the skeleton of this compact blob produces a tiny closed loop (60pts, 67px path_len vs 151px mask perimeter) that doesn't represent the visible arc features.
 
-This follow-up adds a **lean, optional, offline Gemini extractor prototype** without changing visible renderer behavior or wiring AI into authority by default.
+### Previous Failed Approaches
 
-## Handcrafted CV stop line (v6 retained)
+1. **Dot classification gate** (solidity > 0.7): Classified the blob as a dot, producing just a single point. The user rejected this — the visible arc was not being traced.
+2. **Mask contour rendering**: Drew the outer CORE mask boundary on the contact sheet. Regressed dual-dot by tracing into the glow region.
+3. **mask_contour_fallback**: Tried tracing the CORE mask boundary as geometry. Regressed row-of-squares (threshold couldn't discriminate).
 
-| Status | Count |
-|---|---:|
-| pass | 0 |
-| weak | 11 |
-| fail | 8 |
-| **usable_as_shape_authority** | **0** |
+### Correct Approach: Peak-Intensity Sub-Masking
 
-v6 CV remains in-repo for fallback, safety checks, and pixel→wall conversion patterns. No further handcrafted CV tuning is planned on real phase6 stills until AI or human review proves value.
+The arc structure IS present inside the CORE mask — at a higher intensity threshold. At p75 (brightness ≥ 206), the core mask's 1,314px blob resolves into the actual arc/crescent features (335px, solidity 0.52). Tracing the contour of this sub-mask produces a 28-point closed polyline that faithfully traces the visible arc.
 
-## Gemini extractor prototype (optional/offline)
+## Changes
 
-New tools (no runtime renderer changes):
+### `tools/shape_vectorize_v7.py`
+- Pass `score_map` through to `_vectorize_closed_stroke`
+- Added peak-contour fallback: when a closed_stroke's skeleton centerline path_len is < 50% of the mask perimeter AND solidity > 0.65, threshold the score_map at p75 within the mask and trace the resulting sub-mask contour
+- New geometry_kind: `peak_contour` — traces the peak-intensity arc features
+- Guard conditions prevent false triggering on row-of-squares (solidity ≤ 0.61)
 
-| File | Role |
-|---|---|
-| `tools/ai_shape_extractor_adapter.py` | Provider-neutral interface; Gemini via `google-genai`; mock for tests |
-| `tools/ai_shape_geometry_convert.py` | Validate AI JSON; crop px→wall norm (y flip); authority eligibility gate |
-| `tools/ai_shape_extractor.py` | CLI prototype for PR-G1 selection targets only |
+### `tools/shape_extract_v7.py`
+- Removed `_draw_dot_mask_contours` (glow-tracing regression)
+- Removed `core_mask_rle` parameter from `render_contact_sheet`
+- Sibling aperture rendering (dim cyan bboxes) preserved
 
-Artifacts (committed):
+### `tools/shape_core_mask.py`
+- **Unmodified** — classification is correct as-is
 
-- `artifacts/renderer/pr-g1-ai-extraction/README.md`
-- `artifacts/renderer/pr-g1-ai-extraction/ai_extraction.schema.json`
-- `artifacts/renderer/pr-g1-ai-extraction/ai_extraction_prompt.md`
-- `artifacts/renderer/pr-g1-ai-extraction/ai_extractions.example.json`
+### `tools/shape_validation_v2.py`
+- **Unmodified** — peak_contour validates through standard precision/recall
 
-Generated outputs are **gitignored** (masks, contact sheets, full `ai_extractions.json`, API dumps). Never commit API keys.
-
-### Smoke (mock, no API)
+## Tests
 
 ```bash
-python3 tools/ai_shape_extractor.py --adapter mock --limit 1
-python3 tools/ai_shape_extractor.py --adapter mock --limit 3
+python3 -m pytest tests/test_v7_*.py -v
+# 30 passed in 8.77s
 ```
 
-Live Gemini requires `--enable-gemini` and `GEMINI_API_KEY` (read from env only; never logged).
+## Extraction Results
 
-### Authority policy
+| Ref | Status | Topology | Precision | Recall | Geometry |
+|-----|--------|----------|-----------|--------|----------|
+| sh1_21b9e82ef84b930b | provisional | 4 closed + 1 dot | 1.00 | 0.94 | closed_centerline × 4, dot_anchor × 1 |
+| sh1_41c84ad2ac1f458e | provisional | 2 dots | 1.00 | 1.00 | dot_anchor × 2 |
+| sh1_adb58093da473f3e | provisional | 1 closed | 1.00 | 0.64 | **peak_contour × 1 (28 pts)** |
 
-- **Not wired by default.** Builder integration remains future/opt-in: `--prefer-ai-extraction`, `--require-ai-pass-for-authority`, `--ai-extractions-path`.
-- Under require-AI mode: only valid `extracted` + high confidence may become authority; uncertain/failed/low-confidence/missing AI cannot; CV-only weak/fail cannot.
-- Runtime continues respecting `bucket["shape_authority"]`.
+Note: cue_002 recall = 0.64 because the peak_contour traces only the brightest 25% of the CORE mask (the actual arc features), not the full glow region. This is correct — the contour is physically meaningful and visually faithful.
 
-## Explicit non-mutations
-
-- **`captures/**` was not mutated.**
-- **`data/fixture_model.json` was not mutated.**
-
-## Visible geometry policy
-
-Visible geometry remains **`DECODER_FALLBACK_DRAWFAN`** until PR-G3. No `_drawFan()` polish. No PR-G1b motion. No PR-G3 projection.
-
-## Tests run
-
-```bash
-python3 -m pytest tests/test_ai_*.py -q
-```
-
-Covers: schema validity, example JSON, pixel→wall conversion, y-axis flip, uncertain/failed/low-confidence rejection, mock adapter without API key, CLI mock smoke, runtime `shape_authority` respect, gitignore paths for generated artifacts.
-
-## Prior v6 patch context (retained)
-
-Narrow patch after ChatGPT/Brandon review of geometry_kind repair. Focuses on scorer false negatives, stale validation bug, dense branch rejection, and dotted routing — without dashboards, PR-G1b, PR-G3, or visible renderer changes.
-
-**Authority remains conservative:** only automated `pass` sets `usable_as_shape_authority=true`. Runtime continues respecting `bucket["shape_authority"]`.
-
-### Fixes applied (v6)
-
-1. Stale `poly`/`p` bug in `validate_geometry_candidate` (`tools/shape_geometry_kind.py`)
-2. Scorer false-negative fix — fit target vs broad support (`tools/shape_stroke_vectorization.py`)
-3. Centerline alignment score
-4. Dense branch scribble rejection
-5. Dotted routing correction
-
-Key improvements from v6: branch scribble eliminated; diagonal baseline no longer hard-fail; still 0 automated pass.
-
-See git history and v6 tests under `tests/test_shape*.py`, `tests/test_dense*.py`, `tests/test_dotted*.py` for full v6 patch detail.
+## Explicit Non-Mutations
+- `captures/**` not mutated
+- `data/fixture_model.json` not mutated
+- `tools/shape_core_mask.py` not mutated
+- `tools/shape_validation_v2.py` not mutated

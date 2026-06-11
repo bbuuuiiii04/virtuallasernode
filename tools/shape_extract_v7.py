@@ -415,6 +415,7 @@ def _empty_record(
     }
 
 
+
 def render_contact_sheet(
     record: dict[str, Any],
     still_path: Path,
@@ -453,6 +454,15 @@ def render_contact_sheet(
         bbox = comp.get("bbox_px", [])
         if len(bbox) == 4:
             draw.rectangle([bbox[0], bbox[1], bbox[2], bbox[3]], outline=(255, 50, 50), width=1)
+
+    # Sibling aperture components (dim cyan)
+    for s_comp in record.get("source_core_components", []):
+        if s_comp.get("source_component_id") in record.get("sibling_aperture_component_ids", []):
+            bbox = s_comp.get("bbox_px", [])
+            if len(bbox) == 4:
+                draw.rectangle([bbox[0], bbox[1], bbox[2], bbox[3]], outline=(0, 150, 150), width=1)
+                draw.text((bbox[0], max(0, bbox[1]-10)), "sibling", fill=(0, 150, 150))
+
 
     # Draw geometry (color based on status)
     for pl in record.get("polylines", []):

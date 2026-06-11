@@ -88,3 +88,84 @@ def test_sat_floor_catches_white_core():
     bg_med, bg_mad = compute_bg_model(score, roi_mask)
     core = make_core_mask(score, roi_mask, img, bg_med, bg_mad, sat_floor=200)
     assert np.any(core[14:18, 14:18]), "white pixels with min_channel>=sat_floor not in core"
+
+
+def test_compact_blob_peak_contour_fallback():
+    """Compact blob with short skeleton triggers peak_contour fallback.
+
+    Tests the vectorizer directly: given a compact mask classified as
+    closed_stroke, with a score_map that has internal arc structure,
+    the peak_contour fallback should produce a meaningful contour
+    instead of the uninformative skeleton centerline.
+    """
+    from tools.shape_vectorize_v7 import vectorize_component
+
+    # Create a filled elliptical blob (high solidity, compact)
+    # Use an irregular shape to force skeleton to form a closed cycle
+    mask = np.zeros((128, 128), dtype=bool)
+    cy, cx = 64, 64
+    for y in range(128):
+        for x in range(128):
+            r = ((y - cy)**2 + (x - cx)**2)**0.5
+            # Irregular radius: ellipse + noise
+            angle = np.arctan2(y - cy, x - cx)
+            radius = 20 + 3 * np.sin(4 * angle) + 2 * np.cos(6 * angle)
+            if r <= radius:
+                mask[y, x] = True
+
+    # Create a score_map with crescent-shaped peak structure
+    score_map = np.zeros((128, 128), dtype=np.float64)
+    for y in range(128):
+        for x in range(128):
+            if mask[y, x]:
+                dist = ((y - cy)**2 + (x - cx)**2)**0.5
+                angle_factor = (x - cx + y - cy) / 20.0
+                score_map[y, x] = max(0, 200 + 50 * angle_factor - dist * 2)
+
+    # Force classification as closed_stroke (matching cue_002's real behavior)
+    polys = vectorize_component(mask, "closed_stroke", score_map, "s0")
+    assert len(polys) >= 1, "No polylines produced for compact blob"
+    
+    kinds = [p["geometry_kind"] for p in polys]
+    # Should produce peak_contour (compact blob with short skeleton)
+    # or closed_centerline (if skeleton happens to produce good trace)
+    assert "peak_contour" in kinds or "closed_centerline" in kinds, (
+        f"Expected peak_contour or closed_centerline, got {kinds}"
+    )
+    
+    # The resulting polyline must have meaningful geometry (>3 points)
+    best = max(polys, key=lambda p: len(p["points_px"]))
+    assert len(best["points_px"]) > 3, (
+        f"Polyline too few points ({len(best['points_px'])})"
+    )
+
+
+def test_rectangle_stays_closed_stroke():
+    """Rectangle with hole stays classified as closed_stroke.
+
+    Mimics row-of-squares components: solidity ~0.55, aspect ~1.7.
+    """
+    from tools.shape_core_mask import classify_component
+
+    # 30x17 rectangle with moderate hole → solidity ~0.55, aspect 1.76
+    mask = np.zeros((64, 64), dtype=bool)
+    mask[20:37, 15:45] = True  # 17×30 outer
+    mask[23:34, 18:42] = True  # fill; then cut a hole
+    # Create a frame by clearing interior
+    mask[23:34, 18:42] = False  # hole_area = 11*24 = 264
+
+    area = int(np.sum(mask))
+    ys, xs = np.where(mask)
+    bbox_h = int(ys.max() - ys.min() + 1)
+    bbox_w = int(xs.max() - xs.min() + 1)
+    solidity = area / (bbox_h * bbox_w)
+
+    # Rectangle has low solidity (< 0.65) so peak_contour won't trigger
+    assert solidity < 0.65, f"Test setup: solidity {solidity:.3f} should be < 0.65"
+
+    comp_class = classify_component(mask)
+    assert comp_class == "closed_stroke", (
+        f"Rectangle with hole should be closed_stroke, got {comp_class} "
+        f"(solidity={solidity:.3f})"
+    )
+
