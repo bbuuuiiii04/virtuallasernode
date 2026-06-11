@@ -120,40 +120,48 @@ def compute_metrics(
         is_dot_only = len(dot_comps) == len(components)
         
         if is_dot_only:
-            dot_anchors = [p for p in polylines if p.get("geometry_kind") == "dot_anchor"]
-            if len(dot_anchors) != len(dot_comps):
-                dot_reasons.append(f"dot_anchor_count_mismatch:{len(dot_anchors)}!={len(dot_comps)}")
-            else:
-                anchor_by_cid = {a["component_id"]: a for a in dot_anchors}
-                for c in dot_comps:
-                    cid = c["component_id"]
-                    if cid not in anchor_by_cid:
-                        dot_reasons.append(f"missing_anchor_for_dot:{cid}")
-                        continue
-                    
-                    a = anchor_by_cid[cid]
+            # Per-component anchor validation: every dot component must be
+            # represented by at least one dot anchor, and every anchor of a
+            # dot component must sit on core evidence near its component.
+            # Multi-emission dot components (glow-merged dot clusters) emit
+            # one anchor per structure fragment, so anchor counts are
+            # validated per component, not globally.
+            anchors_by_cid: dict[str, list[dict[str, Any]]] = {}
+            for p in polylines:
+                if p.get("geometry_kind") == "dot_anchor":
+                    anchors_by_cid.setdefault(str(p.get("component_id")), []).append(p)
+            for c in dot_comps:
+                cid = str(c["component_id"])
+                comp_anchors = anchors_by_cid.get(cid, [])
+                if not comp_anchors:
+                    dot_reasons.append(f"missing_anchor_for_dot:{cid}")
+                    continue
+
+                bx = c["bbox_px"]
+                w = bx[2] - bx[0]
+                h = bx[3] - bx[1]
+                ccx = (bx[0] + bx[2]) / 2.0
+                ccy = (bx[1] + bx[3]) / 2.0
+
+                for a in comp_anchors:
                     pts = a.get("points_px", [])
                     if not pts:
                         dot_reasons.append(f"empty_anchor:{cid}")
                         continue
-                        
                     ax, ay = pts[0]
-                    
+
                     if dist_to_core is not None:
                         dist = float(dist_to_core[int(ay), int(ax)]) if (0 <= int(ay) < H and 0 <= int(ax) < W) else 999.0
                         if dist > 2.0:
                             dot_reasons.append(f"dot_anchor_off_core:{dist:.1f}>2.0")
-                    
-                    bx = c["bbox_px"]
-                    w = bx[2] - bx[0]
-                    h = bx[3] - bx[1]
-                    ccx = (bx[0] + bx[2]) / 2.0
-                    ccy = (bx[1] + bx[3]) / 2.0
+
                     centroid_dist = ((ax - ccx)**2 + (ay - ccy)**2)**0.5
-                    
                     if centroid_dist > max(w, h) * 0.5 + 2.0:
                         dot_reasons.append(f"dot_anchor_residual_high:{centroid_dist:.1f}")
-                    
+
+                if len(comp_anchors) == 1:
+                    # Aspect sanity only applies to single-emission dots; a
+                    # multi-dot cluster legitimately has an elongated bbox.
                     aspect = max(w, h) / max(1, min(w, h))
                     if aspect > 3.0:
                         dot_reasons.append(f"dot_aspect_too_high:{aspect:.1f}>3.0")

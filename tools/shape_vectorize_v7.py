@@ -54,6 +54,11 @@ RING_HOLE_FRACTION = 0.15
 DASH_MAX_ASPECT = 2.0
 DASH_MAX_AREA = 400
 
+# In-component dashed-path acceptance: the chained path must honestly cover
+# the structure skeleton, otherwise per-substructure vectorization is kept.
+DASHED_PATH_MIN_COVERAGE = 0.8
+DASHED_PATH_COVERAGE_RADIUS = 3.0
+
 
 def vectorize_component(
     comp_mask: np.ndarray,
@@ -80,22 +85,34 @@ def vectorize_component(
     kinds = [_classify_substructure(m) for m in subs]
 
     polys: list[dict[str, Any]] = []
-    if comp_class == "dot" and len(subs) == 1 and kinds[0] != "ring":
+    if comp_class == "dot" and len(subs) == 1 and kinds[0] == "dash":
         return _vectorize_dot(subs[0], score_map, comp_id)
 
     if "ring" not in kinds and len(subs) >= 2:
-        # Disjoint dashes/dots from one emission: a dashed/dotted path.
-        path = _trace_dashed_path(subs, dp_epsilon)
-        if len(path) >= 2:
-            polys.append({
+        # Disjoint dashes/dots from one emission may form a dashed/dotted
+        # path, but only when the chained ordering is geometrically sane
+        # (turn gates) and the path honestly covers the structure skeleton.
+        # Otherwise each substructure keeps its own geometry.
+        segments = _dash_segments(subs, dp_epsilon)
+        path, bridge_spans, bridges = _chain_segments(segments, glow_mask=None)
+        turn_reasons = _path_turn_rejection_reasons(path)
+        if len(path) >= 2 and not turn_reasons:
+            candidate = {
                 "component_id": comp_id,
                 "geometry_kind": "dotted_arc_path",
                 "closed": False,
                 "ordered": True,
                 "dash_count": len(subs),
+                "bridge_spans": bridge_spans,
+                "bridges": bridges,
                 "points_px": path,
-            })
-    else:
+            }
+            union_structure = np.zeros_like(structure_mask, dtype=bool)
+            for m in subs:
+                union_structure |= m
+            if _path_structure_coverage([candidate], union_structure) >= DASHED_PATH_MIN_COVERAGE:
+                polys.append(candidate)
+    if not polys and len(subs) >= 1:
         for m, k in zip(subs, kinds):
             if k == "ring":
                 polys.extend(_vectorize_ring(m, comp_id, dp_epsilon, min_path_len))
@@ -107,6 +124,50 @@ def vectorize_component(
     if not polys:
         polys = _vectorize_open_stroke(comp_mask, comp_id, dp_epsilon, min_path_len)
     return polys
+
+
+def _path_turn_rejection_reasons(path: list[list[float]]) -> list[str]:
+    """Turn-shape gates for an in-component dashed chain.
+
+    Bridge length/glow gates do not apply inside one CORE component: the
+    component's own glow connectivity is the physical evidence that the
+    fragments belong to one emission. Ordering sanity (no sharp zigzag)
+    still must hold.
+    """
+    reasons: list[str] = []
+    turns = _turn_angles_deg(_resample_path(path, spacing=6.0))
+    if turns:
+        sharp = sum(1 for a in turns if a > CHAIN_SHARP_TURN_DEG)
+        mean_turn = float(np.mean(np.abs(turns)))
+        if sharp > CHAIN_MAX_SHARP_TURNS:
+            reasons.append("chain_sharp_turns_above_threshold")
+        if mean_turn > CHAIN_MEAN_TURN_DEG_MAX:
+            reasons.append("chain_mean_turn_above_threshold")
+    return reasons
+
+
+def _path_structure_coverage(
+    polylines: list[dict[str, Any]], structure_mask: np.ndarray
+) -> float:
+    """Fraction of the structure skeleton within DASHED_PATH_COVERAGE_RADIUS
+    of the sampled path (local copy to avoid importing validation here)."""
+    from skimage.morphology import dilation, disk
+    H, W = structure_mask.shape
+    skel = skeletonize(structure_mask)
+    skel_count = int(np.sum(skel))
+    if skel_count == 0:
+        return 1.0
+    geom_pts = sample_geometry_points(polylines, spacing=1.0)
+    if not geom_pts:
+        return 0.0
+    geom_mask = np.zeros((H, W), dtype=bool)
+    for gx, gy in geom_pts:
+        xi, yi = int(round(gx)), int(round(gy))
+        if 0 <= yi < H and 0 <= xi < W:
+            geom_mask[yi, xi] = True
+    r = max(1, int(np.ceil(DASHED_PATH_COVERAGE_RADIUS)))
+    covered = int(np.sum(skel & dilation(geom_mask, disk(r))))
+    return covered / skel_count
 
 
 def extract_structure_submask(
@@ -157,7 +218,12 @@ def _structure_subcomponents(
 
 
 def _classify_substructure(m: np.ndarray) -> str:
-    """'ring' (encloses a hole), 'dash' (compact), or 'stroke' (elongated)."""
+    """'ring' (encloses a hole), 'dash' (compact), or 'stroke' (elongated).
+
+    Elongation uses both the axis-aligned bbox aspect and the PCA principal
+    extent ratio: a diagonal dash has a square bbox but is clearly elongated
+    along its principal axis.
+    """
     from scipy.ndimage import binary_fill_holes
     ys, xs = np.where(m)
     area = int(len(ys))
@@ -170,9 +236,27 @@ def _classify_substructure(m: np.ndarray) -> str:
     bbox_h = int(ys.max() - ys.min() + 1)
     bbox_w = int(xs.max() - xs.min() + 1)
     aspect = max(bbox_h, bbox_w) / max(1, min(bbox_h, bbox_w))
+    aspect = max(aspect, _pca_extent_ratio(xs, ys))
     if aspect < DASH_MAX_ASPECT and area < DASH_MAX_AREA:
         return "dash"
     return "stroke"
+
+
+def _pca_extent_ratio(xs: np.ndarray, ys: np.ndarray) -> float:
+    """Ratio of pixel extents along the two PCA axes (>= 1.0)."""
+    if len(xs) < 3:
+        return 1.0
+    pts = np.column_stack([xs.astype(np.float64), ys.astype(np.float64)])
+    centered = pts - pts.mean(axis=0)
+    try:
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
+    except np.linalg.LinAlgError:
+        return 1.0
+    proj_major = centered @ vh[0]
+    proj_minor = centered @ vh[1] if vh.shape[0] > 1 else np.zeros(len(pts))
+    len_major = float(proj_major.max() - proj_major.min()) + 1.0
+    len_minor = float(proj_minor.max() - proj_minor.min()) + 1.0
+    return len_major / max(len_minor, 1.0)
 
 
 def _vectorize_dot(comp_mask: np.ndarray, score_map: np.ndarray, comp_id: str) -> list[dict[str, Any]]:
@@ -500,20 +584,6 @@ def _is_convex_quad(corners: np.ndarray) -> bool:
             return False
         signs.append(cross > 0)
     return all(s == signs[0] for s in signs)
-
-
-def _trace_dashed_path(
-    subs: list[np.ndarray], dp_epsilon: float
-) -> list[list[float]]:
-    """Single ordered open polyline through disjoint dash/dot substructures.
-
-    Each dash contributes its skeleton centerline (or centroid when tiny);
-    segments are then chained greedily by nearest endpoints starting from
-    the leftmost segment, reversing segments as needed.
-    """
-    segments = _dash_segments(subs, dp_epsilon)
-    path, _, _ = _chain_segments(segments, glow_mask=None)
-    return path
 
 
 def _dash_segments(subs: list[np.ndarray], dp_epsilon: float) -> list[list[list[float]]]:

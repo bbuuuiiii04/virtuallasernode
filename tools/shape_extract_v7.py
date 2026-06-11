@@ -281,21 +281,25 @@ def extract_record(
                     r in {"chain_sharp_turns_above_threshold", "chain_mean_turn_above_threshold"}
                     for r in rejection_reasons
                 )
-                if all(info["class"] == "dot" for info in group) and turn_rejected:
-                    for info in group:
+                for info in group:
+                    # A turn-rejected constellation of genuinely compact dots
+                    # stays as explicit diagnostic anchors. Members with real
+                    # internal structure (multi-fragment or elongated) keep
+                    # full per-component vectorization, which has its own
+                    # ordering/coverage gates.
+                    if turn_rejected and _is_compact_dot_member(info):
                         group_polys.append(_diagnostic_anchor_polyline(
                             info["mask"], score_map, info["component_id"], "group_chain_rejected"
                         ))
-                else:
-                    for info in group:
-                        fallback_polys = vectorize_component(
-                            info["mask"], info["class"], score_map, info["component_id"],
-                            img_rgb=img_rgb, structure_mask=info["structure"],
-                        )
-                        for pl in fallback_polys:
-                            if rejection_reasons:
-                                pl["group_rejection_reasons"] = rejection_reasons
-                        group_polys.extend(fallback_polys)
+                        continue
+                    fallback_polys = vectorize_component(
+                        info["mask"], info["class"], score_map, info["component_id"],
+                        img_rgb=img_rgb, structure_mask=info["structure"],
+                    )
+                    for pl in fallback_polys:
+                        if rejection_reasons:
+                            pl["group_rejection_reasons"] = rejection_reasons
+                    group_polys.extend(fallback_polys)
 
         represented = {
             member
@@ -365,6 +369,11 @@ def extract_record(
         cid for cid in sibling_aperture_component_ids if cid not in rejected_set
     ]
 
+    comp_polys_by_id: dict[str, list[dict[str, Any]]] = {}
+    for pl in polylines:
+        for member in _polyline_member_ids(pl):
+            comp_polys_by_id.setdefault(member, []).append(pl)
+
     components: list[dict[str, Any]] = []
     target_core_mask = np.zeros((H, W), dtype=bool)
     target_structure_mask = np.zeros((H, W), dtype=bool)
@@ -382,7 +391,9 @@ def extract_record(
         ) if target_box else [0.0, 0.0, 0.0, 0.0]
         components.append({
             "component_id": cid,
-            "class": info["class"],
+            "class": _refined_component_class(
+                info["class"], comp_polys_by_id.get(cid, [])
+            ),
             "area_px": info["area_px"],
             "bbox_px": bbox_px,
             "bbox_wall_norm": wnorm,
@@ -543,6 +554,43 @@ def _polyline_member_ids(pl: dict[str, Any]) -> list[str]:
 
 def _component_sort_key(cid: str) -> int:
     return int(cid[1:]) if cid.startswith("s") and cid[1:].isdigit() else 10**9
+
+
+def _refined_component_class(original_cls: str, comp_polys: list[dict[str, Any]]) -> str:
+    """Component class refined by the geometry the structure actually earned.
+
+    CORE-blob classification can mislabel glow-merged shapes (a glow ring
+    around a dot reads as closed_stroke; a sparse crescent reads as dot).
+    The emitted, structure-validated geometry is the truthful class basis.
+    Components with only diagnostic fallbacks keep their original class.
+    """
+    kinds: list[str] = []
+    closed_any = False
+    for pl in comp_polys:
+        if pl.get("diagnostic_fallback_reason"):
+            continue
+        kinds.append(str(pl.get("geometry_kind")))
+        if pl.get("closed"):
+            closed_any = True
+    if not kinds:
+        return original_cls
+    if all(k == "dot_anchor" for k in kinds):
+        return "dot"
+    if closed_any or any(
+        k in ("rect_centerline", "quad_centerline", "closed_centerline") for k in kinds
+    ):
+        return "closed_stroke"
+    return "open_stroke"
+
+
+def _is_compact_dot_member(info: dict[str, Any]) -> bool:
+    """True when a group member is a genuine compact dot: dot-classed CORE
+    component whose saturated structure is a single compact fragment."""
+    from tools.shape_vectorize_v7 import _classify_substructure, _structure_subcomponents
+    if info.get("class") != "dot":
+        return False
+    subs = _structure_subcomponents(info["structure"], info["mask"])
+    return len(subs) == 1 and _classify_substructure(subs[0]) == "dash"
 
 
 def _diagnostic_anchor_polyline(
