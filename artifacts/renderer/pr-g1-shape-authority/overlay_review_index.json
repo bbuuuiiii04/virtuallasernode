@@ -18,11 +18,51 @@
     },
     {
       "brandon_verdict": "pending",
+      "contact_sheet_path": "artifacts/renderer/shape_authority_v2/contact_sheets/sh1_2e3da0a4330792c3.png",
+      "family_or_checkpoint": "U-wave dynamic macro",
+      "lane": "v7_authority_record",
+      "shape_ref": "sh1_2e3da0a4330792c3",
+      "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_024_neon_wandering_lines/still.jpg"
+    },
+    {
+      "brandon_verdict": "pending",
       "contact_sheet_path": "artifacts/renderer/shape_authority_v2/contact_sheets/sh1_adb58093da473f3e.png",
       "family_or_checkpoint": "cue_002_green",
       "lane": "v7_authority_record",
       "shape_ref": "sh1_adb58093da473f3e",
       "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_002_green/still.jpg"
+    },
+    {
+      "brandon_verdict": "pending",
+      "contact_sheet_path": "artifacts/renderer/shape_authority_v2/contact_sheets/sh1_2bae89cc023a3c52.png",
+      "family_or_checkpoint": "cue_006_breakdown_chill_3_turqoise_copy",
+      "lane": "v7_authority_record",
+      "shape_ref": "sh1_2bae89cc023a3c52",
+      "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_006_breakdown_chill_3_turqoise_copy/still.jpg"
+    },
+    {
+      "brandon_verdict": "pending",
+      "contact_sheet_path": "artifacts/renderer/shape_authority_v2/contact_sheets/sh1_d9c0e1383b952508.png",
+      "family_or_checkpoint": "cue_007_breakdown_turqoise_reverse",
+      "lane": "v7_authority_record",
+      "shape_ref": "sh1_d9c0e1383b952508",
+      "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_007_breakdown_turqoise_reverse/still.jpg"
+    },
+    {
+      "brandon_verdict": "pending",
+      "contact_sheet_path": "artifacts/renderer/shape_authority_v2/contact_sheets/sh1_14928e116b6d46fb.png",
+      "family_or_checkpoint": "cue_009_breakdown_chill_2",
+      "lane": "v7_authority_record",
+      "shape_ref": "sh1_14928e116b6d46fb",
+      "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_009_breakdown_chill_2/still.jpg"
+    },
+    {
+      "brandon_verdict": "pending",
+      "contact_sheet_path": "artifacts/renderer/shape_authority_v2/contact_sheets/sh1_83b4671ca39044d5.png",
+      "family_or_checkpoint": "cue_012_buildup_soft",
+      "lane": "v7_authority_record",
+      "shape_ref": "sh1_83b4671ca39044d5",
+      "still_path": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_012_buildup_soft/still.jpg"
     }
   ]
 }

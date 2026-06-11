@@ -4,14 +4,30 @@
   "generated_at": "2026-01-01T00:00:00Z",
   "geometry_sha": "72d99c676ebfacc2f0cdcf88e5b6b13dcd51bd677d8de67d9aeb52f340cce699",
   "counts": {
-    "total": 3,
-    "authority": 3,
-    "provisional": 0,
+    "total": 19,
+    "authority": 9,
+    "provisional": 10,
     "quarantined": 0
   },
   "shape_refs": [
     "sh1_21b9e82ef84b930b",
+    "sh1_e9743d87837d24ad",
     "sh1_41c84ad2ac1f458e",
-    "sh1_adb58093da473f3e"
+    "sh1_6fb79ee6e90df590",
+    "sh1_2e3da0a4330792c3",
+    "sh1_3e98be8e27ea1c58",
+    "sh1_91ebda39c0075cac",
+    "sh1_542fc5442a80e0dc",
+    "sh1_adb58093da473f3e",
+    "sh1_b92cc7b21e95ce78",
+    "sh1_298397439f5ce2a9",
+    "sh1_39cde94194e37010",
+    "sh1_2bae89cc023a3c52",
+    "sh1_d9c0e1383b952508",
+    "sh1_ca3a93cf551f850e",
+    "sh1_14928e116b6d46fb",
+    "sh1_c26886280d3c7364",
+    "sh1_5f0125b19c4208c0",
+    "sh1_83b4671ca39044d5"
   ]
 }

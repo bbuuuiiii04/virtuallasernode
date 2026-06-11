@@ -1,0 +1,430 @@
+{
+  "record_version": "shape-authority-v2",
+  "shape_ref": "sh1_3e98be8e27ea1c58",
+  "vector_key": "v1:65,7,148,0,183,83,134,8,255,255,0,0,0,0,0,0,0,0,0",
+  "ch1_19": {
+    "CH1": 65,
+    "CH10": 255,
+    "CH11": 0,
+    "CH12": 0,
+    "CH13": 0,
+    "CH14": 0,
+    "CH15": 0,
+    "CH16": 0,
+    "CH17": 0,
+    "CH18": 0,
+    "CH19": 0,
+    "CH2": 7,
+    "CH3": 148,
+    "CH4": 0,
+    "CH5": 183,
+    "CH6": 83,
+    "CH7": 134,
+    "CH8": 8,
+    "CH9": 255
+  },
+  "capture_path": "phase6_cue_validation/cue_relevant/cue_097_red_box_sway_drop_149bpm_copy",
+  "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_097_red_box_sway_drop_149bpm_copy/still.jpg",
+  "test_id": "three-star dynamic macro",
+  "phase": "phase6_cue_validation",
+  "exposure_track": "geometry_motion",
+  "fixture_box_label": "image_left",
+  "detection_domain_px": [
+    0,
+    129,
+    1280,
+    589
+  ],
+  "authority_scope": "aperture",
+  "selected_aperture": "image_left",
+  "aperture_boxes": {
+    "image_left": [
+      60,
+      156,
+      554,
+      578
+    ],
+    "image_right": [
+      646,
+      153,
+      1219,
+      581
+    ]
+  },
+  "source_core_components": [
+    {
+      "source_component_id": "s0",
+      "aperture_assignment": "image_right",
+      "significant": true,
+      "bbox_px": [
+        693,
+        365,
+        731,
+        403
+      ],
+      "area_px": 1023,
+      "out_of_box_geometry": false
+    },
+    {
+      "source_component_id": "s1",
+      "aperture_assignment": "image_left",
+      "significant": true,
+      "bbox_px": [
+        468,
+        366,
+        500,
+        397
+      ],
+      "area_px": 708,
+      "out_of_box_geometry": false
+    },
+    {
+      "source_component_id": "s2",
+      "aperture_assignment": "image_left",
+      "significant": true,
+      "bbox_px": [
+        528,
+        391,
+        544,
+        407
+      ],
+      "area_px": 230,
+      "out_of_box_geometry": false
+    },
+    {
+      "source_component_id": "s3",
+      "aperture_assignment": "image_right",
+      "significant": true,
+      "bbox_px": [
+        650,
+        391,
+        672,
+        414
+      ],
+      "area_px": 388,
+      "out_of_box_geometry": false
+    },
+    {
+      "source_component_id": "s4",
+      "aperture_assignment": "image_left",
+      "significant": true,
+      "bbox_px": [
+        467,
+        412,
+        484,
+        431
+      ],
+      "area_px": 255,
+      "out_of_box_geometry": false
+    },
+    {
+      "source_component_id": "s5",
+      "aperture_assignment": "image_right",
+      "significant": true,
+      "bbox_px": [
+        707,
+        414,
+        732,
+        438
+      ],
+      "area_px": 402,
+      "out_of_box_geometry": false
+    }
+  ],
+  "included_component_ids": [
+    "s1",
+    "s2",
+    "s4"
+  ],
+  "sibling_aperture_component_ids": [
+    "s0",
+    "s3",
+    "s5"
+  ],
+  "unaccounted_component_ids": [],
+  "component_structure_coverage": {
+    "s1": 0.0,
+    "s2": 1.0,
+    "s4": 1.0,
+    "s0": 0.0,
+    "s3": 1.0,
+    "s5": 1.0
+  },
+  "source_frame_accounting_complete": false,
+  "fixture_output_accounting_complete": false,
+  "geometry_source": {
+    "path": "captures/fixture_model/analysis_geometry.json",
+    "sha256": "72d99c676ebfacc2f0cdcf88e5b6b13dcd51bd677d8de67d9aeb52f340cce699"
+  },
+  "extraction": {
+    "policy_version": "v7",
+    "params": {
+      "k_core": 8.0,
+      "k_glow": 3.5,
+      "sat_floor": 200.0,
+      "min_core_area_px": 20
+    },
+    "background": {
+      "median_score": 91.96,
+      "mad_score": 8.0
+    },
+    "timing_ms": 0
+  },
+  "core_mask": {
+    "rle_path": "masks/sh1_3e98be8e27ea1c58.rle.json",
+    "pixel_count": 1193,
+    "bbox_px": [
+      467,
+      366,
+      544,
+      431
+    ],
+    "bbox_wall_norm": [
+      0.6478,
+      -0.3033,
+      0.9595,
+      0.0047
+    ],
+    "centroid_wall_norm": [
+      0.7549,
+      -0.1254
+    ]
+  },
+  "components": [
+    {
+      "component_id": "s1",
+      "class": "dot",
+      "area_px": 708,
+      "bbox_px": [
+        468,
+        366,
+        500,
+        397
+      ],
+      "bbox_wall_norm": [
+        0.6518218623481782,
+        -0.14218009478672977,
+        0.7813765182186234,
+        0.004739336492891044
+      ],
+      "out_of_box_geometry": false,
+      "fixture_assignment": "contained"
+    },
+    {
+      "component_id": "s2",
+      "class": "closed_stroke",
+      "area_px": 230,
+      "bbox_px": [
+        528,
+        391,
+        544,
+        407
+      ],
+      "bbox_wall_norm": [
+        0.894736842105263,
+        -0.18957345971563977,
+        0.9595141700404859,
+        -0.11374407582938395
+      ],
+      "out_of_box_geometry": false,
+      "fixture_assignment": "contained"
+    },
+    {
+      "component_id": "s4",
+      "class": "dot",
+      "area_px": 255,
+      "bbox_px": [
+        467,
+        412,
+        484,
+        431
+      ],
+      "bbox_wall_norm": [
+        0.6477732793522266,
+        -0.3033175355450237,
+        0.7165991902834008,
+        -0.21327014218009488
+      ],
+      "out_of_box_geometry": false,
+      "fixture_assignment": "contained"
+    }
+  ],
+  "polylines": [
+    {
+      "component_id": "s1",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          486.11,
+          381.21
+        ]
+      ],
+      "aperture": "image_left",
+      "points_wall_norm": [
+        [
+          0.7251,
+          -0.0673
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "p0",
+      "render_role": "diagnostic",
+      "structure_coverage": 0.0
+    },
+    {
+      "component_id": "s2",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          537.33,
+          400.17
+        ]
+      ],
+      "aperture": "image_left",
+      "points_wall_norm": [
+        [
+          0.9325,
+          -0.1572
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "p1",
+      "render_role": "render",
+      "structure_coverage": 1.0
+    },
+    {
+      "component_id": "s4",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          475.42,
+          422.22
+        ]
+      ],
+      "aperture": "image_left",
+      "points_wall_norm": [
+        [
+          0.6819,
+          -0.2617
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "p2",
+      "render_role": "render",
+      "structure_coverage": 1.0
+    }
+  ],
+  "sibling_polylines": [
+    {
+      "component_id": "s0",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          710.58,
+          384.07
+        ]
+      ],
+      "aperture": "image_right",
+      "points_wall_norm": [
+        [
+          -0.7746,
+          -0.0798
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "sp0",
+      "render_role": "diagnostic",
+      "structure_coverage": 0.0
+    },
+    {
+      "component_id": "s3",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          661.92,
+          403.1
+        ]
+      ],
+      "aperture": "image_right",
+      "points_wall_norm": [
+        [
+          -0.9444,
+          -0.1687
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "sp1",
+      "render_role": "render",
+      "structure_coverage": 1.0
+    },
+    {
+      "component_id": "s5",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          720.51,
+          425.75
+        ]
+      ],
+      "aperture": "image_right",
+      "points_wall_norm": [
+        [
+          -0.7399,
+          -0.2745
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "sp2",
+      "render_role": "render",
+      "structure_coverage": 1.0
+    }
+  ],
+  "topology_summary": {
+    "dots": 2,
+    "closed_strokes": 1,
+    "open_strokes": 0
+  },
+  "metrics": {
+    "core_precision": 1.0,
+    "core_recall": 0.6364,
+    "recall_basis": "structure_skeleton",
+    "halo_spill": 0.0,
+    "vector_fit_residual_px_p95": 0.0,
+    "components_detected": 3,
+    "components_vectorized": 3,
+    "is_dot_only": false,
+    "dot_reasons": []
+  },
+  "status": "provisional",
+  "selected_aperture_authority_eligible": false,
+  "authority_eligible": false,
+  "status_reasons": [
+    "core_recall_below_threshold:0.636<0.8",
+    "component_reconstruction_incomplete",
+    "sibling_aperture_unaccounted"
+  ],
+  "quality_flags": [],
+  "render_authority": "core_mask",
+  "geometry_layers": {
+    "core_mask": "primary_evidence_authority",
+    "raw_debug_vectors": "diagnostic_only",
+    "render_vectors": null,
+    "render_fallback": "core_mask"
+  },
+  "human_review": {
+    "verdict": "pending",
+    "date": null
+  }
+}

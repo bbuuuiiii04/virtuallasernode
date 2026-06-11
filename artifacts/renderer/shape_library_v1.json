@@ -1199,6 +1199,692 @@
           581
         ]
       },
+      "authority_source_record": "artifacts/renderer/shape_authority_v2/records/sh1_2e3da0a4330792c3.json",
+      "bbox_wall_norm": [
+        0.2874,
+        -0.1896,
+        0.6721,
+        0.2227
+      ],
+      "candidate_scores": {},
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_024_neon_wandering_lines",
+      "centroid_wall_norm": [
+        0.5248,
+        0.0547
+      ],
+      "ch1_19": {
+        "CH1": 62,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 0,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 0,
+        "CH2": 0,
+        "CH3": 128,
+        "CH4": 83,
+        "CH5": 193,
+        "CH6": 100,
+        "CH7": 131,
+        "CH8": 0,
+        "CH9": 0
+      },
+      "clusters": [
+        {
+          "area_px": 654,
+          "bbox_px": [
+            440,
+            320,
+            473,
+            406
+          ],
+          "bbox_wall_norm": [
+            0.5384615384615385,
+            -0.18483412322274884,
+            0.6720647773279351,
+            0.22274881516587675
+          ],
+          "class": "open_stroke",
+          "component_id": "s0",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 298,
+          "bbox_px": [
+            378,
+            338,
+            400,
+            362
+          ],
+          "bbox_wall_norm": [
+            0.28744939271255054,
+            0.023696682464455,
+            0.37651821862348167,
+            0.13744075829383884
+          ],
+          "class": "open_stroke",
+          "component_id": "s2",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 39,
+          "bbox_px": [
+            420,
+            385,
+            429,
+            396
+          ],
+          "bbox_wall_norm": [
+            0.4574898785425101,
+            -0.13744075829383884,
+            0.4939271255060729,
+            -0.08530805687203791
+          ],
+          "class": "dot",
+          "component_id": "s6",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 20,
+          "bbox_px": [
+            429,
+            401,
+            433,
+            407
+          ],
+          "bbox_wall_norm": [
+            0.4939271255060729,
+            -0.18957345971563977,
+            0.5101214574898785,
+            -0.16113744075829395
+          ],
+          "class": "dot",
+          "component_id": "s8",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        }
+      ],
+      "exposure_track": "geometry_motion",
+      "extraction_candidates_tried": [
+        "v7_shape_authority_record"
+      ],
+      "extraction_params": {
+        "extraction_policy": "v7",
+        "geometry_scores": {
+          "components_detected": 4,
+          "components_vectorized": 4,
+          "core_precision": 1.0,
+          "core_recall": 0.8723,
+          "dot_reasons": [],
+          "halo_spill": 0.0,
+          "is_dot_only": false,
+          "recall_basis": "structure_skeleton",
+          "vector_fit_residual_px_p95": 1.0
+        },
+        "selected_vectorizer": "v7_shape_authority_record",
+        "shape_type": "multi_geometry"
+      },
+      "fallback_reason": null,
+      "family_or_checkpoint": "U-wave dynamic macro",
+      "fixture_box_label": "image_left",
+      "geometry_kind": "multi_geometry",
+      "geometry_scores": {
+        "components_detected": 4,
+        "components_vectorized": 4,
+        "core_precision": 1.0,
+        "core_recall": 0.8723,
+        "dot_reasons": [],
+        "halo_spill": 0.0,
+        "is_dot_only": false,
+        "recall_basis": "structure_skeleton",
+        "vector_fit_residual_px_p95": 1.0
+      },
+      "ordered": true,
+      "phase": "phase6_cue_validation",
+      "polylines": [
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s0",
+          "geometry_kind": "open_centerline",
+          "ordered": true,
+          "point_count": 14,
+          "points": [
+            [
+              0.6275,
+              0.1232
+            ],
+            [
+              0.6194,
+              0.0995
+            ],
+            [
+              0.6235,
+              0.0948
+            ],
+            [
+              0.6194,
+              0.0664
+            ],
+            [
+              0.6073,
+              0.0427
+            ],
+            [
+              0.6113,
+              0.0332
+            ],
+            [
+              0.6032,
+              0.019
+            ],
+            [
+              0.6032,
+              -0.019
+            ],
+            [
+              0.587,
+              -0.0569
+            ],
+            [
+              0.5789,
+              -0.0948
+            ],
+            [
+              0.583,
+              -0.109
+            ],
+            [
+              0.5709,
+              -0.1374
+            ],
+            [
+              0.5506,
+              -0.1564
+            ],
+            [
+              0.5385,
+              -0.1801
+            ]
+          ],
+          "points_px": [
+            [
+              462.0,
+              341.0
+            ],
+            [
+              460.0,
+              346.0
+            ],
+            [
+              461.0,
+              347.0
+            ],
+            [
+              460.0,
+              353.0
+            ],
+            [
+              457.0,
+              358.0
+            ],
+            [
+              458.0,
+              360.0
+            ],
+            [
+              456.0,
+              363.0
+            ],
+            [
+              456.0,
+              371.0
+            ],
+            [
+              452.0,
+              379.0
+            ],
+            [
+              450.0,
+              387.0
+            ],
+            [
+              451.0,
+              390.0
+            ],
+            [
+              448.0,
+              396.0
+            ],
+            [
+              443.0,
+              400.0
+            ],
+            [
+              440.0,
+              405.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.6275,
+              0.1232
+            ],
+            [
+              0.6194,
+              0.0995
+            ],
+            [
+              0.6235,
+              0.0948
+            ],
+            [
+              0.6194,
+              0.0664
+            ],
+            [
+              0.6073,
+              0.0427
+            ],
+            [
+              0.6113,
+              0.0332
+            ],
+            [
+              0.6032,
+              0.019
+            ],
+            [
+              0.6032,
+              -0.019
+            ],
+            [
+              0.587,
+              -0.0569
+            ],
+            [
+              0.5789,
+              -0.0948
+            ],
+            [
+              0.583,
+              -0.109
+            ],
+            [
+              0.5709,
+              -0.1374
+            ],
+            [
+              0.5506,
+              -0.1564
+            ],
+            [
+              0.5385,
+              -0.1801
+            ]
+          ],
+          "polyline_id": "p0",
+          "render_role": "render",
+          "structure_coverage": 0.9565
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s2",
+          "dash_count": 2,
+          "geometry_kind": "dotted_arc_path",
+          "ordered": true,
+          "point_count": 3,
+          "points": [
+            [
+              0.3279,
+              0.0711
+            ],
+            [
+              0.336,
+              0.0758
+            ],
+            [
+              0.3536,
+              0.0466
+            ]
+          ],
+          "points_px": [
+            [
+              388.0,
+              352.0
+            ],
+            [
+              390.0,
+              351.0
+            ],
+            [
+              394.33,
+              357.17
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.3279,
+              0.0711
+            ],
+            [
+              0.336,
+              0.0758
+            ],
+            [
+              0.3536,
+              0.0466
+            ]
+          ],
+          "polyline_id": "p1",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s6",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              0.4772,
+              -0.1132
+            ]
+          ],
+          "points_px": [
+            [
+              424.86,
+              390.89
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.4772,
+              -0.1132
+            ]
+          ],
+          "polyline_id": "p2",
+          "render_role": "render",
+          "structure_coverage": 0.4667
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s8",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              0.5029,
+              -0.1767
+            ]
+          ],
+          "points_px": [
+            [
+              431.22,
+              404.29
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.5029,
+              -0.1767
+            ]
+          ],
+          "polyline_id": "p3",
+          "render_role": "render",
+          "structure_coverage": 0.75
+        }
+      ],
+      "quality_flags": [],
+      "rejected_candidate_reasons": {},
+      "rejection_reasons": [],
+      "render_authority": "vector",
+      "render_fallback": "none",
+      "render_vectors": "derived_validated",
+      "selected_aperture": "image_left",
+      "selected_extractor": "v7_shape_authority_record",
+      "selected_extractor_reason": "status=authority; render_authority=vector; render_vectors=derived_validated",
+      "selected_vectorizer": "v7_shape_authority_record",
+      "shape_point_count": 19,
+      "shape_ref": "sh1_2e3da0a4330792c3",
+      "shape_type": "multi_geometry",
+      "sibling_polylines": [
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s1",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              -0.6728,
+              0.0605
+            ]
+          ],
+          "points_px": [
+            [
+              739.75,
+              354.05
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.6728,
+              0.0605
+            ]
+          ],
+          "polyline_id": "sp0",
+          "render_role": "render",
+          "structure_coverage": 0.069
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s3",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              -0.4823,
+              -0.0423
+            ]
+          ],
+          "points_px": [
+            [
+              794.32,
+              376.05
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.4823,
+              -0.0423
+            ]
+          ],
+          "polyline_id": "sp1",
+          "render_role": "render",
+          "structure_coverage": 0.0816
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s4",
+          "geometry_kind": "open_centerline",
+          "ordered": true,
+          "point_count": 5,
+          "points": [
+            [
+              -0.6824,
+              -0.0234
+            ],
+            [
+              -0.6789,
+              -0.0327
+            ],
+            [
+              -0.6789,
+              -0.0748
+            ],
+            [
+              -0.6719,
+              -0.0841
+            ],
+            [
+              -0.6719,
+              -0.1075
+            ]
+          ],
+          "points_px": [
+            [
+              737.0,
+              372.0
+            ],
+            [
+              738.0,
+              374.0
+            ],
+            [
+              738.0,
+              383.0
+            ],
+            [
+              740.0,
+              385.0
+            ],
+            [
+              740.0,
+              390.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.6824,
+              -0.0234
+            ],
+            [
+              -0.6789,
+              -0.0327
+            ],
+            [
+              -0.6789,
+              -0.0748
+            ],
+            [
+              -0.6719,
+              -0.0841
+            ],
+            [
+              -0.6719,
+              -0.1075
+            ]
+          ],
+          "polyline_id": "sp2",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s5",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              -0.5275,
+              -0.0733
+            ]
+          ],
+          "points_px": [
+            [
+              781.36,
+              382.69
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.5275,
+              -0.0733
+            ]
+          ],
+          "polyline_id": "sp3",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s7",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              -0.5658,
+              -0.1228
+            ]
+          ],
+          "points_px": [
+            [
+              770.39,
+              393.27
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.5658,
+              -0.1228
+            ]
+          ],
+          "polyline_id": "sp4",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        }
+      ],
+      "source_pixel_bbox": [
+        378,
+        320,
+        473,
+        407
+      ],
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_024_neon_wandering_lines/still.jpg",
+      "test_id": "U-wave dynamic macro",
+      "topology_class": "complex_shape",
+      "usable_as_shape_authority": true,
+      "v7_status": "authority",
+      "vector_key": "v1:62,0,128,83,193,100,131,0,0,0,0,0,0,0,0,0,0,0,0",
+      "visual_review_reason": "v7 authority record with vector render geometry",
+      "visual_status": "pass"
+    },
+    {
+      "aperture_boxes": {
+        "image_left": [
+          60,
+          156,
+          554,
+          578
+        ],
+        "image_right": [
+          646,
+          153,
+          1219,
+          581
+        ]
+      },
       "authority_source_record": "artifacts/renderer/shape_authority_v2/records/sh1_adb58093da473f3e.json",
       "bbox_wall_norm": [
         0.8664,
@@ -1552,6 +2238,1985 @@
       "vector_key": "v1:28,0,31,255,41,31,134,9,176,190,0,0,0,0,255,0,0,0,88",
       "visual_review_reason": "v7 authority record with vector render geometry",
       "visual_status": "pass"
+    },
+    {
+      "aperture_boxes": {
+        "image_left": [
+          60,
+          156,
+          554,
+          578
+        ],
+        "image_right": [
+          646,
+          153,
+          1219,
+          581
+        ]
+      },
+      "authority_source_record": "artifacts/renderer/shape_authority_v2/records/sh1_2bae89cc023a3c52.json",
+      "bbox_wall_norm": [
+        0.3725,
+        -0.1706,
+        0.8178,
+        0.6682
+      ],
+      "candidate_scores": {},
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_006_breakdown_chill_3_turqoise_copy",
+      "centroid_wall_norm": [
+        0.5989,
+        0.268
+      ],
+      "ch1_19": {
+        "CH1": 3,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 155,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 121,
+        "CH2": 0,
+        "CH3": 0,
+        "CH4": 203,
+        "CH5": 190,
+        "CH6": 141,
+        "CH7": 117,
+        "CH8": 162,
+        "CH9": 86
+      },
+      "clusters": [
+        {
+          "area_px": 1603,
+          "bbox_px": [
+            399,
+            226,
+            509,
+            403
+          ],
+          "bbox_wall_norm": [
+            0.3724696356275303,
+            -0.17061611374407581,
+            0.8178137651821862,
+            0.6682464454976303
+          ],
+          "class": "dot",
+          "component_id": "s0",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        }
+      ],
+      "exposure_track": "geometry_motion",
+      "extraction_candidates_tried": [
+        "v7_shape_authority_record"
+      ],
+      "extraction_params": {
+        "extraction_policy": "v7",
+        "geometry_scores": {
+          "components_detected": 1,
+          "components_vectorized": 1,
+          "core_precision": 1.0,
+          "core_recall": 1.0,
+          "dot_reasons": [],
+          "halo_spill": 0.0,
+          "is_dot_only": true,
+          "recall_basis": "structure_skeleton",
+          "vector_fit_residual_px_p95": 0.0
+        },
+        "selected_vectorizer": "v7_shape_authority_record",
+        "shape_type": "dot_anchor"
+      },
+      "fallback_reason": null,
+      "family_or_checkpoint": "cue_006_breakdown_chill_3_turqoise_copy",
+      "fixture_box_label": "image_left",
+      "geometry_kind": "dot_anchor",
+      "geometry_scores": {
+        "components_detected": 1,
+        "components_vectorized": 1,
+        "core_precision": 1.0,
+        "core_recall": 1.0,
+        "dot_reasons": [],
+        "halo_spill": 0.0,
+        "is_dot_only": true,
+        "recall_basis": "structure_skeleton",
+        "vector_fit_residual_px_p95": 0.0
+      },
+      "ordered": true,
+      "phase": "phase6_cue_validation",
+      "polylines": [
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s0",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              0.5989,
+              0.2683
+            ]
+          ],
+          "points_px": [
+            [
+              454.93,
+              310.39
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.5989,
+              0.2683
+            ]
+          ],
+          "polyline_id": "p0",
+          "render_role": "render",
+          "structure_coverage": 0.0269
+        }
+      ],
+      "quality_flags": [],
+      "rejected_candidate_reasons": {},
+      "rejection_reasons": [],
+      "render_authority": "vector",
+      "render_fallback": "none",
+      "render_vectors": "derived_validated",
+      "selected_aperture": "image_left",
+      "selected_extractor": "v7_shape_authority_record",
+      "selected_extractor_reason": "status=authority; render_authority=vector; render_vectors=derived_validated",
+      "selected_vectorizer": "v7_shape_authority_record",
+      "shape_point_count": 1,
+      "shape_ref": "sh1_2bae89cc023a3c52",
+      "shape_type": "dot_anchor",
+      "sibling_polylines": [
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s1",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              -0.6421,
+              0.2495
+            ]
+          ],
+          "points_px": [
+            [
+              748.54,
+              313.61
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.6421,
+              0.2495
+            ]
+          ],
+          "polyline_id": "sp0",
+          "render_role": "render",
+          "structure_coverage": 0.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s2",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              -0.6765,
+              0.2695
+            ]
+          ],
+          "points_px": [
+            [
+              738.69,
+              309.33
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.6765,
+              0.2695
+            ]
+          ],
+          "polyline_id": "sp1",
+          "render_role": "render",
+          "structure_coverage": 0.4545
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s3",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              -0.7513,
+              0.0773
+            ]
+          ],
+          "points_px": [
+            [
+              717.25,
+              350.45
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.7513,
+              0.0773
+            ]
+          ],
+          "polyline_id": "sp2",
+          "render_role": "render",
+          "structure_coverage": 0.2381
+        }
+      ],
+      "source_pixel_bbox": [
+        399,
+        226,
+        509,
+        403
+      ],
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_006_breakdown_chill_3_turqoise_copy/still.jpg",
+      "test_id": "cue_006_breakdown_chill_3_turqoise_copy",
+      "topology_class": "dot_cluster",
+      "usable_as_shape_authority": true,
+      "v7_status": "authority",
+      "vector_key": "v1:3,0,0,203,190,141,117,162,86,0,0,0,0,0,155,0,0,0,121",
+      "visual_review_reason": "v7 authority record with vector render geometry",
+      "visual_status": "pass"
+    },
+    {
+      "aperture_boxes": {
+        "image_left": [
+          60,
+          156,
+          554,
+          578
+        ],
+        "image_right": [
+          646,
+          153,
+          1219,
+          581
+        ]
+      },
+      "authority_source_record": "artifacts/renderer/shape_authority_v2/records/sh1_d9c0e1383b952508.json",
+      "bbox_wall_norm": [
+        -0.8421,
+        -0.0332,
+        -0.4939,
+        0.5924
+      ],
+      "candidate_scores": {},
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_007_breakdown_turqoise_reverse",
+      "centroid_wall_norm": [
+        -0.663,
+        0.2741
+      ],
+      "ch1_19": {
+        "CH1": 3,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 191,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 121,
+        "CH2": 0,
+        "CH3": 0,
+        "CH4": 203,
+        "CH5": 190,
+        "CH6": 141,
+        "CH7": 117,
+        "CH8": 162,
+        "CH9": 86
+      },
+      "clusters": [
+        {
+          "area_px": 1507,
+          "bbox_px": [
+            99,
+            242,
+            185,
+            374
+          ],
+          "bbox_wall_norm": [
+            -0.8421052631578947,
+            -0.033175355450236976,
+            -0.4939271255060729,
+            0.5924170616113744
+          ],
+          "class": "dot",
+          "component_id": "s1",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        }
+      ],
+      "exposure_track": "geometry_motion",
+      "extraction_candidates_tried": [
+        "v7_shape_authority_record"
+      ],
+      "extraction_params": {
+        "extraction_policy": "v7",
+        "geometry_scores": {
+          "components_detected": 1,
+          "components_vectorized": 1,
+          "core_precision": 1.0,
+          "core_recall": 1.0,
+          "dot_reasons": [],
+          "halo_spill": 0.0,
+          "is_dot_only": true,
+          "recall_basis": "structure_skeleton",
+          "vector_fit_residual_px_p95": 0.0
+        },
+        "selected_vectorizer": "v7_shape_authority_record",
+        "shape_type": "dot_anchor"
+      },
+      "fallback_reason": null,
+      "family_or_checkpoint": "cue_007_breakdown_turqoise_reverse",
+      "fixture_box_label": "image_left",
+      "geometry_kind": "dot_anchor",
+      "geometry_scores": {
+        "components_detected": 1,
+        "components_vectorized": 1,
+        "core_precision": 1.0,
+        "core_recall": 1.0,
+        "dot_reasons": [],
+        "halo_spill": 0.0,
+        "is_dot_only": true,
+        "recall_basis": "structure_skeleton",
+        "vector_fit_residual_px_p95": 0.0
+      },
+      "ordered": true,
+      "phase": "phase6_cue_validation",
+      "polylines": [
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s1",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              -0.6621,
+              0.2727
+            ]
+          ],
+          "points_px": [
+            [
+              143.46,
+              309.47
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.6621,
+              0.2727
+            ]
+          ],
+          "polyline_id": "p0",
+          "render_role": "render",
+          "structure_coverage": 0.0497
+        }
+      ],
+      "quality_flags": [],
+      "rejected_candidate_reasons": {},
+      "rejection_reasons": [],
+      "render_authority": "vector",
+      "render_fallback": "none",
+      "render_vectors": "derived_validated",
+      "selected_aperture": "image_left",
+      "selected_extractor": "v7_shape_authority_record",
+      "selected_extractor_reason": "status=authority; render_authority=vector; render_vectors=derived_validated",
+      "selected_vectorizer": "v7_shape_authority_record",
+      "shape_point_count": 1,
+      "shape_ref": "sh1_d9c0e1383b952508",
+      "shape_type": "dot_anchor",
+      "sibling_polylines": [
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s0",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              0.6269,
+              0.2455
+            ]
+          ],
+          "points_px": [
+            [
+              1112.11,
+              314.47
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.6269,
+              0.2455
+            ]
+          ],
+          "polyline_id": "sp0",
+          "render_role": "render",
+          "structure_coverage": 0.0579
+        }
+      ],
+      "source_pixel_bbox": [
+        99,
+        242,
+        185,
+        374
+      ],
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_007_breakdown_turqoise_reverse/still.jpg",
+      "test_id": "cue_007_breakdown_turqoise_reverse",
+      "topology_class": "dot_cluster",
+      "usable_as_shape_authority": true,
+      "v7_status": "authority",
+      "vector_key": "v1:3,0,0,203,190,141,117,162,86,0,0,0,0,0,191,0,0,0,121",
+      "visual_review_reason": "v7 authority record with vector render geometry",
+      "visual_status": "pass"
+    },
+    {
+      "aperture_boxes": {
+        "image_left": [
+          60,
+          156,
+          554,
+          578
+        ],
+        "image_right": [
+          646,
+          153,
+          1219,
+          581
+        ]
+      },
+      "authority_source_record": "artifacts/renderer/shape_authority_v2/records/sh1_14928e116b6d46fb.json",
+      "bbox_wall_norm": [
+        -0.0769,
+        -0.1422,
+        0.2794,
+        0.0474
+      ],
+      "candidate_scores": {},
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_009_breakdown_chill_2",
+      "centroid_wall_norm": [
+        0.1375,
+        -0.0491
+      ],
+      "ch1_19": {
+        "CH1": 3,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 176,
+        "CH16": 0,
+        "CH17": 73,
+        "CH18": 0,
+        "CH19": 74,
+        "CH2": 0,
+        "CH3": 28,
+        "CH4": 78,
+        "CH5": 0,
+        "CH6": 79,
+        "CH7": 131,
+        "CH8": 90,
+        "CH9": 0
+      },
+      "clusters": [
+        {
+          "area_px": 1199,
+          "bbox_px": [
+            288,
+            357,
+            376,
+            397
+          ],
+          "bbox_wall_norm": [
+            -0.07692307692307687,
+            -0.14218009478672977,
+            0.27935222672064786,
+            0.04739336492891
+          ],
+          "class": "open_stroke",
+          "component_id": "s0",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        }
+      ],
+      "exposure_track": "geometry_motion",
+      "extraction_candidates_tried": [
+        "v7_shape_authority_record"
+      ],
+      "extraction_params": {
+        "extraction_policy": "v7",
+        "geometry_scores": {
+          "components_detected": 1,
+          "components_vectorized": 1,
+          "core_precision": 0.9885,
+          "core_recall": 1.0,
+          "dot_reasons": [],
+          "halo_spill": 0.0115,
+          "is_dot_only": false,
+          "recall_basis": "structure_skeleton",
+          "vector_fit_residual_px_p95": 2.0
+        },
+        "selected_vectorizer": "v7_shape_authority_record",
+        "shape_type": "dotted_arc_path"
+      },
+      "fallback_reason": null,
+      "family_or_checkpoint": "cue_009_breakdown_chill_2",
+      "fixture_box_label": "image_left",
+      "geometry_kind": "dotted_arc_path",
+      "geometry_scores": {
+        "components_detected": 1,
+        "components_vectorized": 1,
+        "core_precision": 0.9885,
+        "core_recall": 1.0,
+        "dot_reasons": [],
+        "halo_spill": 0.0115,
+        "is_dot_only": false,
+        "recall_basis": "structure_skeleton",
+        "vector_fit_residual_px_p95": 2.0
+      },
+      "ordered": true,
+      "phase": "phase6_cue_validation",
+      "polylines": [
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s0",
+          "dash_count": 5,
+          "geometry_kind": "dotted_arc_path",
+          "ordered": true,
+          "point_count": 9,
+          "points": [
+            [
+              -0.0729,
+              -0.1327
+            ],
+            [
+              -0.0324,
+              -0.1327
+            ],
+            [
+              -0.0121,
+              -0.1232
+            ],
+            [
+              0.004,
+              -0.1232
+            ],
+            [
+              0.1109,
+              -0.0768
+            ],
+            [
+              0.1559,
+              -0.0474
+            ],
+            [
+              0.2257,
+              -0.0154
+            ],
+            [
+              0.251,
+              0.0
+            ],
+            [
+              0.2591,
+              0.0095
+            ]
+          ],
+          "points_px": [
+            [
+              289.0,
+              395.0
+            ],
+            [
+              299.0,
+              395.0
+            ],
+            [
+              304.0,
+              393.0
+            ],
+            [
+              308.0,
+              393.0
+            ],
+            [
+              334.4,
+              383.2
+            ],
+            [
+              345.5,
+              377.0
+            ],
+            [
+              362.75,
+              370.25
+            ],
+            [
+              369.0,
+              367.0
+            ],
+            [
+              371.0,
+              365.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.0729,
+              -0.1327
+            ],
+            [
+              -0.0324,
+              -0.1327
+            ],
+            [
+              -0.0121,
+              -0.1232
+            ],
+            [
+              0.004,
+              -0.1232
+            ],
+            [
+              0.1109,
+              -0.0768
+            ],
+            [
+              0.1559,
+              -0.0474
+            ],
+            [
+              0.2257,
+              -0.0154
+            ],
+            [
+              0.251,
+              0.0
+            ],
+            [
+              0.2591,
+              0.0095
+            ]
+          ],
+          "polyline_id": "p0",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        }
+      ],
+      "quality_flags": [],
+      "rejected_candidate_reasons": {},
+      "rejection_reasons": [],
+      "render_authority": "vector",
+      "render_fallback": "none",
+      "render_vectors": "derived_validated",
+      "selected_aperture": "image_left",
+      "selected_extractor": "v7_shape_authority_record",
+      "selected_extractor_reason": "status=authority; render_authority=vector; render_vectors=derived_validated",
+      "selected_vectorizer": "v7_shape_authority_record",
+      "shape_point_count": 9,
+      "shape_ref": "sh1_14928e116b6d46fb",
+      "shape_type": "dotted_arc_path",
+      "sibling_polylines": [
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s1",
+          "dash_count": 6,
+          "geometry_kind": "dotted_arc_path",
+          "ordered": true,
+          "point_count": 14,
+          "points": [
+            [
+              -0.3473,
+              -0.0047
+            ],
+            [
+              -0.3403,
+              -0.0047
+            ],
+            [
+              -0.3089,
+              -0.028
+            ],
+            [
+              -0.288,
+              -0.0467
+            ],
+            [
+              -0.281,
+              -0.0467
+            ],
+            [
+              -0.2565,
+              -0.0514
+            ],
+            [
+              -0.2461,
+              -0.0561
+            ],
+            [
+              -0.2024,
+              -0.0864
+            ],
+            [
+              -0.1867,
+              -0.0981
+            ],
+            [
+              -0.1763,
+              -0.0981
+            ],
+            [
+              -0.1483,
+              -0.1121
+            ],
+            [
+              -0.1309,
+              -0.1215
+            ],
+            [
+              -0.1169,
+              -0.1308
+            ],
+            [
+              -0.0471,
+              -0.1355
+            ]
+          ],
+          "points_px": [
+            [
+              833.0,
+              368.0
+            ],
+            [
+              835.0,
+              368.0
+            ],
+            [
+              844.0,
+              373.0
+            ],
+            [
+              850.0,
+              377.0
+            ],
+            [
+              852.0,
+              377.0
+            ],
+            [
+              859.0,
+              378.0
+            ],
+            [
+              862.0,
+              379.0
+            ],
+            [
+              874.5,
+              385.5
+            ],
+            [
+              879.0,
+              388.0
+            ],
+            [
+              882.0,
+              388.0
+            ],
+            [
+              890.0,
+              391.0
+            ],
+            [
+              895.0,
+              393.0
+            ],
+            [
+              899.0,
+              395.0
+            ],
+            [
+              919.0,
+              396.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.3473,
+              -0.0047
+            ],
+            [
+              -0.3403,
+              -0.0047
+            ],
+            [
+              -0.3089,
+              -0.028
+            ],
+            [
+              -0.288,
+              -0.0467
+            ],
+            [
+              -0.281,
+              -0.0467
+            ],
+            [
+              -0.2565,
+              -0.0514
+            ],
+            [
+              -0.2461,
+              -0.0561
+            ],
+            [
+              -0.2024,
+              -0.0864
+            ],
+            [
+              -0.1867,
+              -0.0981
+            ],
+            [
+              -0.1763,
+              -0.0981
+            ],
+            [
+              -0.1483,
+              -0.1121
+            ],
+            [
+              -0.1309,
+              -0.1215
+            ],
+            [
+              -0.1169,
+              -0.1308
+            ],
+            [
+              -0.0471,
+              -0.1355
+            ]
+          ],
+          "polyline_id": "sp0",
+          "render_role": "render",
+          "structure_coverage": 0.8904
+        }
+      ],
+      "source_pixel_bbox": [
+        288,
+        357,
+        376,
+        397
+      ],
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_009_breakdown_chill_2/still.jpg",
+      "test_id": "cue_009_breakdown_chill_2",
+      "topology_class": "line",
+      "usable_as_shape_authority": true,
+      "v7_status": "authority",
+      "vector_key": "v1:3,0,28,78,0,79,131,90,0,0,0,0,0,0,176,0,73,0,74",
+      "visual_review_reason": "v7 authority record with vector render geometry",
+      "visual_status": "pass"
+    },
+    {
+      "aperture_boxes": {
+        "image_left": [
+          60,
+          156,
+          554,
+          578
+        ],
+        "image_right": [
+          646,
+          153,
+          1219,
+          581
+        ]
+      },
+      "authority_source_record": "artifacts/renderer/shape_authority_v2/records/sh1_83b4671ca39044d5.json",
+      "bbox_wall_norm": [
+        -0.1377,
+        -0.1517,
+        1.0121,
+        0.1754
+      ],
+      "candidate_scores": {},
+      "capture_path": "phase6_cue_validation/cue_relevant/cue_012_buildup_soft",
+      "centroid_wall_norm": [
+        0.2812,
+        0.0158
+      ],
+      "ch1_19": {
+        "CH1": 3,
+        "CH10": 0,
+        "CH11": 0,
+        "CH12": 0,
+        "CH13": 0,
+        "CH14": 0,
+        "CH15": 176,
+        "CH16": 0,
+        "CH17": 0,
+        "CH18": 0,
+        "CH19": 79,
+        "CH2": 0,
+        "CH3": 28,
+        "CH4": 78,
+        "CH5": 0,
+        "CH6": 79,
+        "CH7": 131,
+        "CH8": 90,
+        "CH9": 115
+      },
+      "clusters": [
+        {
+          "area_px": 833,
+          "bbox_px": [
+            273,
+            330,
+            409,
+            390
+          ],
+          "bbox_wall_norm": [
+            -0.13765182186234814,
+            -0.1090047393364928,
+            0.41295546558704443,
+            0.17535545023696686
+          ],
+          "class": "open_stroke",
+          "component_id": "s0",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 21,
+          "bbox_px": [
+            456,
+            359,
+            462,
+            363
+          ],
+          "bbox_wall_norm": [
+            0.6032388663967612,
+            0.018957345971563955,
+            0.6275303643724697,
+            0.03791469194312791
+          ],
+          "class": "dot",
+          "component_id": "s2",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 111,
+          "bbox_px": [
+            465,
+            365,
+            505,
+            389
+          ],
+          "bbox_wall_norm": [
+            0.6396761133603239,
+            -0.10426540284360186,
+            0.8016194331983806,
+            0.009478672985781977
+          ],
+          "class": "dot",
+          "component_id": "s4",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 95,
+          "bbox_px": [
+            509,
+            391,
+            547,
+            399
+          ],
+          "bbox_wall_norm": [
+            0.8178137651821862,
+            -0.15165876777251186,
+            0.9716599190283401,
+            -0.11374407582938395
+          ],
+          "class": "open_stroke",
+          "component_id": "s5",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": false
+        },
+        {
+          "area_px": 30,
+          "bbox_px": [
+            550,
+            393,
+            557,
+            399
+          ],
+          "bbox_wall_norm": [
+            0.9838056680161944,
+            -0.15165876777251186,
+            1.0121457489878543,
+            -0.12322274881516582
+          ],
+          "class": "dot",
+          "component_id": "s6",
+          "fixture_assignment": "contained",
+          "out_of_box_geometry": true
+        }
+      ],
+      "exposure_track": "geometry_motion",
+      "extraction_candidates_tried": [
+        "v7_shape_authority_record"
+      ],
+      "extraction_params": {
+        "extraction_policy": "v7",
+        "geometry_scores": {
+          "components_detected": 5,
+          "components_vectorized": 5,
+          "core_precision": 1.0,
+          "core_recall": 0.8342,
+          "dot_reasons": [],
+          "halo_spill": 0.0,
+          "is_dot_only": false,
+          "recall_basis": "structure_skeleton",
+          "vector_fit_residual_px_p95": 1.0
+        },
+        "selected_vectorizer": "v7_shape_authority_record",
+        "shape_type": "multi_geometry"
+      },
+      "fallback_reason": null,
+      "family_or_checkpoint": "cue_012_buildup_soft",
+      "fixture_box_label": "image_left",
+      "geometry_kind": "multi_geometry",
+      "geometry_scores": {
+        "components_detected": 5,
+        "components_vectorized": 5,
+        "core_precision": 1.0,
+        "core_recall": 0.8342,
+        "dot_reasons": [],
+        "halo_spill": 0.0,
+        "is_dot_only": false,
+        "recall_basis": "structure_skeleton",
+        "vector_fit_residual_px_p95": 1.0
+      },
+      "ordered": true,
+      "phase": "phase6_cue_validation",
+      "polylines": [
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s0",
+          "dash_count": 4,
+          "geometry_kind": "dotted_arc_path",
+          "ordered": true,
+          "point_count": 12,
+          "points": [
+            [
+              -0.1113,
+              -0.0924
+            ],
+            [
+              -0.081,
+              -0.0664
+            ],
+            [
+              -0.0688,
+              -0.0664
+            ],
+            [
+              -0.0283,
+              -0.0427
+            ],
+            [
+              -0.0081,
+              -0.0237
+            ],
+            [
+              0.0769,
+              0.0332
+            ],
+            [
+              0.1215,
+              0.0664
+            ],
+            [
+              0.2186,
+              0.1185
+            ],
+            [
+              0.2632,
+              0.1327
+            ],
+            [
+              0.2996,
+              0.1422
+            ],
+            [
+              0.3644,
+              0.1374
+            ],
+            [
+              0.413,
+              0.1232
+            ]
+          ],
+          "points_px": [
+            [
+              279.5,
+              386.5
+            ],
+            [
+              287.0,
+              381.0
+            ],
+            [
+              290.0,
+              381.0
+            ],
+            [
+              300.0,
+              376.0
+            ],
+            [
+              305.0,
+              372.0
+            ],
+            [
+              326.0,
+              360.0
+            ],
+            [
+              337.0,
+              353.0
+            ],
+            [
+              361.0,
+              342.0
+            ],
+            [
+              372.0,
+              339.0
+            ],
+            [
+              381.0,
+              337.0
+            ],
+            [
+              397.0,
+              338.0
+            ],
+            [
+              409.0,
+              341.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.1113,
+              -0.0924
+            ],
+            [
+              -0.081,
+              -0.0664
+            ],
+            [
+              -0.0688,
+              -0.0664
+            ],
+            [
+              -0.0283,
+              -0.0427
+            ],
+            [
+              -0.0081,
+              -0.0237
+            ],
+            [
+              0.0769,
+              0.0332
+            ],
+            [
+              0.1215,
+              0.0664
+            ],
+            [
+              0.2186,
+              0.1185
+            ],
+            [
+              0.2632,
+              0.1327
+            ],
+            [
+              0.2996,
+              0.1422
+            ],
+            [
+              0.3644,
+              0.1374
+            ],
+            [
+              0.413,
+              0.1232
+            ]
+          ],
+          "polyline_id": "p0",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s2",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              0.6154,
+              0.0304
+            ]
+          ],
+          "points_px": [
+            [
+              459.01,
+              360.58
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.6154,
+              0.0304
+            ]
+          ],
+          "polyline_id": "p1",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s4",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              0.7208,
+              -0.0499
+            ]
+          ],
+          "points_px": [
+            [
+              485.03,
+              377.52
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.7208,
+              -0.0499
+            ]
+          ],
+          "polyline_id": "p2",
+          "render_role": "render",
+          "structure_coverage": 0.1389
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s5",
+          "geometry_kind": "open_centerline",
+          "ordered": true,
+          "point_count": 6,
+          "points": [
+            [
+              0.8259,
+              -0.1185
+            ],
+            [
+              0.8947,
+              -0.1327
+            ],
+            [
+              0.8988,
+              -0.1374
+            ],
+            [
+              0.9474,
+              -0.1374
+            ],
+            [
+              0.9514,
+              -0.1422
+            ],
+            [
+              0.9595,
+              -0.1374
+            ]
+          ],
+          "points_px": [
+            [
+              511.0,
+              392.0
+            ],
+            [
+              528.0,
+              395.0
+            ],
+            [
+              529.0,
+              396.0
+            ],
+            [
+              541.0,
+              396.0
+            ],
+            [
+              542.0,
+              397.0
+            ],
+            [
+              544.0,
+              396.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.8259,
+              -0.1185
+            ],
+            [
+              0.8947,
+              -0.1327
+            ],
+            [
+              0.8988,
+              -0.1374
+            ],
+            [
+              0.9474,
+              -0.1374
+            ],
+            [
+              0.9514,
+              -0.1422
+            ],
+            [
+              0.9595,
+              -0.1374
+            ]
+          ],
+          "polyline_id": "p3",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_left",
+          "closed": false,
+          "component_id": "s6",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              0.9957,
+              -0.1366
+            ]
+          ],
+          "points_px": [
+            [
+              552.94,
+              395.82
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              0.9957,
+              -0.1366
+            ]
+          ],
+          "polyline_id": "p4",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        }
+      ],
+      "quality_flags": [
+        "out_of_box_geometry"
+      ],
+      "rejected_candidate_reasons": {},
+      "rejection_reasons": [],
+      "render_authority": "vector",
+      "render_fallback": "none",
+      "render_vectors": "derived_validated",
+      "selected_aperture": "image_left",
+      "selected_extractor": "v7_shape_authority_record",
+      "selected_extractor_reason": "status=authority; render_authority=vector; render_vectors=derived_validated",
+      "selected_vectorizer": "v7_shape_authority_record",
+      "shape_point_count": 21,
+      "shape_ref": "sh1_83b4671ca39044d5",
+      "shape_type": "multi_geometry",
+      "sibling_polylines": [
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s1",
+          "dash_count": 4,
+          "geometry_kind": "dotted_arc_path",
+          "ordered": true,
+          "point_count": 20,
+          "points": [
+            [
+              -0.4869,
+              0.1075
+            ],
+            [
+              -0.4346,
+              0.1262
+            ],
+            [
+              -0.3822,
+              0.1308
+            ],
+            [
+              -0.3752,
+              0.1262
+            ],
+            [
+              -0.3508,
+              0.1262
+            ],
+            [
+              -0.274,
+              0.0981
+            ],
+            [
+              -0.2147,
+              0.0607
+            ],
+            [
+              -0.1763,
+              0.0327
+            ],
+            [
+              -0.1588,
+              0.0187
+            ],
+            [
+              -0.1518,
+              0.0187
+            ],
+            [
+              -0.1449,
+              0.0093
+            ],
+            [
+              -0.1379,
+              0.0093
+            ],
+            [
+              -0.1309,
+              0.0
+            ],
+            [
+              -0.1239,
+              0.0
+            ],
+            [
+              -0.1169,
+              -0.0093
+            ],
+            [
+              -0.1099,
+              -0.0093
+            ],
+            [
+              -0.0506,
+              -0.0514
+            ],
+            [
+              -0.0436,
+              -0.0514
+            ],
+            [
+              -0.0262,
+              -0.0701
+            ],
+            [
+              0.0157,
+              -0.097
+            ]
+          ],
+          "points_px": [
+            [
+              793.0,
+              344.0
+            ],
+            [
+              808.0,
+              340.0
+            ],
+            [
+              823.0,
+              339.0
+            ],
+            [
+              825.0,
+              340.0
+            ],
+            [
+              832.0,
+              340.0
+            ],
+            [
+              854.0,
+              346.0
+            ],
+            [
+              871.0,
+              354.0
+            ],
+            [
+              882.0,
+              360.0
+            ],
+            [
+              887.0,
+              363.0
+            ],
+            [
+              889.0,
+              363.0
+            ],
+            [
+              891.0,
+              365.0
+            ],
+            [
+              893.0,
+              365.0
+            ],
+            [
+              895.0,
+              367.0
+            ],
+            [
+              897.0,
+              367.0
+            ],
+            [
+              899.0,
+              369.0
+            ],
+            [
+              901.0,
+              369.0
+            ],
+            [
+              918.0,
+              378.0
+            ],
+            [
+              920.0,
+              378.0
+            ],
+            [
+              925.0,
+              382.0
+            ],
+            [
+              937.0,
+              387.75
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.4869,
+              0.1075
+            ],
+            [
+              -0.4346,
+              0.1262
+            ],
+            [
+              -0.3822,
+              0.1308
+            ],
+            [
+              -0.3752,
+              0.1262
+            ],
+            [
+              -0.3508,
+              0.1262
+            ],
+            [
+              -0.274,
+              0.0981
+            ],
+            [
+              -0.2147,
+              0.0607
+            ],
+            [
+              -0.1763,
+              0.0327
+            ],
+            [
+              -0.1588,
+              0.0187
+            ],
+            [
+              -0.1518,
+              0.0187
+            ],
+            [
+              -0.1449,
+              0.0093
+            ],
+            [
+              -0.1379,
+              0.0093
+            ],
+            [
+              -0.1309,
+              0.0
+            ],
+            [
+              -0.1239,
+              0.0
+            ],
+            [
+              -0.1169,
+              -0.0093
+            ],
+            [
+              -0.1099,
+              -0.0093
+            ],
+            [
+              -0.0506,
+              -0.0514
+            ],
+            [
+              -0.0436,
+              -0.0514
+            ],
+            [
+              -0.0262,
+              -0.0701
+            ],
+            [
+              0.0157,
+              -0.097
+            ]
+          ],
+          "polyline_id": "sp0",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s3",
+          "dash_count": 3,
+          "geometry_kind": "dotted_arc_path",
+          "ordered": true,
+          "point_count": 18,
+          "points": [
+            [
+              -0.9686,
+              -0.1449
+            ],
+            [
+              -0.9651,
+              -0.1495
+            ],
+            [
+              -0.9407,
+              -0.1495
+            ],
+            [
+              -0.9372,
+              -0.1449
+            ],
+            [
+              -0.9092,
+              -0.1449
+            ],
+            [
+              -0.8848,
+              -0.1355
+            ],
+            [
+              -0.8639,
+              -0.1355
+            ],
+            [
+              -0.8534,
+              -0.1168
+            ],
+            [
+              -0.8255,
+              -0.1075
+            ],
+            [
+              -0.815,
+              -0.1075
+            ],
+            [
+              -0.808,
+              -0.0981
+            ],
+            [
+              -0.7836,
+              -0.0841
+            ],
+            [
+              -0.7173,
+              -0.028
+            ],
+            [
+              -0.7068,
+              -0.014
+            ],
+            [
+              -0.6963,
+              -0.014
+            ],
+            [
+              -0.6789,
+              0.0187
+            ],
+            [
+              -0.6684,
+              0.0187
+            ],
+            [
+              -0.6614,
+              0.028
+            ]
+          ],
+          "points_px": [
+            [
+              655.0,
+              398.0
+            ],
+            [
+              656.0,
+              399.0
+            ],
+            [
+              663.0,
+              399.0
+            ],
+            [
+              664.0,
+              398.0
+            ],
+            [
+              672.0,
+              398.0
+            ],
+            [
+              679.0,
+              396.0
+            ],
+            [
+              685.0,
+              396.0
+            ],
+            [
+              688.0,
+              392.0
+            ],
+            [
+              696.0,
+              390.0
+            ],
+            [
+              699.0,
+              390.0
+            ],
+            [
+              701.0,
+              388.0
+            ],
+            [
+              708.0,
+              385.0
+            ],
+            [
+              727.0,
+              373.0
+            ],
+            [
+              730.0,
+              370.0
+            ],
+            [
+              733.0,
+              370.0
+            ],
+            [
+              738.0,
+              363.0
+            ],
+            [
+              741.0,
+              363.0
+            ],
+            [
+              743.0,
+              361.0
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.9686,
+              -0.1449
+            ],
+            [
+              -0.9651,
+              -0.1495
+            ],
+            [
+              -0.9407,
+              -0.1495
+            ],
+            [
+              -0.9372,
+              -0.1449
+            ],
+            [
+              -0.9092,
+              -0.1449
+            ],
+            [
+              -0.8848,
+              -0.1355
+            ],
+            [
+              -0.8639,
+              -0.1355
+            ],
+            [
+              -0.8534,
+              -0.1168
+            ],
+            [
+              -0.8255,
+              -0.1075
+            ],
+            [
+              -0.815,
+              -0.1075
+            ],
+            [
+              -0.808,
+              -0.0981
+            ],
+            [
+              -0.7836,
+              -0.0841
+            ],
+            [
+              -0.7173,
+              -0.028
+            ],
+            [
+              -0.7068,
+              -0.014
+            ],
+            [
+              -0.6963,
+              -0.014
+            ],
+            [
+              -0.6789,
+              0.0187
+            ],
+            [
+              -0.6684,
+              0.0187
+            ],
+            [
+              -0.6614,
+              0.028
+            ]
+          ],
+          "polyline_id": "sp1",
+          "render_role": "render",
+          "structure_coverage": 1.0
+        },
+        {
+          "aperture": "image_right",
+          "closed": false,
+          "component_id": "s7",
+          "geometry_kind": "dot_anchor",
+          "ordered": true,
+          "point_count": 1,
+          "points": [
+            [
+              -0.9927,
+              -0.1581
+            ]
+          ],
+          "points_px": [
+            [
+              648.1,
+              400.83
+            ]
+          ],
+          "points_wall_norm": [
+            [
+              -0.9927,
+              -0.1581
+            ]
+          ],
+          "polyline_id": "sp2",
+          "render_role": "render",
+          "structure_coverage": 0.0
+        }
+      ],
+      "source_pixel_bbox": [
+        273,
+        330,
+        557,
+        399
+      ],
+      "source_still": "captures/fixture_model/phase6_cue_validation/cue_relevant/cue_012_buildup_soft/still.jpg",
+      "test_id": "cue_012_buildup_soft",
+      "topology_class": "complex_shape",
+      "usable_as_shape_authority": true,
+      "v7_status": "authority",
+      "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,79",
+      "visual_review_reason": "v7 authority record with vector render geometry",
+      "visual_status": "pass"
     }
   ],
   "v7_authority_accounting": [
@@ -1570,13 +4235,13 @@
     {
       "capture_path": "phase1_single_channel/CH01_master_dimmer/CH01_220",
       "family_or_checkpoint": "horizontal line static",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "render_authority_core_mask",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_e9743d87837d24ad.json",
+      "selected_render_polyline_count": 4,
       "shape_authority": false,
       "shape_ref": "sh1_e9743d87837d24ad",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 7,
+      "v7_status": "conflicts",
       "vector_key": "v1:220,0,32,10,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0"
     },
     {
@@ -1594,61 +4259,61 @@
     {
       "capture_path": "phase1_single_channel/CH03_CH04_base_look_atlas/CH03_096_CH04_002",
       "family_or_checkpoint": "dotted arc / compact swirl static-animation bank",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_6fb79ee6e90df590.json",
+      "selected_render_polyline_count": 1,
       "shape_authority": false,
       "shape_ref": "sh1_6fb79ee6e90df590",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 2,
+      "v7_status": "provisional",
       "vector_key": "v1:220,0,96,2,90,128,128,20,0,0,0,0,0,0,0,0,0,0,0"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_024_neon_wandering_lines",
       "family_or_checkpoint": "U-wave dynamic macro",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
-      "shape_authority": false,
+      "reason": null,
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_2e3da0a4330792c3.json",
+      "selected_render_polyline_count": 4,
+      "shape_authority": true,
       "shape_ref": "sh1_2e3da0a4330792c3",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 5,
+      "v7_status": "authority",
       "vector_key": "v1:62,0,128,83,193,100,131,0,0,0,0,0,0,0,0,0,0,0,0"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_097_red_box_sway_drop_149bpm_copy",
       "family_or_checkpoint": "three-star dynamic macro",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_3e98be8e27ea1c58.json",
+      "selected_render_polyline_count": 2,
       "shape_authority": false,
       "shape_ref": "sh1_3e98be8e27ea1c58",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 2,
+      "v7_status": "provisional",
       "vector_key": "v1:65,7,148,0,183,83,134,8,255,255,0,0,0,0,0,0,0,0,0"
     },
     {
       "capture_path": "phase2_gating/gate_CH03_static_dynamic_split/CH03_160_CH15_200",
       "family_or_checkpoint": "compact swirl dynamic macro",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_91ebda39c0075cac.json",
+      "selected_render_polyline_count": 2,
       "shape_authority": false,
       "shape_ref": "sh1_91ebda39c0075cac",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 1,
+      "v7_status": "provisional",
       "vector_key": "v1:220,0,160,10,90,128,128,20,0,0,0,0,0,0,200,0,0,0,0"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_001_off",
       "family_or_checkpoint": "cue_001_off",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_542fc5442a80e0dc.json",
+      "selected_render_polyline_count": 2,
       "shape_authority": false,
       "shape_ref": "sh1_542fc5442a80e0dc",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 2,
+      "v7_status": "provisional",
       "vector_key": "v1:34,0,48,28,0,90,141,0,0,0,255,0,121,0,148,0,0,0,0"
     },
     {
@@ -1666,129 +4331,129 @@
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_003_intro_techno",
       "family_or_checkpoint": "cue_003_intro_techno",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_b92cc7b21e95ce78.json",
+      "selected_render_polyline_count": 6,
       "shape_authority": false,
       "shape_ref": "sh1_b92cc7b21e95ce78",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 5,
+      "v7_status": "provisional",
       "vector_key": "v1:3,0,38,135,214,100,134,172,121,0,0,159,231,0,59,0,0,0,136"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_004_breakdown_1",
       "family_or_checkpoint": "cue_004_breakdown_1",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_298397439f5ce2a9.json",
+      "selected_render_polyline_count": 2,
       "shape_authority": false,
       "shape_ref": "sh1_298397439f5ce2a9",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 2,
+      "v7_status": "provisional",
       "vector_key": "v1:3,0,38,138,214,96,134,172,121,0,0,196,231,0,59,0,0,0,247"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_005_breakdown_2",
       "family_or_checkpoint": "cue_005_breakdown_2",
-      "reason": "missing_v7_record",
-      "record_path": null,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_39cde94194e37010.json",
       "selected_render_polyline_count": 0,
       "shape_authority": false,
       "shape_ref": "sh1_39cde94194e37010",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 1,
+      "v7_status": "provisional",
       "vector_key": "v1:3,0,0,203,190,141,117,162,86,128,0,0,0,0,189,0,0,0,121"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_006_breakdown_chill_3_turqoise_copy",
       "family_or_checkpoint": "cue_006_breakdown_chill_3_turqoise_copy",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
-      "shape_authority": false,
+      "reason": null,
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_2bae89cc023a3c52.json",
+      "selected_render_polyline_count": 1,
+      "shape_authority": true,
       "shape_ref": "sh1_2bae89cc023a3c52",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 3,
+      "v7_status": "authority",
       "vector_key": "v1:3,0,0,203,190,141,117,162,86,0,0,0,0,0,155,0,0,0,121"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_007_breakdown_turqoise_reverse",
       "family_or_checkpoint": "cue_007_breakdown_turqoise_reverse",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
-      "shape_authority": false,
+      "reason": null,
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_d9c0e1383b952508.json",
+      "selected_render_polyline_count": 1,
+      "shape_authority": true,
       "shape_ref": "sh1_d9c0e1383b952508",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 1,
+      "v7_status": "authority",
       "vector_key": "v1:3,0,0,203,190,141,117,162,86,0,0,0,0,0,191,0,0,0,121"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_008_breakdown_turqoise",
       "family_or_checkpoint": "cue_008_breakdown_turqoise",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_ca3a93cf551f850e.json",
+      "selected_render_polyline_count": 1,
       "shape_authority": false,
       "shape_ref": "sh1_ca3a93cf551f850e",
       "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "v7_status": "provisional",
       "vector_key": "v1:3,0,28,139,0,79,121,134,86,0,0,0,0,0,176,0,73,0,248"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_009_breakdown_chill_2",
       "family_or_checkpoint": "cue_009_breakdown_chill_2",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
-      "shape_authority": false,
+      "reason": null,
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_14928e116b6d46fb.json",
+      "selected_render_polyline_count": 1,
+      "shape_authority": true,
       "shape_ref": "sh1_14928e116b6d46fb",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 1,
+      "v7_status": "authority",
       "vector_key": "v1:3,0,28,78,0,79,131,90,0,0,0,0,0,0,176,0,73,0,74"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_010_breakdown_chill",
       "family_or_checkpoint": "cue_010_breakdown_chill",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_c26886280d3c7364.json",
+      "selected_render_polyline_count": 4,
       "shape_authority": false,
       "shape_ref": "sh1_c26886280d3c7364",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 3,
+      "v7_status": "provisional",
       "vector_key": "v1:3,0,14,86,190,141,110,162,86,0,0,0,0,0,191,0,0,0,121"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_011_breakdown_turqoise_pointy",
       "family_or_checkpoint": "cue_011_breakdown_turqoise_pointy",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
+      "reason": "v7_status_provisional",
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_5f0125b19c4208c0.json",
+      "selected_render_polyline_count": 4,
       "shape_authority": false,
       "shape_ref": "sh1_5f0125b19c4208c0",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 2,
+      "v7_status": "provisional",
       "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,74"
     },
     {
       "capture_path": "phase6_cue_validation/cue_relevant/cue_012_buildup_soft",
       "family_or_checkpoint": "cue_012_buildup_soft",
-      "reason": "missing_v7_record",
-      "record_path": null,
-      "selected_render_polyline_count": 0,
-      "shape_authority": false,
+      "reason": null,
+      "record_path": "artifacts/renderer/shape_authority_v2/records/sh1_83b4671ca39044d5.json",
+      "selected_render_polyline_count": 5,
+      "shape_authority": true,
       "shape_ref": "sh1_83b4671ca39044d5",
-      "sibling_render_polyline_count": 0,
-      "v7_status": "missing",
+      "sibling_render_polyline_count": 3,
+      "v7_status": "authority",
       "vector_key": "v1:3,0,28,78,0,79,131,90,115,0,0,0,0,0,176,0,0,0,79"
     }
   ],
   "v7_authority_counts": {
-    "authority": 3,
-    "conflicts": 0,
-    "missing": 16,
-    "provisional": 0,
+    "authority": 8,
+    "conflicts": 1,
+    "missing": 0,
+    "provisional": 10,
     "quarantined": 0
   },
   "v7_authority_manifest": "artifacts/renderer/shape_authority_v2/manifest.json",
