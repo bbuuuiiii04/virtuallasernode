@@ -114,8 +114,14 @@
     "s3"
   ],
   "unaccounted_component_ids": [],
-  "source_frame_accounting_complete": false,
-  "fixture_output_accounting_complete": false,
+  "component_structure_coverage": {
+    "s0": 1.0,
+    "s1": 0.4444,
+    "s2": 0.5,
+    "s3": 0.3125
+  },
+  "source_frame_accounting_complete": true,
+  "fixture_output_accounting_complete": true,
   "geometry_source": {
     "path": "captures/fixture_model/analysis_geometry.json",
     "sha256": "72d99c676ebfacc2f0cdcf88e5b6b13dcd51bd677d8de67d9aeb52f340cce699"
@@ -206,6 +212,7 @@
           352.82
         ]
       ],
+      "aperture": "image_left",
       "points_wall_norm": [
         [
           -0.4395,
@@ -214,7 +221,8 @@
       ],
       "point_count": 1,
       "polyline_id": "p0",
-      "render_role": "render"
+      "render_role": "render",
+      "structure_coverage": 1.0
     },
     {
       "component_id": "s1",
@@ -227,6 +235,7 @@
           352.04
         ]
       ],
+      "aperture": "image_left",
       "points_wall_norm": [
         [
           0.646,
@@ -235,7 +244,56 @@
       ],
       "point_count": 1,
       "polyline_id": "p1",
-      "render_role": "render"
+      "render_role": "render",
+      "structure_coverage": 0.4444
+    }
+  ],
+  "sibling_polylines": [
+    {
+      "component_id": "s2",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          733.05,
+          356.55
+        ]
+      ],
+      "aperture": "image_right",
+      "points_wall_norm": [
+        [
+          -0.6962,
+          0.0488
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "sp0",
+      "render_role": "render",
+      "structure_coverage": 0.5
+    },
+    {
+      "component_id": "s3",
+      "geometry_kind": "dot_anchor",
+      "closed": false,
+      "ordered": true,
+      "points_px": [
+        [
+          1041.32,
+          354.27
+        ]
+      ],
+      "aperture": "image_right",
+      "points_wall_norm": [
+        [
+          0.3798,
+          0.0595
+        ]
+      ],
+      "point_count": 1,
+      "polyline_id": "sp1",
+      "render_role": "render",
+      "structure_coverage": 0.3125
     }
   ],
   "topology_summary": {
@@ -246,6 +304,7 @@
   "metrics": {
     "core_precision": 1.0,
     "core_recall": 1.0,
+    "recall_basis": "structure_skeleton",
     "halo_spill": 0.0,
     "vector_fit_residual_px_p95": 0.0,
     "components_detected": 2,
@@ -253,19 +312,17 @@
     "is_dot_only": true,
     "dot_reasons": []
   },
-  "status": "provisional",
+  "status": "authority",
   "selected_aperture_authority_eligible": true,
   "authority_eligible": true,
-  "status_reasons": [
-    "sibling_aperture_unaccounted"
-  ],
+  "status_reasons": [],
   "quality_flags": [],
-  "render_authority": "core_mask",
+  "render_authority": "vector",
   "geometry_layers": {
     "core_mask": "primary_evidence_authority",
     "raw_debug_vectors": "diagnostic_only",
-    "render_vectors": null,
-    "render_fallback": "core_mask"
+    "render_vectors": "derived_validated",
+    "render_fallback": "none"
   },
   "human_review": {
     "verdict": "pending",

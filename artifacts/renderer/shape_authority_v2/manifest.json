@@ -5,8 +5,8 @@
   "geometry_sha": "72d99c676ebfacc2f0cdcf88e5b6b13dcd51bd677d8de67d9aeb52f340cce699",
   "counts": {
     "total": 3,
-    "authority": 0,
-    "provisional": 3,
+    "authority": 3,
+    "provisional": 0,
     "quarantined": 0
   },
   "shape_refs": [

@@ -90,8 +90,14 @@ def test_four_squares_vectorized_no_drop():
         f"Expected >=4 closed-stroke polylines (one per square), got {len(closed_polylines)}"
     )
     for pl in closed_polylines:
-        assert pl["geometry_kind"] == "closed_centerline"
-        assert len(pl["points_px"]) >= 3
+        # Clean square outlines must snap to rectangles (5 closed-loop
+        # points), never a wobbly skeleton trace.
+        assert pl["geometry_kind"] == "rect_centerline", (
+            f"square should vectorize as rect_centerline, got {pl['geometry_kind']}"
+        )
+        assert len(pl["points_px"]) == 5
+        assert pl["closed"] is True
+        assert pl["fit_residual_px_p90"] <= 1.75
 
 
 def test_dot_produces_single_anchor():

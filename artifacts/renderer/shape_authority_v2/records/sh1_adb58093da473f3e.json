@@ -86,8 +86,12 @@
     "s1"
   ],
   "unaccounted_component_ids": [],
-  "source_frame_accounting_complete": false,
-  "fixture_output_accounting_complete": false,
+  "component_structure_coverage": {
+    "s0": 1.0,
+    "s1": 1.0
+  },
+  "source_frame_accounting_complete": true,
+  "fixture_output_accounting_complete": true,
   "geometry_source": {
     "path": "captures/fixture_model/analysis_geometry.json",
     "sha256": "72d99c676ebfacc2f0cdcf88e5b6b13dcd51bd677d8de67d9aeb52f340cce699"
@@ -150,240 +154,165 @@
   "polylines": [
     {
       "component_id": "s0",
-      "geometry_kind": "peak_contour",
-      "closed": true,
+      "geometry_kind": "dotted_arc_path",
+      "closed": false,
       "ordered": true,
+      "dash_count": 3,
       "points_px": [
         [
-          552.0,
-          346.5
+          533.0,
+          326.0
         ],
         [
-          551.0,
-          345.5
+          534.0,
+          331.0
         ],
         [
-          548.0,
-          346.5
+          538.0,
+          335.0
         ],
         [
           541.0,
-          345.5
-        ],
-        [
-          534.0,
-          340.5
-        ],
-        [
-          531.0,
-          336.5
-        ],
-        [
-          528.0,
-          335.5
-        ],
-        [
-          526.5,
-          333.0
-        ],
-        [
-          526.5,
-          326.0
-        ],
-        [
-          527.5,
-          324.0
-        ],
-        [
-          529.5,
-          326.0
-        ],
-        [
-          530.5,
-          332.0
-        ],
-        [
-          534.0,
-          335.5
-        ],
-        [
-          537.0,
-          335.5
-        ],
-        [
-          538.5,
-          337.0
-        ],
-        [
-          537.5,
-          338.0
-        ],
-        [
-          539.0,
-          340.5
+          336.0
         ],
         [
           543.0,
-          339.5
+          338.0
         ],
         [
-          544.0,
-          341.5
-        ],
-        [
-          552.0,
-          342.5
-        ],
-        [
-          555.0,
-          341.5
-        ],
-        [
-          556.5,
+          547.0,
           340.0
         ],
         [
-          556.5,
-          337.0
-        ],
-        [
-          558.0,
-          336.5
-        ],
-        [
-          558.5,
+          548.0,
           341.0
         ],
         [
-          555.5,
-          343.0
-        ],
-        [
           555.0,
-          345.5
-        ],
-        [
-          552.0,
-          346.5
+          340.0
         ]
       ],
+      "aperture": "image_left",
       "points_wall_norm": [
         [
-          0.9919,
-          0.0972
+          0.915,
+          0.1943
         ],
         [
-          0.9879,
-          0.1019
+          0.919,
+          0.1706
         ],
         [
-          0.9757,
-          0.0972
+          0.9352,
+          0.1517
         ],
         [
           0.9474,
-          0.1019
-        ],
-        [
-          0.919,
-          0.1256
-        ],
-        [
-          0.9069,
-          0.1445
-        ],
-        [
-          0.8947,
-          0.1493
-        ],
-        [
-          0.8887,
-          0.1611
-        ],
-        [
-          0.8887,
-          0.1943
-        ],
-        [
-          0.8927,
-          0.2038
-        ],
-        [
-          0.9008,
-          0.1943
-        ],
-        [
-          0.9049,
-          0.1659
-        ],
-        [
-          0.919,
-          0.1493
-        ],
-        [
-          0.9312,
-          0.1493
-        ],
-        [
-          0.9372,
-          0.1422
-        ],
-        [
-          0.9332,
-          0.1374
-        ],
-        [
-          0.9393,
-          0.1256
+          0.1469
         ],
         [
           0.9555,
-          0.1303
+          0.1374
         ],
         [
-          0.9595,
-          0.1209
-        ],
-        [
-          0.9919,
-          0.1161
-        ],
-        [
-          1.004,
-          0.1209
-        ],
-        [
-          1.0101,
+          0.9717,
           0.128
         ],
         [
-          1.0101,
-          0.1422
-        ],
-        [
-          1.0162,
-          0.1445
-        ],
-        [
-          1.0182,
+          0.9757,
           0.1232
         ],
         [
-          1.0061,
-          0.1137
-        ],
-        [
           1.004,
-          0.1019
-        ],
-        [
-          0.9919,
-          0.0972
+          0.128
         ]
       ],
-      "point_count": 28,
+      "point_count": 8,
       "polyline_id": "p0",
-      "render_role": "diagnostic"
+      "render_role": "render",
+      "structure_coverage": 1.0
+    }
+  ],
+  "sibling_polylines": [
+    {
+      "component_id": "s1",
+      "geometry_kind": "dotted_arc_path",
+      "closed": false,
+      "ordered": true,
+      "dash_count": 3,
+      "points_px": [
+        [
+          645.0,
+          343.0
+        ],
+        [
+          652.0,
+          343.0
+        ],
+        [
+          657.0,
+          341.0
+        ],
+        [
+          659.0,
+          341.0
+        ],
+        [
+          662.0,
+          338.0
+        ],
+        [
+          666.0,
+          334.0
+        ],
+        [
+          667.0,
+          329.0
+        ],
+        [
+          669.0,
+          328.0
+        ]
+      ],
+      "aperture": "image_right",
+      "points_wall_norm": [
+        [
+          -1.0035,
+          0.1121
+        ],
+        [
+          -0.9791,
+          0.1121
+        ],
+        [
+          -0.9616,
+          0.1215
+        ],
+        [
+          -0.9546,
+          0.1215
+        ],
+        [
+          -0.9442,
+          0.1355
+        ],
+        [
+          -0.9302,
+          0.1542
+        ],
+        [
+          -0.9267,
+          0.1776
+        ],
+        [
+          -0.9197,
+          0.1822
+        ]
+      ],
+      "point_count": 8,
+      "polyline_id": "sp0",
+      "render_role": "render",
+      "structure_coverage": 1.0
     }
   ],
   "topology_summary": {
@@ -393,31 +322,28 @@
   },
   "metrics": {
     "core_precision": 1.0,
-    "core_recall": 0.6441,
+    "core_recall": 1.0,
+    "recall_basis": "structure_skeleton",
     "halo_spill": 0.0,
-    "vector_fit_residual_px_p95": 0.0,
+    "vector_fit_residual_px_p95": 0.65,
     "components_detected": 1,
     "components_vectorized": 1,
     "is_dot_only": false,
     "dot_reasons": []
   },
-  "status": "provisional",
-  "selected_aperture_authority_eligible": false,
-  "authority_eligible": false,
-  "status_reasons": [
-    "core_recall_below_threshold:0.644<0.8",
-    "component_reconstruction_incomplete",
-    "sibling_aperture_unaccounted"
-  ],
+  "status": "authority",
+  "selected_aperture_authority_eligible": true,
+  "authority_eligible": true,
+  "status_reasons": [],
   "quality_flags": [
     "out_of_box_geometry"
   ],
-  "render_authority": "core_mask",
+  "render_authority": "vector",
   "geometry_layers": {
     "core_mask": "primary_evidence_authority",
     "raw_debug_vectors": "diagnostic_only",
-    "render_vectors": null,
-    "render_fallback": "core_mask"
+    "render_vectors": "derived_validated",
+    "render_fallback": "none"
   },
   "human_review": {
     "verdict": "pending",

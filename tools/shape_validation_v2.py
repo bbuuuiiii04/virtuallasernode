@@ -23,9 +23,17 @@ def compute_metrics(
     components: list[dict[str, Any]] | None = None,
     r_p: float = R_P,
     r_r: float = R_R,
+    structure_mask: np.ndarray | None = None,
 ) -> dict[str, Any]:
     """
     Compute §15 metrics.
+
+    Precision is always measured against the CORE mask (geometry must lie on
+    core evidence). Recall is measured against the skeleton of
+    `structure_mask` when given — the saturated laser structure that the
+    geometry is required to reconstruct — because the CORE mask of
+    high-exposure captures includes glow whose skeleton is not laser
+    geometry. Without structure_mask, recall uses the CORE skeleton.
 
     Returns dict with keys:
       core_precision, core_recall, halo_spill, vector_fit_residual_px_p95,
@@ -34,8 +42,9 @@ def compute_metrics(
     H, W = core_mask.shape
     geom_pts = sample_geometry_points(polylines, spacing=1.0)
 
-    # Skeleton of CORE mask
-    skel_core = skeletonize(core_mask)
+    # Skeleton of the recall basis (structure if provided, else CORE)
+    recall_mask = structure_mask if structure_mask is not None else core_mask
+    skel_core = skeletonize(recall_mask)
     skel_count = int(np.sum(skel_core))
 
     if not geom_pts:
@@ -147,6 +156,7 @@ def compute_metrics(
     return {
         "core_precision": round(core_precision, 4),
         "core_recall": round(core_recall, 4),
+        "recall_basis": "structure_skeleton" if structure_mask is not None else "core_skeleton",
         "halo_spill": round(halo_spill, 4),
         "vector_fit_residual_px_p95": round(p95, 3),
         "components_detected": 0,
@@ -154,6 +164,35 @@ def compute_metrics(
         "is_dot_only": is_dot_only,
         "dot_reasons": dot_reasons,
     }
+
+
+def component_structure_coverage(
+    polylines: list[dict[str, Any]],
+    structure_mask: np.ndarray,
+    r_r: float = R_R,
+) -> float:
+    """Fraction of the structure skeleton covered within r_r of the geometry.
+
+    Used to decide whether a component's vectors faithfully represent its
+    laser structure (render) or are merely diagnostic traces.
+    """
+    H, W = structure_mask.shape
+    skel = skeletonize(structure_mask)
+    skel_count = int(np.sum(skel))
+    if skel_count == 0:
+        return 1.0
+    geom_pts = sample_geometry_points(polylines, spacing=1.0)
+    if not geom_pts:
+        return 0.0
+    geom_mask = np.zeros((H, W), dtype=bool)
+    for gx, gy in geom_pts:
+        xi, yi = int(round(gx)), int(round(gy))
+        if 0 <= yi < H and 0 <= xi < W:
+            geom_mask[yi, xi] = True
+    r_r_int = max(1, int(np.ceil(r_r)))
+    geom_dilated = dilation(geom_mask, disk(r_r_int))
+    covered = int(np.sum(skel & geom_dilated))
+    return covered / skel_count
 
 
 def compute_authority_gate(

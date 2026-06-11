@@ -90,54 +90,57 @@ def test_sat_floor_catches_white_core():
     assert np.any(core[14:18, 14:18]), "white pixels with min_channel>=sat_floor not in core"
 
 
-def test_compact_blob_peak_contour_fallback():
-    """Compact blob with short skeleton triggers peak_contour fallback.
+def test_compact_blob_with_dash_structure_traces_arc():
+    """Glow-fused blob with saturated dashes inside traces a dotted_arc_path.
 
-    Tests the vectorizer directly: given a compact mask classified as
-    closed_stroke, with a score_map that has internal arc structure,
-    the peak_contour fallback should produce a meaningful contour
-    instead of the uninformative skeleton centerline.
+    Mimics cue_002: the CORE component is a solid blob (white dashes fused
+    with bright red glow), but the saturated structure inside is a dotted
+    arc. The vectorizer must trace one ordered open polyline through ALL
+    dashes — not a tiny partial trace, not the blob outline.
     """
-    from tools.shape_vectorize_v7 import vectorize_component
+    from tools.shape_vectorize_v7 import (
+        extract_structure_submask,
+        vectorize_component,
+    )
 
-    # Create a filled elliptical blob (high solidity, compact)
-    # Use an irregular shape to force skeleton to form a closed cycle
-    mask = np.zeros((128, 128), dtype=bool)
+    H = W = 128
+    img = np.full((H, W, 3), 20, dtype=np.uint8)
     cy, cx = 64, 64
-    for y in range(128):
-        for x in range(128):
-            r = ((y - cy)**2 + (x - cx)**2)**0.5
-            # Irregular radius: ellipse + noise
-            angle = np.arctan2(y - cy, x - cx)
-            radius = 20 + 3 * np.sin(4 * angle) + 2 * np.cos(6 * angle)
-            if r <= radius:
+    # Red glow blob (saturated red, but min-channel stays low)
+    mask = np.zeros((H, W), dtype=bool)
+    for y in range(H):
+        for x in range(W):
+            if ((y - cy) ** 2 + (x - cx) ** 2) ** 0.5 <= 22:
                 mask[y, x] = True
+                img[y, x] = (220, 40, 40)
+    # White dashes along an arc inside the blob
+    dash_centers = [(-14, -10), (-5, -2), (5, 1), (14, -8)]
+    for dx, dy in dash_centers:
+        y0, x0 = cy + dy, cx + dx
+        img[y0 - 1:y0 + 2, x0 - 3:x0 + 4] = (255, 255, 255)
 
-    # Create a score_map with crescent-shaped peak structure
-    score_map = np.zeros((128, 128), dtype=np.float64)
-    for y in range(128):
-        for x in range(128):
-            if mask[y, x]:
-                dist = ((y - cy)**2 + (x - cx)**2)**0.5
-                angle_factor = (x - cx + y - cy) / 20.0
-                score_map[y, x] = max(0, 200 + 50 * angle_factor - dist * 2)
+    score_map = img.astype(np.float64).max(axis=2)
 
-    # Force classification as closed_stroke (matching cue_002's real behavior)
-    polys = vectorize_component(mask, "closed_stroke", score_map, "s0")
-    assert len(polys) >= 1, "No polylines produced for compact blob"
-    
+    structure = extract_structure_submask(mask, img)
+    assert structure.sum() < mask.sum() * 0.3, (
+        "structure submask should isolate dashes, not the whole glow blob"
+    )
+
+    polys = vectorize_component(mask, "closed_stroke", score_map, "s0", img_rgb=img)
     kinds = [p["geometry_kind"] for p in polys]
-    # Should produce peak_contour (compact blob with short skeleton)
-    # or closed_centerline (if skeleton happens to produce good trace)
-    assert "peak_contour" in kinds or "closed_centerline" in kinds, (
-        f"Expected peak_contour or closed_centerline, got {kinds}"
-    )
-    
-    # The resulting polyline must have meaningful geometry (>3 points)
-    best = max(polys, key=lambda p: len(p["points_px"]))
-    assert len(best["points_px"]) > 3, (
-        f"Polyline too few points ({len(best['points_px'])})"
-    )
+    assert kinds == ["dotted_arc_path"], f"Expected one dotted_arc_path, got {kinds}"
+
+    pts = polys[0]["points_px"]
+    assert polys[0]["closed"] is False
+    assert polys[0]["ordered"] is True
+    # The path must pass near EVERY dash (no partial trace)
+    for dx, dy in dash_centers:
+        tx, ty = cx + dx, cy + dy
+        dmin = min(((p[0] - tx) ** 2 + (p[1] - ty) ** 2) ** 0.5 for p in pts)
+        assert dmin <= 4.0, f"arc path misses dash at ({tx},{ty}): min dist {dmin:.1f}"
+    # And it must span the full arc extent, not a fragment
+    xs = [p[0] for p in pts]
+    assert max(xs) - min(xs) >= 24, "arc path is a fragment, not the full dotted arc"
 
 
 def test_rectangle_stays_closed_stroke():
@@ -160,7 +163,7 @@ def test_rectangle_stays_closed_stroke():
     bbox_w = int(xs.max() - xs.min() + 1)
     solidity = area / (bbox_h * bbox_w)
 
-    # Rectangle has low solidity (< 0.65) so peak_contour won't trigger
+    # Rectangle frame: low solidity, classified by its enclosed hole
     assert solidity < 0.65, f"Test setup: solidity {solidity:.3f} should be < 0.65"
 
     comp_class = classify_component(mask)

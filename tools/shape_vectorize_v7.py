@@ -1,4 +1,18 @@
-"""V7 per-component vectorization: dot anchors, closed centerlines, open paths."""
+"""V7 per-component vectorization: dot anchors, rectangles, centerlines, dashed-arc paths.
+
+The vectorizer is structure-aware: within each CORE component it first
+extracts the saturated laser structure (white-hot pixels), which separates
+the true emission pattern from bright glow that the CORE threshold may
+have merged in (glow bridges between shapes, glow halos around dashes).
+Geometry is then derived from that structure:
+
+- compact blob            -> dot_anchor (single weighted centroid)
+- ring (enclosed hole)    -> rect_centerline when a min-area-rect fits the
+                             centerline within tolerance, else closed_centerline
+- >=2 disjoint dashes/dots -> dotted_arc_path: one ordered open polyline
+                             chained through the dash centerlines
+- elongated stroke        -> open_centerline (skeleton trace)
+"""
 
 from __future__ import annotations
 
@@ -10,6 +24,20 @@ from skimage.morphology import skeletonize
 DEFAULT_DP_EPSILON = 0.75
 DEFAULT_MIN_PATH_LEN = 3
 
+# Structure submask extraction
+STRUCTURE_SAT_MIN = 110.0     # below this max(min_ch), comp has no saturated structure
+STRUCTURE_OTSU_CLAMP = (100.0, 200.0)
+STRUCTURE_MIN_PX = 8          # submask smaller than this falls back to full comp
+STRUCTURE_MIN_SUB_PX = 3      # ignore sub-fragments smaller than this
+
+# Rectangle snap: p90 distance of centerline points to fitted rect
+RECT_SNAP_RESIDUAL_P90 = 1.75
+
+# Substructure classification
+RING_HOLE_FRACTION = 0.15
+DASH_MAX_ASPECT = 2.0
+DASH_MAX_AREA = 400
+
 
 def vectorize_component(
     comp_mask: np.ndarray,
@@ -18,18 +46,117 @@ def vectorize_component(
     comp_id: str,
     dp_epsilon: float = DEFAULT_DP_EPSILON,
     min_path_len: int = DEFAULT_MIN_PATH_LEN,
+    img_rgb: np.ndarray | None = None,
+    structure_mask: np.ndarray | None = None,
 ) -> list[dict[str, Any]]:
     """
     Returns list of polyline dicts for one component.
 
     Each dict has keys: geometry_kind, closed, ordered, points_px (list of [x,y]).
+    `structure_mask` (precomputed via extract_structure_submask) avoids
+    recomputing the saturated-structure threshold; when omitted it is derived
+    from img_rgb, or falls back to comp_mask if no image is available.
     """
     if comp_class == "dot":
         return _vectorize_dot(comp_mask, score_map, comp_id)
-    elif comp_class == "closed_stroke":
-        return _vectorize_closed_stroke(comp_mask, comp_id, dp_epsilon, min_path_len, score_map)
+
+    if structure_mask is None:
+        structure_mask = extract_structure_submask(comp_mask, img_rgb)
+
+    subs = _structure_subcomponents(structure_mask, comp_mask)
+    kinds = [_classify_substructure(m) for m in subs]
+
+    polys: list[dict[str, Any]] = []
+    if "ring" not in kinds and len(subs) >= 2:
+        # Disjoint dashes/dots from one emission: a dashed/dotted path.
+        path = _trace_dashed_path(subs, dp_epsilon)
+        if len(path) >= 2:
+            polys.append({
+                "component_id": comp_id,
+                "geometry_kind": "dotted_arc_path",
+                "closed": False,
+                "ordered": True,
+                "dash_count": len(subs),
+                "points_px": path,
+            })
     else:
-        return _vectorize_open_stroke(comp_mask, comp_id, dp_epsilon, min_path_len)
+        for m, k in zip(subs, kinds):
+            if k == "ring":
+                polys.extend(_vectorize_ring(m, comp_id, dp_epsilon, min_path_len))
+            elif k == "dash":
+                polys.extend(_vectorize_dot(m, score_map, comp_id))
+            else:
+                polys.extend(_vectorize_open_stroke(m, comp_id, dp_epsilon, min_path_len))
+
+    if not polys:
+        polys = _vectorize_open_stroke(comp_mask, comp_id, dp_epsilon, min_path_len)
+    return polys
+
+
+def extract_structure_submask(
+    comp_mask: np.ndarray, img_rgb: np.ndarray | None
+) -> np.ndarray:
+    """Saturated laser structure within a CORE component.
+
+    White-hot pixels (high min-channel) mark the actual beam trace; bright
+    colored glow does not saturate all three channels. Threshold is Otsu on
+    min_ch within the component, clamped to STRUCTURE_OTSU_CLAMP. Falls back
+    to the full component when there is no saturated structure (colored
+    low-exposure captures) or the submask is too small to be meaningful.
+    """
+    if img_rgb is None:
+        return comp_mask.copy()
+    min_ch = np.minimum(
+        img_rgb[:, :, 0], np.minimum(img_rgb[:, :, 1], img_rgb[:, :, 2])
+    ).astype(np.float32)
+    vals = min_ch[comp_mask]
+    if len(vals) == 0 or float(vals.max()) < STRUCTURE_SAT_MIN:
+        return comp_mask.copy()
+    try:
+        from skimage.filters import threshold_otsu
+        thresh = float(threshold_otsu(vals))
+    except Exception:
+        thresh = STRUCTURE_OTSU_CLAMP[0]
+    thresh = min(max(thresh, STRUCTURE_OTSU_CLAMP[0]), STRUCTURE_OTSU_CLAMP[1])
+    sub = comp_mask & (min_ch >= thresh)
+    if int(sub.sum()) < STRUCTURE_MIN_PX:
+        return comp_mask.copy()
+    return sub
+
+
+def _structure_subcomponents(
+    structure_mask: np.ndarray, comp_mask: np.ndarray
+) -> list[np.ndarray]:
+    from skimage.measure import label as _label
+    labeled, n = _label(structure_mask, connectivity=2, return_num=True)
+    subs: list[np.ndarray] = []
+    for i in range(1, n + 1):
+        m = labeled == i
+        if int(m.sum()) >= STRUCTURE_MIN_SUB_PX:
+            subs.append(m)
+    if not subs:
+        return [comp_mask]
+    subs.sort(key=lambda m: -int(m.sum()))
+    return subs
+
+
+def _classify_substructure(m: np.ndarray) -> str:
+    """'ring' (encloses a hole), 'dash' (compact), or 'stroke' (elongated)."""
+    from scipy.ndimage import binary_fill_holes
+    ys, xs = np.where(m)
+    area = int(len(ys))
+    if area == 0:
+        return "dash"
+    filled = binary_fill_holes(m)
+    hole_area = int(np.sum(filled)) - area
+    if hole_area > RING_HOLE_FRACTION * area:
+        return "ring"
+    bbox_h = int(ys.max() - ys.min() + 1)
+    bbox_w = int(xs.max() - xs.min() + 1)
+    aspect = max(bbox_h, bbox_w) / max(1, min(bbox_h, bbox_w))
+    if aspect < DASH_MAX_ASPECT and area < DASH_MAX_AREA:
+        return "dash"
+    return "stroke"
 
 
 def _vectorize_dot(comp_mask: np.ndarray, score_map: np.ndarray, comp_id: str) -> list[dict[str, Any]]:
@@ -48,151 +175,199 @@ def _vectorize_dot(comp_mask: np.ndarray, score_map: np.ndarray, comp_id: str) -
     }]
 
 
-def _vectorize_closed_stroke(
-    comp_mask: np.ndarray, comp_id: str, dp_epsilon: float, min_path_len: int,
-    score_map: np.ndarray | None = None,
+def _vectorize_ring(
+    comp_mask: np.ndarray, comp_id: str, dp_epsilon: float, min_path_len: int
 ) -> list[dict[str, Any]]:
+    """Closed stroke enclosing a hole: snap to a rectangle when it fits.
+
+    The raw skeleton of a several-px-thick ring has +-1-2 px staircase
+    wobble; rendering it directly produces squiggly outlines. A min-area
+    rectangle is fitted to the skeleton centerline and, when the p90
+    point-to-rect distance is within RECT_SNAP_RESIDUAL_P90, the clean
+    4-corner rectangle is the render geometry. Non-rectangular rings keep
+    a Douglas-Peucker-simplified closed contour centerline.
+    """
     skel = skeletonize(comp_mask)
-    paths = trace_skeleton_paths(skel, min_path_len=min_path_len)
+    skel_pts = list(map(tuple, np.argwhere(skel)))
 
-    skel_pts = np.sum(skel)
-    # Prefer closed paths; fall back to longest open path
-    # Ignore micro-loops that are tiny relative to the component skeleton
-    closed_paths = [
-        p for p in paths 
-        if len(p) > 2 and _pts_close(p[0], p[-1], tol=2.0)
-        and len(p) >= max(min_path_len, int(skel_pts * 0.05), 8)
-    ]
-    open_paths = [p for p in paths if p not in closed_paths]
-
-    if not closed_paths and open_paths:
-        # Skeleton trace didn't close — use contour of filled component as fallback
-        from scipy.ndimage import binary_fill_holes
-        from skimage.measure import find_contours
-        filled = binary_fill_holes(comp_mask)
-        contours = find_contours(filled.astype(float), 0.5)
-        if contours:
-            longest = max(contours, key=len)
-            path_xy = [[float(pt[1]), float(pt[0])] for pt in longest]
-            path_xy = _douglas_peucker(path_xy, dp_epsilon)
-            if len(path_xy) >= min_path_len:
-                return [{
-                    "component_id": comp_id,
-                    "geometry_kind": "closed_centerline",
-                    "closed": True,
-                    "ordered": True,
-                    "points_px": path_xy,
-                }]
-        # Last resort: use any traced paths
-        if open_paths:
-            best = max(open_paths, key=len)
-            pts = _douglas_peucker([[float(p[1]), float(p[0])] for p in best], dp_epsilon)
+    fit = _fit_rectangle(skel_pts)
+    if fit is not None:
+        corners, residual = fit
+        if residual <= RECT_SNAP_RESIDUAL_P90:
+            pts = [[round(float(corners[i % 4][0]), 2),
+                    round(float(corners[i % 4][1]), 2)] for i in range(5)]
             return [{
                 "component_id": comp_id,
-                "geometry_kind": "closed_centerline",
-                "closed": False,
+                "geometry_kind": "rect_centerline",
+                "closed": True,
                 "ordered": True,
+                "fit_residual_px_p90": round(residual, 3),
                 "points_px": pts,
             }]
-        return []
 
-    results = []
-    for path in (closed_paths if closed_paths else open_paths[:1]):
-        pts = [[float(p[1]), float(p[0])] for p in path]  # (y,x) → [x,y]
-        pts = _douglas_peucker(pts, dp_epsilon)
+    # Not rectangle-like: closed centerline from the skeleton loop, or the
+    # filled-component contour when the skeleton trace does not close.
+    paths = trace_skeleton_paths(skel, min_path_len=min_path_len)
+    closed_paths = [
+        p for p in paths
+        if len(p) > 2 and _pts_close(p[0], p[-1], tol=2.0)
+        and len(p) >= max(min_path_len, int(len(skel_pts) * 0.05), 8)
+    ]
+    if closed_paths:
+        best = max(closed_paths, key=len)
+        pts = _douglas_peucker([[float(p[1]), float(p[0])] for p in best], dp_epsilon)
         if len(pts) >= min_path_len:
-            results.append({
+            return [{
                 "component_id": comp_id,
                 "geometry_kind": "closed_centerline",
                 "closed": True,
                 "ordered": True,
                 "points_px": pts,
-            })
+            }]
 
-    # Peak-contour fallback for compact blobs where the skeleton centerline
-    # is uninformative (e.g. a tiny closed loop inside a filled laser spot).
-    # Instead of tracing the full outer mask boundary (which extends into
-    # the glow), threshold the score_map at p75 within the mask to reveal
-    # the peak-intensity arc/crescent structure inside.
-    if results and score_map is not None:
-        best_pl = max(results, key=lambda r: len(r["points_px"]))
-        best_pts = best_pl["points_px"]
-        path_len = sum(
-            ((best_pts[i][0] - best_pts[i+1][0])**2 + (best_pts[i][1] - best_pts[i+1][1])**2)**0.5
-            for i in range(len(best_pts) - 1)
-        )
-        path_len += ((best_pts[-1][0] - best_pts[0][0])**2 + (best_pts[-1][1] - best_pts[0][1])**2)**0.5
-
-        from skimage.measure import perimeter as _mask_perimeter
-        mask_perim = _mask_perimeter(comp_mask)
-
-        # Only trigger for compact blobs: short skeleton + high solidity
-        ys, xs = np.where(comp_mask)
-        area = len(ys)
-        bbox_h = int(ys.max() - ys.min() + 1)
-        bbox_w = int(xs.max() - xs.min() + 1)
-        solidity = area / max(1, bbox_h * bbox_w)
-
-        if path_len < mask_perim * 0.5 and solidity > 0.65:
-            peak_result = _peak_contour_fallback(
-                comp_mask, score_map, comp_id, dp_epsilon, min_path_len
-            )
-            if peak_result:
-                return peak_result
-
-    return results
-
-
-def _peak_contour_fallback(
-    comp_mask: np.ndarray,
-    score_map: np.ndarray,
-    comp_id: str,
-    dp_epsilon: float,
-    min_path_len: int,
-) -> list[dict[str, Any]]:
-    """Trace contours of peak-intensity pixels within a compact CORE blob.
-
-    For compact blobs where the skeleton produces a tiny uninformative loop,
-    threshold the score_map at p75 within the mask to reveal internal
-    arc/crescent features. Returns the largest contour as a peak_contour
-    polyline, which traces the actual laser pattern rather than the
-    full outer mask boundary (which extends into the glow region).
-    """
+    from scipy.ndimage import binary_fill_holes
     from skimage.measure import find_contours
+    filled = binary_fill_holes(comp_mask)
+    contours = find_contours(filled.astype(float), 0.5)
+    if contours:
+        longest = max(contours, key=len)
+        pts = _douglas_peucker([[float(p[1]), float(p[0])] for p in longest], dp_epsilon)
+        if len(pts) >= min_path_len:
+            return [{
+                "component_id": comp_id,
+                "geometry_kind": "closed_centerline",
+                "closed": True,
+                "ordered": True,
+                "points_px": pts,
+            }]
+    return []
 
-    # Compute p75 threshold of score within this component
-    scores_in_mask = score_map[comp_mask]
-    if len(scores_in_mask) == 0:
+
+def _fit_rectangle(
+    pts_yx: list[tuple[int, int]],
+) -> tuple[np.ndarray, float] | None:
+    """Fit a (rotated) rectangle to centerline points.
+
+    Orientation from the min-area rectangle of the convex hull (rotating
+    calipers); each edge position is then refined as the median coordinate
+    of the points nearest that edge, which centers the fit on the wobbly
+    centerline instead of its outer envelope.
+
+    Returns (corners 4x2 [x, y], residual_p90) or None if degenerate.
+    """
+    if len(pts_yx) < 8:
+        return None
+    pts = np.array([[p[1], p[0]] for p in pts_yx], dtype=np.float64)  # (y,x) -> (x,y)
+    try:
+        from scipy.spatial import ConvexHull
+        hull = ConvexHull(pts)
+    except Exception:
+        return None
+    hp = pts[hull.vertices]
+
+    best_rot: np.ndarray | None = None
+    best_area = None
+    for i in range(len(hp)):
+        edge = hp[(i + 1) % len(hp)] - hp[i]
+        norm = float(np.hypot(edge[0], edge[1]))
+        if norm < 1e-9:
+            continue
+        ux, uy = edge / norm
+        rot = np.array([[ux, uy], [-uy, ux]])
+        rp = hp @ rot.T
+        area = (rp[:, 0].max() - rp[:, 0].min()) * (rp[:, 1].max() - rp[:, 1].min())
+        if best_area is None or area < best_area:
+            best_area = area
+            best_rot = rot
+    if best_rot is None:
+        return None
+
+    rp = pts @ best_rot.T
+    x0, x1 = float(rp[:, 0].min()), float(rp[:, 0].max())
+    y0, y1 = float(rp[:, 1].min()), float(rp[:, 1].max())
+
+    # Median-refine each edge from the points assigned (nearest) to it
+    dists = np.stack([
+        np.abs(rp[:, 0] - x0), np.abs(rp[:, 0] - x1),
+        np.abs(rp[:, 1] - y0), np.abs(rp[:, 1] - y1),
+    ], axis=1)
+    edge_idx = dists.argmin(axis=1)
+
+    def _median_or(sel: np.ndarray, coord: int, fallback: float) -> float:
+        vals = rp[sel, coord]
+        return float(np.median(vals)) if len(vals) >= 2 else fallback
+
+    ex0 = _median_or(edge_idx == 0, 0, x0)
+    ex1 = _median_or(edge_idx == 1, 0, x1)
+    ey0 = _median_or(edge_idx == 2, 1, y0)
+    ey1 = _median_or(edge_idx == 3, 1, y1)
+    if ex1 - ex0 < 2.0 or ey1 - ey0 < 2.0:
+        return None
+
+    corners_rot = np.array([[ex0, ey0], [ex1, ey0], [ex1, ey1], [ex0, ey1]])
+    corners = corners_rot @ best_rot  # inverse of orthonormal rotation
+
+    # Residual: distance of each centerline point to the rect boundary
+    out_dx = np.maximum.reduce([ex0 - rp[:, 0], rp[:, 0] - ex1, np.zeros(len(rp))])
+    out_dy = np.maximum.reduce([ey0 - rp[:, 1], rp[:, 1] - ey1, np.zeros(len(rp))])
+    inside_d = np.minimum(
+        np.minimum(np.abs(rp[:, 0] - ex0), np.abs(rp[:, 0] - ex1)),
+        np.minimum(np.abs(rp[:, 1] - ey0), np.abs(rp[:, 1] - ey1)),
+    )
+    outside = (out_dx > 0) | (out_dy > 0)
+    residuals = np.where(outside, np.hypot(out_dx, out_dy), inside_d)
+    return corners, float(np.percentile(residuals, 90))
+
+
+def _trace_dashed_path(
+    subs: list[np.ndarray], dp_epsilon: float
+) -> list[list[float]]:
+    """Single ordered open polyline through disjoint dash/dot substructures.
+
+    Each dash contributes its skeleton centerline (or centroid when tiny);
+    segments are then chained greedily by nearest endpoints starting from
+    the leftmost segment, reversing segments as needed.
+    """
+    segments: list[list[list[float]]] = []
+    for m in subs:
+        ys, xs = np.where(m)
+        if len(ys) <= 6:
+            segments.append([[float(xs.mean()), float(ys.mean())]])
+            continue
+        skel = skeletonize(m)
+        paths = trace_skeleton_paths(skel, min_path_len=2)
+        if not paths:
+            segments.append([[float(xs.mean()), float(ys.mean())]])
+            continue
+        best = max(paths, key=len)
+        pts = _douglas_peucker([[float(p[1]), float(p[0])] for p in best], dp_epsilon)
+        segments.append(pts)
+
+    segments = [s for s in segments if s]
+    if not segments:
         return []
-    thresh = float(np.percentile(scores_in_mask, 75))
 
-    # Create sub-mask of peak pixels
-    sub_mask = np.zeros_like(comp_mask)
-    sub_mask[comp_mask] = score_map[comp_mask] >= thresh
+    current = min(segments, key=lambda s: min(p[0] for p in s))
+    remaining = [s for s in segments if s is not current]
+    if current[0][0] > current[-1][0]:
+        current = current[::-1]
+    chained: list[list[float]] = list(current)
 
-    if np.sum(sub_mask) < 5:
-        return []
+    while remaining:
+        tail = chained[-1]
+        best_seg = None
+        best_d = None
+        best_rev = False
+        for seg in remaining:
+            d_head = (seg[0][0] - tail[0]) ** 2 + (seg[0][1] - tail[1]) ** 2
+            d_tail = (seg[-1][0] - tail[0]) ** 2 + (seg[-1][1] - tail[1]) ** 2
+            d, rev = (d_head, False) if d_head <= d_tail else (d_tail, True)
+            if best_d is None or d < best_d:
+                best_seg, best_d, best_rev = seg, d, rev
+        remaining.remove(best_seg)
+        chained.extend(best_seg[::-1] if best_rev else best_seg)
 
-    # Trace contours of the sub-mask
-    contours = find_contours(sub_mask.astype(float), 0.5)
-    if not contours:
-        return []
-
-    # Use the longest contour (the main arc feature)
-    longest = max(contours, key=len)
-    pts = [[float(pt[1]), float(pt[0])] for pt in longest]  # (y,x) → [x,y]
-    pts = _douglas_peucker(pts, dp_epsilon)
-
-    if len(pts) < min_path_len:
-        return []
-
-    return [{
-        "component_id": comp_id,
-        "geometry_kind": "peak_contour",
-        "closed": True,
-        "ordered": True,
-        "points_px": pts,
-    }]
+    return [[round(p[0], 2), round(p[1], 2)] for p in chained]
 
 
 def _vectorize_open_stroke(
